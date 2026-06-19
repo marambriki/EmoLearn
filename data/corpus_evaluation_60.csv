@@ -1,0 +1,1228 @@
+clip_id,pattern,template_id,emotion,niveau,contenu,nb_mots,issues,quality_score,ok,n_issues
+2100602056.avi,confusion,A4,frustration,2,"**Compréhension des algorithmes de tri : une approche structurée**
+
+Les algorithmes de tri sont une catégorie de concepts qui peuvent sembler compliqués, mais en réalité, ils reposent sur des principes fondamentaux. Pour clarifier la situation, reprenons les concepts sous-jacents.
+
+**Concept fondamental : la comparaison et l'échange**
+
+Les algorithmes de tri reposent sur deux opérations essentielles : la comparaison et l'échange. Lorsque nous voulons trier une liste de données, nous comparons chaque paire d'éléments et, si nécessaire, nous les échangeons pour les mettre dans l'ordre souhaité. Ce processus est répété jusqu'à ce que la liste soit triée.
+
+**Liens avec ce qui a déjà été compris**
+
+Si vous avez déjà travaillé sur les algorithmes de recherche, vous comprenez la notion de comparaison et d'échange. En fait, les algorithmes de recherche utilisent également la comparaison pour trouver un élément spécifique dans une liste. La différence clé est que les algorithmes de tri utilisent la comparaison pour mettre les éléments dans l'ordre, tandis qu'les algorithmes de recherche utilisent la comparaison pour trouver un élément spécifique.
+
+**Représentation mentale unificatrice**
+
+Imaginez une ligne de personnes attendant pour monter dans un bus. Chaque personne a un numéro de place attribué. Lorsque le bus est vide, les personnes sont dans le bon ordre. Mais si quelqu'un a changé de place, la liste n'est plus triée. Les algorithmes de tri sont comme un système pour remettre les personnes dans l'ordre correct en échangeant les éléments qui sont à la mauvaise place.
+
+**Stratégie d'apprentissage**
+
+Pour apprendre les algorithmes de tri, suivez ces étapes :
+
+1. Pratiquez la comparaison et l'échange en utilisant des exemples simples.
+2. Reconnaissez les liens entre les algorithmes de recherche et de tri.
+3. Utilisez la représentation mentale unificatrice de la ligne de personnes pour comprendre le processus de tri.
+4. Pratiquez plusieurs algorithmes de tri (par exemple, tri par sélection, tri par insertion, tri à bulles) pour comprendre les différences et les similitudes.",318,,100,True,0
+2100602011.avi,confusion,A2,confusion,2,"**Révision des algorithmes de tri**
+
+**Exemple concret : Tri des livres**
+
+Imaginez que vous avez 5 livres à classer par ordre alphabétique. Vous avez les livres suivants :
+
+- L'Elixir de la vie (A)
+- La Comète de l'aube (B)
+- Le Voyageur dans la nuit (C)
+- Le Cœur de la forêt (D)
+- L'Oiseau de feu (E)
+
+**Étape 1 : Comparer deux livres**
+
+Imaginez que vous comparez les deux premiers livres : L'Elixir de la vie (A) et La Comète de l'aube (B). Vous voyez que L'Elixir de la vie commence par ""L"" et La Comète de l'aube commence par ""L"" aussi. Mais ""A"" est avant ""B"" dans l'alphabet.
+
+**Étape 2 : Déplacer les livres**
+
+Vous déplacez La Comète de l'aube après L'Elixir de la vie.
+
+**Étape 3 : Répéter les étapes**
+
+Vous répétez les étapes 1 et 2 pour les autres livres.
+
+**Schéma de tri**
+
+```
+  +---------------+
+  | L'Elixir de la  |
+  |  vie (A)       |
+  +---------------+
+          |
+          |
+          v
+  +---------------+
+  | La Comète de  |
+  |  l'aube (B)    |
+  +---------------+
+          |
+          |
+          v
+  +---------------+
+  | Le Voyageur   |
+  |  dans la nuit (C) |
+  +---------------+
+          |
+          |
+          v
+  +---------------+
+  | Le Cœur de la |
+  |  forêt (D)     |
+  +---------------+
+          |
+          |
+          v
+  +---------------+
+  | L'Oiseau de  |
+  |  feu (E)       |
+  +---------------+
+```
+
+**Résumé**
+
+Les algorithmes de tri sont des séquences d'étapes qui permettent d'organiser des données dans l'ordre souhaité. Dans cet exemple, nous avons utilisé un tri par ordre alphabétique. Les étapes sont les suivantes :
+
+1. Comparer deux éléments
+2. Déplacer les éléments si nécessaire
+3. Répéter les étapes jusqu'à ce que les éléments soient classés.
+
+Ces étapes peuvent être appliquées à différents types de données, comme les nombres, les mots ou les objets.",291,,100,True,0
+1110031021.avi,confusion,A2,boredom,3,"**Micro-explication décomposée : les algorithmes de tri**
+
+**Étape 1 : Un exemple concret simple**
+
+Imaginez que vous avez un classeur avec des cartes de visite en désordre. Vous voulez les trier par ordre alphabétique. Comment procéderiez-vous ?
+
+**Étape 2 : Construire progressivement vers le concept abstrait**
+
+Tout d'abord, vous prenez une carte de visite et la comparez avec les autres. Si elle est en premier, vous la laissez en place. Si elle est après une autre carte, vous la déplacez juste après. Si elle est avant, vous la déplacez juste avant.
+
+**Étape 3 : Utiliser des métaphores visuelles**
+
+Imaginez un tableau avec des cases vides. Chaque case représente une carte de visite. Vous commencez à remplir les cases en suivant l'ordre alphabétique.
+
+```
+  A | B | C | D | E
+  ---------
+  | | | | |
+```
+
+**Étape 4 : Proposer un schéma textuel simple**
+
+Voici un exemple de schéma textuel simple pour l'algorithme de tri par sélection :
+
+```
+  Carte 1 : A
+  Carte 2 : B
+  Carte 3 : C
+
+  Comparer Carte 1 et Carte 2
+  Carte 1 < Carte 2 : déplacer Carte 1 avant Carte 2
+
+  Carte 1 : A
+  Carte 2 : B
+  Carte 3 : C
+
+  Comparer Carte 2 et Carte 3
+  Carte 2 < Carte 3 : déplacer Carte 2 avant Carte 3
+
+  Carte 1 : A
+  Carte 2 : B
+  Carte 3 : C
+```
+
+**Conclusion**
+
+Les algorithmes de tri sont des méthodes pour organiser des données en ordre. L'exemple du classeur avec des cartes de visite vous a permis de comprendre le concept de base. L'algorithme de tri par sélection est un exemple simple de tri qui compare les éléments les uns après les autres pour les déplacer dans l'ordre souhaité.",292,,100,True,0
+2100602056.avi,confusion,A3,frustration,2,"**Ce concept est complexe, c'est normal**
+
+Je sais que les algorithmes de tri peuvent sembler insurmontables, mais ne vous inquiétez pas, nous allons explorer ensemble la clé pour débloquer cette compréhension.
+
+**Le point de blocage probable :**
+
+Je pense que vous vous sentez peut-être coincés sur la notion de ""comparaison"" entre les éléments à trier. Comment savoir quel élément est le plus petit ou le plus grand ? Comment gérer les cas où les éléments sont égaux ?
+
+**Une approche radicalement différente :**
+
+Imaginez que vous êtes sur un marché, et vous devez trier des fruits par taille. Comment feriez-vous ? Vous commenceriez par prendre un fruit, disons une pomme, et vous le comparez avec les autres fruits. Mais attendez, pourquoi ne pas trier les fruits en fonction de leur couleur ou de leur forme ? C'est plus simple, n'est-ce pas ?
+
+**Un mini-exercice guidé :**
+
+Essayez de trier les éléments suivants en fonction de leur couleur :
+
+Bleu, Rouge, Vert, Bleu, Rouge, Vert, Jaune
+
+Commencez par prendre un élément, par exemple, le premier ""Bleu"". Comparez-le avec les autres éléments. Qu'est-ce que vous voyez ? Qu'est-ce que vous faites ensuite ?
+
+Prenez votre temps, et n'hésitez pas à revenir sur ce que vous avez fait si vous avez des questions.",210,,100,True,0
+4110311012.avi,confusion,A1,boredom,2,"**Réformulation du concept de les algorithmes de tri**
+
+Je comprends que vous avez peut-être un peu de mal à suivre le concept de les algorithmes de tri. Ne vous inquiétez pas, c'est tout à fait normal ! Un algorithme de tri est simplement une recette pour mettre de l'ordre dans une liste de données. Imaginez que vous avez une pile de livres dans votre bibliothèque et que vous voulez les ranger par ordre alphabétique. Vous pouvez commencer par prendre le premier livre et le ranger à sa place, puis prendre le deuxième livre et le ranger à sa place, et ainsi de suite.
+
+**Étape 1 : Comparer les éléments**
+Prenez deux éléments de la liste et comparez-les. Si l'un est plus petit que l'autre, vous le mettez à sa place. Si l'un est plus grand, vous le mettez à sa place.
+
+**Étape 2 : Régler les éléments**
+Continuez à comparer et à ranger les éléments de la liste, un par un, jusqu'à ce que tout soit en ordre.
+
+**Étape 3 : Vérifier le résultat**
+Une fois que vous avez terminé, vérifiez que la liste est bien en ordre. Si vous avez fait tout correctement, vous devriez voir que les éléments sont rangés dans l'ordre souhaité.
+
+**Question de vérification de compréhension**
+Pouvez-vous me donner un exemple d'un algorithme de tri que vous pourriez utiliser pour ranger une liste de nombres de 1 à 10 en ordre croissant ?",237,,100,True,0
+1110032037.avi,critique,A3,frustration,3,"Ce concept est complexe, c'est normal. La difficulté à comprendre les algorithmes de tri peut être décourageante, mais ne laissez pas cela vous arrêter. Nous allons explorer ensemble ce qui fait échouer souvent les apprenants.
+
+**Le point de blocage probable :**
+
+Vous avez probablement tenté de comprendre les algorithmes de tri en détaillant les étapes et les conditions de base, mais vous vous sentez pris dans un labyrinthe de règles et de cas d'exception. C'est là que se cache souvent la source de la confusion.
+
+**Une approche radicalement différente :**
+
+Imaginons que vous êtes un programmeur chargé de trier un classement de livres dans une bibliothèque. Vous avez deux livres à placer, l'un avec un titre qui commence par ""A"" et l'autre avec un titre qui commence par ""C"". Comment les placeriez-vous ? Vous les placeriez probablement l'un à côté de l'autre, puisque ""A"" viens avant ""C"". Mais comment le feriez-vous si vous aviez 10 livres à trier ? Vous pourriez utiliser une échelle avec des étiquettes comme ""A"", ""B"", ""C"", etc.
+
+**Un mini-exercice guidé :**
+
+Essayez de trier les mots suivants : ""pomme"", ""banane"", ""orange"", ""poire"", ""fraise"". Imaginez que vous avez une échelle avec des étiquettes ""A"" (aliment commençant par une voyelle), ""B"" (aliment commençant par une consonne), etc. Comment placeriez-vous ces mots sur l'échelle ?",217,,100,True,0
+2100532052.avi,confusion,A1,confusion,2,"**Réussir à comprendre les algorithmes de tri : une explication simple**
+
+Ne vous inquiétez pas si vous avez des difficultés à comprendre les algorithmes de tri. C'est tout à fait normal ! Commençons par reformuler le concept de manière simple.
+
+**Qu'est-ce qu'un algorithme de tri ?**
+
+Un algorithme de tri est une recette pour mettre de l'ordre dans une liste de données. Imaginez que vous avez une pile de livres à ranger dans votre bibliothèque. Vous voulez les classer par ordre alphabétique. Un algorithme de tri est comme une recette pour faire cela de manière efficace.
+
+**3 étapes pour comprendre les algorithmes de tri**
+
+1. **Définir l'ordre**: Déterminez comment vous voulez classer les données. Dans notre exemple, c'est par ordre alphabétique.
+2. **Comparer les données**: Prenez deux éléments de la liste et comparez-les pour déterminer qui vient en premier.
+3. **Ranger les données**: Une fois que vous avez décidé de l'ordre, mettez les données dans la bonne position.
+
+**Vérifiez votre compréhension**
+
+Pouvez-vous me donner un exemple d'un algorithme de tri simple, comme celui que nous avons utilisé pour ranger les livres dans la bibliothèque ?",185,,100,True,0
+4110211080.avi,critique,A1,frustration,2,"Ne t'inquiète pas, je vais t'aider à comprendre les algorithmes de tri de manière simple et claire.
+
+Imagine que tu as un placard rempli de vêtements et que tu veux les ranger par couleur. Il y a plusieurs façons de procéder, mais je vais te montrer une méthode simple.
+
+**Étape 1 : Sélectionner la première veste**
+Prends une veste au hasard et décide si elle est rouge, bleue ou verte. C'est comme mettre une étiquette sur la veste pour la ranger avec les autres de la même couleur.
+
+**Étape 2 : Ranger les vestes par couleur**
+Si la veste est rouge, pose-la avec les autres robes rouges. Si elle est bleue, pose-la avec les autres robes bleues, etc.
+
+**Étape 3 : Répéter le processus**
+Continue à prendre des vestes au hasard et à les ranger par couleur jusqu'à ce que tout le placard soit organisé.
+
+Voilà ! C'est comme ça que fonctionnent les algorithmes de tri. Il y a plusieurs méthodes, mais la principale est de prendre une élément, de le classifier et de le ranger avec les autres de la même catégorie.
+
+Pouvez-vous me dire comment fonctionne l'algorithme de tri que j'ai décrit ?",195,,100,True,0
+3344630282.avi,confusion,A3,frustration,3,"**Ce concept est complexe, c'est normal**
+
+Je comprends que les algorithmes de tri peuvent sembler abrutissants, surtout lorsque vous êtes sur le point de les maîtriser. Mais ne vous inquiétez pas, nous allons y aller ensemble ! Le point de blocage probable est souvent le fait de comprendre comment les algorithmes de tri fonctionnent réellement, plutôt que de simplement les appliquer.
+
+**La clé de la compréhension réside dans la visualisation**
+
+Imaginez que vous avez un classeur rempli de dossiers à classer par ordre alphabétique. Comment procéderiez-vous ? Vous seriez peut-être en train de comparer les noms des dossiers l'un après l'autre, et de les classer en conséquence. Mais qu'est-ce qui se passerait si vous deviez classer un classeur contenant des milliers de dossiers ? Il serait difficile de faire cela de manière manuelle !
+
+**Une approche visuelle pour mieux comprendre**
+
+Imaginez maintenant que vous avez un tableau de bord où vous pouvez visualiser les dossiers à classer. Vous pouvez voir les noms des dossiers, leurs positions actuelles et les positions où ils doivent être déplacés. C'est exactement comme cela que fonctionnent les algorithmes de tri ! Ils utilisent des techniques de comparaison et de déplacement pour classer les données de manière efficace.
+
+**Essayons maintenant un mini-exercice guidé**
+
+Voici un exemple simple :
+
+Supposons que vous ayez un classeur avec les dossiers suivants :
+- A
+- B
+- C
+- D
+
+Si vous voulez trier ces dossiers par ordre alphabétique, comment procéderiez-vous ? 
+
+(Pensez à utiliser la technique de comparaison et de déplacement que nous avons discutée précédemment.)",258,,100,True,0
+4110311012.avi,confusion,A3,confusion,2,"**Aide de déblocage**
+
+Ce concept est complexe, c'est normal ! Ne vous inquiétez pas, nous allons y arriver ensemble.
+
+Je me rends compte que vous avez du mal à comprendre comment les algorithmes de tri fonctionnent. Le point de blocage probable est la manière dont les algorithmes traitent les éléments de la liste. Vous vous demandez peut-être comment ils s'organisent et comment ils parviennent à trier les données de manière efficace.
+
+Voici une approche différente : imaginez un éditeur de texte où vous devez organiser les mots d'un texte par ordre alphabétique. Vous pouvez visualiser le processus de tri comme si vous déplaçiez les mots dans un ordre logique, pas comme si vous utilisiez des formules mathématiques complexes.
+
+Essayons maintenant d'appliquer cette approche à un exemple simple. Supposons que nous ayons une liste de mots : ""tarte"", ""poire"", ""pomme"", ""trou"". Nous voulons les trier par ordre alphabétique. Puis-je vous demander de les trier en les déplaçant dans l'ordre logique ?
+
+1. Désignez le mot ""tarte"" et expliquez pourquoi il devrait être en premier.
+2. Quel est le mot suivant qui devrait être déplacé pour que l'ordre soit correct ?",189,,100,True,0
+3344630282.avi,confusion,A2,frustration,3,"**Exemple concret : Classer des livres sur une étagère**
+
+Imaginez que vous avez une étagère avec des livres de différentes tailles. Vous voulez les classer par taille, les plus grands en bas et les plus petits en haut.
+
+**Étape 1 : Comparer deux livres**
+
+Pour commencer, vous comparez deux livres, par exemple, un grand et un petit. Vous pouvez décider que le grand est plus grand que le petit.
+
+**Étape 2 : Classer les livres**
+
+Vous utilisez cette comparaison pour classer les livres. Vous placez le grand en bas et le petit en haut.
+
+**Étape 3 : Répéter l'opération**
+
+Vous répétez cette opération avec les livres restants, en comparant chaque livre avec les autres et en les classant.
+
+**Schéma de base d'un algorithme de tri**
+
+```ascii
++-----------+
+| Livre 1  | (comparaison)
++-----------+
+| Livre 2  | (comparaison)
+| Livre 3  | (comparaison)
+...
++-----------+
+```
+L'algorithme de tri consiste à répéter cette comparaison et cette classification pour tous les éléments de la liste.",164,,100,True,0
+2100602011.avi,confusion,A1,boredom,2,"**Réussir les algorithmes de tri : un concept simple et concret**
+
+Je comprends que vous ressentez un peu de confusion sur les algorithmes de tri. Ne vous inquiétez pas, nous allons reformuler le concept de manière simple et utiliser une analogie pour vous aider à mieux comprendre.
+
+**Qu'est-ce qu'un algorithme de tri ?**
+
+Un algorithme de tri est une méthode qui permet d'organiser une liste de données dans un ordre spécifique, comme par exemple trier une liste de nombres de manière croissante ou décroissante.
+
+**Analogie : Trier des livres sur une étagère**
+
+Imaginez que vous avez une étagère remplie de livres et que vous voulez les trier par ordre alphabétique. Vous pouvez commencer par prendre un livre et le placer sur l'étagère, puis prendre le prochain livre et le placer à côté du premier, en vérifiant si son titre commence par une lettre qui est avant ou après celle du premier livre. Vous continuez ce processus jusqu'à ce que tous les livres soient triés.
+
+**3 étapes claires pour trier une liste de données**
+
+1. **Définir la règle de tri** : déterminez comment vous voulez trier les données, par exemple par ordre croissant ou décroissant.
+2. **Comparer les données** : prenez deux données et comparez-les en fonction de la règle de tri définie.
+3. **Placer les données dans l'ordre** : placez les données dans l'ordre correct en fonction de la comparaison effectuée.
+
+**Question de vérification de compréhension**
+
+Pouvez-vous me donner un exemple d'un algorithme de tri simple que vous pourriez utiliser pour trier une liste de nombres de manière croissante ?",260,,100,True,0
+2100602011.avi,confusion,A4,confusion,2,"**Compréhension des algorithmes de tri : un concept fondamental**
+
+L'apprenant a déjà abordé des concepts similaires, tels que les structures de données (listes, tableaux, etc.) et les opérations de manipulation de données (insertion, suppression, etc.). Pour aborder les algorithmes de tri, il est essentiel de comprendre les principes sous-jacents qui les régissent.
+
+**Concept fondamental : le tri comme résolution d'un problème de recherche**
+
+Un algorithme de tri est en réalité une résolution d'un problème de recherche, où l'on cherche à organiser les éléments d'un ensemble dans un ordre spécifique (par exemple, par ordre croissant ou décroissant). Ce problème de recherche est caractérisé par une recherche exhaustive de tous les éléments de l'ensemble.
+
+**Représentation mentale unificatrice : la ""machine à tri""**
+
+Imaginez une ""machine à tri"" qui prend un ensemble de données comme entrée et produit un ensemble de données triées comme sortie. Cette machine à tri est alimentée par un flux de données et produit un résultat qui correspond à l'ordre souhaité. Les différents algorithmes de tri peuvent être vus comme des modèles de fonctionnement de cette machine à tri, chacun utilisant une stratégie différente pour résoudre le problème de recherche.
+
+**Stratégie d'apprentissage**
+
+Pour apprendre les algorithmes de tri, je vous conseille de suivre ces étapes :
+
+1. Commencez par comprendre les principes sous-jacents du tri, en utilisant des exemples concrets.
+2. Apprenez les différents algorithmes de tri (par exemple, tri à bulles, tri rapide, tri insertion, etc.) et comprenez leurs stratégies de fonctionnement.
+3. Utilisez des visualisations pour aider à comprendre comment les algorithmes de tri fonctionnent.
+4. Appliquez les algorithmes de tri à des exemples réels pour renforcer votre compréhension.
+5. Examinez les complexités d'ordonnancement et les performances des différents algorithmes de tri pour en comprendre les implications pratiques.",291,,100,True,0
+3100752037.avi,engagement_faible,B3,boredom,2,"**Passons à la pratique !**
+
+Après cette section théorique sur les algorithmes de tri, il est temps de mettre en pratique ce que nous avons appris. Voici un mini-projet qui vous aidera à mieux comprendre les concepts.
+
+**Mini-projet : Tri d'une liste de films**
+
+Imaginez que vous êtes chargé de trier une liste de films dans une bibliothèque. La liste est la suivante :
+
+- Film 1 : ""Harry Potter et la Coupe de Feu"" (2005)
+- Film 2 : ""Le Seigneur des Anneaux : Le Retour du Roi"" (2003)
+- Film 3 : ""Star Wars : L'Empire Contre-attaque"" (1980)
+- Film 4 : ""Le Choc des Titans"" (2010)
+- Film 5 : ""La Planète des Singes"" (1968)
+
+Votre tâche est de trier cette liste par ordre chronologique de sortie des films.
+
+**Étapes de travail :**
+
+1. Créez une liste de films en Python (ou dans votre langage de programmation préféré) avec les caractéristiques suivantes :
+ - Nom du film
+ - Année de sortie
+
+2. Implémentez l'algorithme de tri choisi (par exemple, tri bulle, tri sélection, tri insertion) pour trier la liste de films par ordre chronologique.
+
+3. Affichez la liste de films triée.
+
+**Résultat attendu :**
+
+La liste de films triée par ordre chronologique de sortie devrait ressembler à ceci :
+
+- Film 5 : ""La Planète des Singes"" (1968)
+- Film 3 : ""Star Wars : L'Empire Contre-attaque"" (1980)
+- Film 2 : ""Le Seigneur des Anneaux : Le Retour du Roi"" (2003)
+- Film 1 : ""Harry Potter et la Coupe de Feu"" (2005)
+- Film 4 : ""Le Choc des Titans"" (2010)
+
+**Variation à explorer :**
+
+Essayez de trier la liste de films en fonction d'un critère différent, tel que le nom du film (en ordre alphabétique) ou la catégorie du film (par exemple, film de science-fiction, film d'aventure, etc.).",304,,100,True,0
+3100821033.avi,engagement_faible,B3,engagement,0,"**Étape 1 : Découvrez le problème réel**
+
+Imaginez que vous êtes le responsable de la gestion de la bibliothèque d'une école. Vous avez la tâche de trier les livres par auteur pour les réorganiser efficacement. Mais comment pouvez-vous faire cela de manière efficace ?
+
+**Étape 2 : Choisissez un algorithme de tri**
+
+Vous avez plusieurs options pour trier les livres : le tri par sélection, le tri par insertion, le tri à bulle, le tri rapide, le tri fusion, le tri par mémoire... Choisissez l'un d'entre eux et expliquez pourquoi.
+
+**Étape 3 : Développez la solution**
+
+Écrivez un code en Python qui implémente l'algorithme choisi. Vous pouvez utiliser une liste de tuples pour représenter les livres, où chaque tuple contient le nom de l'auteur et le titre du livre. Par exemple :
+
+```python
+livres = [('Jules Verne', 'Vingt mille lieues sous les mers'), ('Jules Verne', 'Le Tour du monde en quatre-vingts jours'), ('Marie Curie', 'Mémoires')]
+
+# Implémentation du tri rapide
+def tri_rapide(livres):
+    if len(livres) <= 1:
+        return livres
+    pivot = livres[len(livres) // 2]
+    gauche = [livre for livre in livres if livre[0] < pivot[0]]
+    droite = [livre for livre in livres if livre[0] >= pivot[0]]
+    return tri_rapide(gauche) + [pivot] + tri_rapide(droite)
+
+livres_triés = tri_rapide(livres)
+print(livres_triés)
+```
+
+**Étape 4 : Visualisez le résultat**
+
+Lorsque vous exécutez le code, vous devriez voir la liste des livres triés par auteur.
+
+**Variation à explorer**
+
+Essayez de trier les livres par titre au lieu de par auteur. Vous pouvez modifier le code pour que l'algorithme de tri utilise la deuxième entrée du tuple (le titre du livre) à la place de la première (l'auteur). Comment cela affecte-t-il la performance du tri ?",277,,100,True,0
+1100151042.avi,ennui_eleve,B1,boredom,2,"**La situation :**
+
+Vous êtes le responsable de la logistique dans une entreprise de livraison de colis. Vous avez reçu un nouveau lot de colis de différentes tailles et poids, qui doivent être triés et chargés dans les camions pour être livrés à leurs destinataires.
+
+**Le problème :**
+
+Les colis sont mélangés et il est difficile de les charger de manière efficace. Si les colis les plus lourds sont chargés en premier, les camions risquent de dépasser la limite de poids autorisée, ce qui entraînerait des pénalités et des retards de livraison. Au contraire, si les colis les plus légers sont chargés en premier, les camions pourraient ne pas être chargés à la capacité maximale.
+
+**Les algorithmes de tri :**
+
+Les algorithmes de tri peuvent aider à résoudre ce problème en triant les colis en fonction de leur poids ou de leur taille. Par exemple, vous pouvez utiliser l'algorithme de tri à bulles (Bubble Sort) ou l'algorithme de tri rapide (Quick Sort) pour trier les colis en fonction de leur poids.
+
+**L'exemple concret :**
+
+Supposons que vous ayez 10 colis avec les poids suivants :
+
+- Colis 1 : 5 kg
+- Colis 2 : 10 kg
+- Colis 3 : 3 kg
+- Colis 4 : 8 kg
+- Colis 5 : 12 kg
+- Colis 6 : 2 kg
+- Colis 7 : 9 kg
+- Colis 8 : 11 kg
+- Colis 9 : 4 kg
+- Colis 10 : 6 kg
+
+En utilisant l'algorithme de tri à bulles, vous pouvez trier les colis par ordre croissant de poids :
+
+- Colis 6 : 2 kg
+- Colis 9 : 4 kg
+- Colis 3 : 3 kg
+- Colis 1 : 5 kg
+- Colis 10 : 6 kg
+- Colis 4 : 8 kg
+- Colis 7 : 9 kg
+- Colis 2 : 10 kg
+- Colis 8 : 11 kg
+- Colis 5 : 12 kg
+
+**Et dans votre quotidien, où pourriez-vous utiliser cela ?**
+
+Vous pourriez utiliser les algorithmes de tri pour trier vos livres, vos vêtements ou vos objets de ménage en fonction de leur taille ou de leur poids. Vous pourriez également utiliser cela pour trier vos factures, vos courriels ou vos documents en fonction de leur date ou de leur importance. Les algorithmes de tri sont",387,,100,True,0
+3100692022.avi,ennui_eleve,B4,boredom,2,"**Exemple d'application réelle : Traitement de données de santé**
+
+Dans le domaine de la santé, les algorithmes de tri sont cruciaux pour analyser et trier les données médicales pour aider les professionnels de santé à prendre des décisions éclairées. Chaque jour, les hôpitaux et les centres de santé génèrent des quantités massives de données sur les patients, y compris les résultats de tests de laboratoire, les antécédents médicaux et les traitements administrés.
+
+**Comment les algorithmes de tri sont utilisés ?**
+
+Les algorithmes de tri sont utilisés pour trier et organiser ces données pour faciliter l'accès aux informations pertinentes. Par exemple, un hôpital peut utiliser un algorithme de tri pour classer les patients selon leur état de santé, leur âge ou leur sexe. Cela permet aux professionnels de santé de prendre des décisions éclairées sur les traitements à administrer, les médicaments à prescrire et les soins à fournir.
+
+**Exemple d'entreprise/projet réel : IBM Watson for Oncology**
+
+IBM Watson for Oncology est un système d'intelligence artificielle qui utilise des algorithmes de tri pour analyser des milliers de données médicales pour aider les oncologues à prendre des décisions éclairées sur les traitements à administrer aux patients atteints de cancer. Le système utilise des algorithmes de tri pour classer les patients selon leur type de cancer, leur état de santé et leur historique médical pour fournir des recommandations personnalisées.
+
+**Compétences professionnelles associées**
+
+* Conception et mise en œuvre d'algorithmes de tri pour analyser et trier des données de santé
+* Développement de systèmes d'intelligence artificielle pour prendre des décisions éclairées
+* Analyse et interprétation de données médicales pour prendre des décisions éclairées
+* Communication avec les professionnels de santé pour comprendre les besoins et les exigences de l'équipe soignante
+
+En résumé, les algorithmes de tri sont cruciaux dans le domaine de la santé pour analyser et trier les données médicales pour aider les professionnels de santé à prendre des décisions éclairées. Les entreprises comme IBM utilisent ces algorithmes pour développer des systèmes d'intelligence artificielle qui peuvent prendre des décisions éclairées pour les patients. Les compétences professionnelles associées comprennent la conception et la mise en œuvre d'algorithmes de tri, le développement de systèmes d'intelligence artificielle et l'analyse et l'interprétation de données médicales.",367,,100,True,0
+2100571023.avi,engagement_faible,B3,boredom,2,"**Passons à la pratique !**
+
+Maintenant que vous avez compris les algorithmes de tri théoriquement, il est temps de les mettre en pratique ! Étudions un exemple concrètement : **Tri d'une liste de films par ordre alphabétique**.
+
+**Projet :**
+
+1. Créez une liste de 10 films (par exemple : ""La vie est belle"", ""Le Seigneur des anneaux"", ""Le Chat Potté"", etc.).
+2. Utilisez un langage de programmation (par exemple : Python) pour créer une fonction de tri qui utilise l'algorithme de tri d'ordre dite.
+3. Appelez la fonction avec votre liste de films et imprimez le résultat.
+
+**Résultat attendu :**
+
+La liste de films sera triée par ordre alphabétique. Par exemple :
+
+- ""La vie est belle""
+- ""Le Chat Potté""
+- ""Le Seigneur des anneaux""
+- ...
+
+**Variation à explorer :**
+
+Essayez de trier la liste de films en utilisant un autre algorithme de tri, comme l'algorithme de tri par sélection (Selection Sort). Comment la performance du tri change-t-elle ?",161,,100,True,0
+3100821052.avi,engagement_faible,B2,engagement,0,"**Le mystère des algorithmes de tri dans les catastrophes naturelles**
+
+Imaginez-vous en pleine tempête de sable, dans le désert du Sahara. Les vents soufflent à plus de 100 km/h, emportant tout sur leur passage. Mais quelles sont les conséquences de ces tempêtes sur les routes et les infrastructures routières ? 
+
+Les ingénieurs de la direction des routes au Maroc ont découvert que les algorithmes de tri, habituellement utilisés pour organiser des données, pouvaient aider à améliorer la sécurité routière en cas de tempête de sable. Comment ? 
+
+En effet, ces algorithmes peuvent analyser les données météorologiques et les vidéos de webcams routières pour prédire les zones les plus exposées aux tempêtes. Ils peuvent ensuite classer les routes en fonction de leur vulnérabilité, ce qui permet aux équipes de secours de se concentrer sur les zones les plus à risque.
+
+**Essayez de prédire...**
+
+Vous êtes chargé de développer un système de prédiction des tempêtes de sable basé sur les algorithmes de tri. Vous avez accès à des données météorologiques historiques et à des vidéos de webcams routières. Essayez de prédire les 5 zones les plus exposées aux tempêtes de sable pour le prochain week-end. Quels algorithmes de tri utiliserez-vous pour résoudre ce problème ? Comment allez-vous évaluer l'efficacité de votre système ?",211,,100,True,0
+2100572036.avi,ennui_eleve,B1,boredom,2,"**Le cas de l'application de l'algorithme de tri dans le domaine de la logistique**
+
+Imaginez que vous êtes le responsable de la logistique d'une grande entreprise de livraison de colis. Vous avez reçu une commande importante de 500 colis qui doivent être expédiés à différents endroits de la ville. Les colis sont stockés dans un entrepôt et doivent être triés et classés par zone géographique avant d'être expédiés.
+
+**Le problème**
+
+Les colis sont stockés de manière aléatoire dans le entrepôt et il faut trouver une façon efficace de trier et de classer les colis pour réduire les temps de livraison. Si l'on utilise un tri manuel, cela pourrait prendre plusieurs heures, voire des jours, ce qui est inacceptable pour une entreprise qui vise à offrir un service de haute qualité.
+
+**L'algorithme de tri à la rescousse**
+
+L'algorithme de tri rapide (QuickSort) peut être utilisé pour trier les colis de manière efficace. En quelques minutes, il peut trier les 500 colis et les classer par zone géographique. Cela permet de réduire le temps de livraison et d'améliorer la satisfaction des clients.
+
+**Et dans votre quotidien, où pourriez-vous utiliser cela ?**
+
+Et vous, où pourriez-vous utiliser un algorithme de tri dans votre quotidien ? Peut-être pour organiser vos fichiers de manière plus efficace, ou pour trier vos emails par priorité ? L'algorithme de tri est une notion fondamentale en informatique qui peut être utilisée dans de nombreux domaines.",236,,100,True,0
+3100821052.avi,engagement_faible,B3,engagement,0,"**Passons à la pratique !**
+
+Maintenant que vous avez compris les principes des algorithmes de tri, il est temps de mettre en pratique vos connaissances ! Nous allons travailler sur un mini-projet qui consiste à trier les albums d'une bibliothèque virtuelle.
+
+**Étape 1 : Créer une bibliothèque virtuelle**
+
+Créez un tableau de 5 éléments représentant les albums de votre bibliothèque virtuelle, chacun avec un nom et un auteur. Par exemple :
+
+| Nom | Auteur |
+| --- | --- |
+| ""Harry Potter"" | J.K. Rowling |
+| ""Les Misérables"" | Victor Hugo |
+| ""Le Seigneur des Anneaux"" | J.R.R. Tolkien |
+| ""La Reine des Neiges"" | Hans Christian Andersen |
+| ""Le Petit Chaperon rouge"" | Charles Perrault |
+
+**Étape 2 : Développer un algorithme de tri**
+
+Utilisez l'algorithme de tri que vous avez appris pour classer les albums par ordre alphabétique. Vous pouvez utiliser un langage de programmation de votre choix pour implémenter l'algorithme.
+
+**Résultat attendu**
+
+Après avoir exécuté l'algorithme, votre tableau devrait ressembler à ceci :
+
+| Nom | Auteur |
+| --- | --- |
+| ""Harry Potter"" | J.K. Rowling |
+| ""Le Petit Chaperon rouge"" | Charles Perrault |
+| ""Le Seigneur des Anneaux"" | J.R.R. Tolkien |
+| ""Les Misérables"" | Victor Hugo |
+| ""La Reine des Neiges"" | Hans Christian Andersen |
+
+**Variation à explorer**
+
+Essayez de trier les albums par ordre alphabétique inverse en modifiant légèrement votre algorithme. Quelles différences observez-vous entre les deux résultats ?",249,,100,True,0
+1100051016.avi,engagement_faible,B3,confusion,2,"**Passons à la pratique !**
+
+Maintenant que nous avons compris les algorithmes de tri, il est temps de les mettre en pratique. Pour cela, nous allons créer un mini-projet simple : **Tri de la liste des albums musicaux du groupe ""Les Rolling Stones""**.
+
+**Étape 1 : Création d'une liste de 10 albums**
+
+* Créez une liste de 10 albums musicaux du groupe ""Les Rolling Stones"" avec leurs titres et années de sortie.
+* Voici un exemple de liste :
+ 1. ""Beggars Banquet"" (1968)
+ 2. ""Let It Bleed"" (1969)
+ 3. ""Sticky Fingers"" (1971)
+ 4. ""Exile on Main St."" (1972)
+ 5. ""Goats Head Soup"" (1973)
+ 6. ""It's Only Rock 'n Roll"" (1974)
+ 7. ""Made in the Shade"" (1975)
+ 8. ""Black and Blue"" (1976)
+ 9. ""Some Girls"" (1978)
+ 10. ""Emotional Rescue"" (1980)
+
+**Étape 2 : Implémentation de l'algorithme de tri**
+
+* Choisissez un algorithme de tri (par exemple, Bubble Sort, Selection Sort, Insertion Sort, etc.).
+* Implémentez l'algorithme de tri pour trier la liste des albums musicaux du groupe ""Les Rolling Stones"" en fonction de l'année de sortie.
+
+**Étape 3 : Affichage du résultat**
+
+* Affichez la liste des albums musicaux du groupe ""Les Rolling Stones"" triés par année de sortie.
+
+**Résultat attendu**
+
+* La liste des albums musicaux du groupe ""Les Rolling Stones"" devrait être triée en fonction de l'année de sortie.
+
+**Variation à explorer**
+
+* Essayez de trier la liste des albums musicaux du groupe ""Les Rolling Stones"" en fonction du titre de l'album.
+* Pensez à implémenter un algorithme de tri plus efficace (par exemple, QuickSort, Merge Sort, etc.).",259,,100,True,0
+2100582002.avi,ennui_eleve,B4,boredom,2,"**Exemple d'application réelle : Intelligence Artificielle et traitement de données médicales**
+
+Dans le domaine de l'intelligence artificielle, les algorithmes de tri jouent un rôle crucial dans le traitement de données médicales. En effet, les hôpitaux et les établissements de santé génèrent des quantités énormes de données, notamment des images médicales (IRM, scanner, etc.), des dossiers de patients et des résultats de tests.
+
+**Comment les algorithmes de tri sont crucial dans ce contexte ?**
+
+Les algorithmes de tri permettent de trier et de classer ces données de manière efficace, ce qui est essentiel pour les médecins et les chercheurs qui doivent analyser et interpréter ces informations pour diagnostiquer et traiter les patients. Grâce aux algorithmes de tri, les données sont classées selon des critères tels que la gravité de la maladie, l'âge du patient, le sexe, etc. Cela permet d'identifier les patients à risque élevé et de leur appliquer des traitements ciblés.
+
+**Exemple d'entreprise/projet qui utilise les algorithmes de tri :**
+
+* IBM Watson for Oncology : un système d'intelligence artificielle qui utilise des algorithmes de tri pour analyser les données médicales de patients atteints de cancer. Watson for Oncology permet aux médecins de diagnostiquer et de traiter les patients de manière plus précise et personnalisée.
+
+**Compétences professionnelles associées :**
+
+* Analyse et traitement de données
+* Programmation de langages de programmation tels que Python ou R
+* Connaissance des algorithmes de tri (tri à bulle, tri par insertion, tri rapide, etc.)
+* Connaissance des bases de données et des systèmes d'information
+* Compétences en intelligence artificielle et machine learning
+
+En tant que professionnel dans le domaine de la pédagogie et de l'ingénierie de formation, j'encourage les étudiants à explorer ce domaine fascinant et à développer leurs compétences en algorithmes de tri pour contribuer à améliorer la santé et la qualité de vie des patients.",304,,100,True,0
+1100062072.avi,ennui_eleve,B4,frustration,2,"**L'exemple d'application réelle : la santé**
+
+**Domaine d'application** : Analyse de données médicales pour améliorer les soins de santé
+
+**Comment les algorithmes de tri sont cruciaux** : Les algorithmes de tri sont essentiels pour analyser les grandes quantités de données médicales, telles que les dossiers de patients, les résultats de tests, les médicaments prescrits, etc. Ils permettent de classer ces données par ordre d'importance, par date, par type de maladie, etc. Cela permet aux professionnels de la santé de prendre des décisions éclairées et de fournir des soins de qualité.
+
+**Entreprise qui l'utilise** : IBM Watson for Oncology, un système d'intelligence artificielle qui utilise des algorithmes de tri pour analyser les données médicales de patients atteints de cancer. Ce système aide les médecins à identifier les meilleurs traitements pour leurs patients en fonction de leurs données médicales.
+
+**Compétences professionnelles associées** :
+
+* Analyser et traiter de grandes quantités de données
+* Utiliser des algorithmes de tri pour classer les données
+* Fournir des conseils éclairés aux professionnels de la santé
+* Développer des systèmes d'intelligence artificielle pour l'analyse médicale
+
+**Compétences techniques associées** :
+
+* Connaissance des algorithmes de tri (par exemple, QuickSort, MergeSort)
+* Connaissance des langages de programmation (par exemple, Python, Java)
+* Connaissance des bases de données pour stocker et analyser les données médicales
+
+En résumé, les algorithmes de tri sont cruciaux pour l'analyse de données médicales et l'amélioration des soins de santé. Les professionnels de la santé qui utilisent ces algorithmes peuvent prendre des décisions éclairées et fournir des soins de qualité. Les entreprises telles que IBM utilisent ces algorithmes pour développer des systèmes d'intelligence artificielle pour l'analyse médicale.",272,,100,True,0
+4110212036.avi,ennui_eleve,B1,confusion,2,"L'ennui, c'est souvent le signal que notre cerveau a besoin de quelque chose de plus concret et de plus passionnant !
+
+Imaginez que vous êtes responsable de la logistique d'une grande entreprise de livraison de colis. Vous avez reçu un nouveau lot de colis provenant d'un centre de distribution, et ils doivent être triés et remisés dans les étagères en fonction de leur destination géographique. Le problème, c'est que les colis sont arrivés dans un ordre aléatoire, et il faut les trier pour éviter les retards et les coûts supplémentaires de livraison.
+
+Voilà où les algorithmes de tri entrent en jeu ! Un algorithme de tri peut classer les colis en fonction de leur destination géographique, en utilisant des critères tels que la ville, le code postal, etc. Par exemple, si nous avons 500 colis à trier, un algorithme de tri peut les classer en quelques secondes, comme suit :
+
+- 150 colis pour Paris
+- 120 colis pour Lyon
+- 80 colis pour Bordeaux
+- 50 colis pour Marseille
+- 100 colis pour d'autres villes
+
+Et dans votre quotidien, où pourriez-vous utiliser cela ? Lorsque vous organisez votre armoire ou votre bibliothèque, un algorithme de tri peut vous aider à classer vos vêtements ou vos livres de manière efficace et rapide !",213,,100,True,0
+1100062072.avi,ennui_eleve,B1,frustration,2,"**La situation :**
+
+Imaginez que vous êtes le responsable du service informatique d'un grand hôtel. Chaque jour, des centaines de clients arrivent et repartent. Les chambres sont réparties dans différents bâtiments et les clients ont préféré des chambres dans un même bâtiment. Cela vous oblige à reorganiser les chambres pour que les clients soient proches les uns des autres. Cela signifie que vous devez trier les chambres par bâtiment.
+
+**L'algorithme de tri :**
+
+L'algorithme de tri peut résoudre ce problème en triant les chambres par bâtiment. Par exemple, si vous avez 500 chambres et que 300 d'entre elles sont dans le bâtiment A, 150 dans le bâtiment B et 50 dans le bâtiment C, l'algorithme de tri peut organiser les chambres comme suit :
+
+Bâtiment A : 300 chambres
+Bâtiment B : 150 chambres
+Bâtiment C : 50 chambres
+
+**Les données réelles :**
+
+Selon les données de l'Association Hôtelière Internationale, le nombre moyen de chambres par hôtel est de 250. Si nous prenons l'exemple de notre hôtel avec 500 chambres, cela signifie que nous avons 2 fois le nombre moyen de chambres par hôtel.
+
+**Et dans votre quotidien, où pourriez-vous utiliser cela ?**
+
+Vous pourriez utiliser l'algorithme de tri pour organiser vos dossiers, vos photos ou vos fichiers de musique. Par exemple, si vous avez 500 photos et que vous voulez les organiser par année, l'algorithme de tri peut vous aider à les trier rapidement et efficacement !",238,,100,True,0
+3100692022.avi,ennui_eleve,B1,boredom,2,"**Le cas de l'application de tri dans un supermarché**
+
+Imaginez que vous êtes le responsable de la logistique d'un grand supermarché. Vous avez 5000 produits alimentaires stockés sur les étagères, et vous devez les trier par ordre alphabétique pour faciliter la recherche et la vente. Le problème est que les produits sont stockés dans un magasin de 1000 mètres carrés, avec des entrées et des sorties multiples.
+
+Voilà où les algorithmes de tri entrent en jeu. Imaginez que vous utilisez l'algorithme de tri rapide (QuickSort) pour organiser les produits par ordre alphabétique. Vous commencez par prendre un produit au hasard et le considérez comme la ""pomme du jeu"". Vous comparez ensuite chaque produit avec la ""pomme du jeu"" et vous définissez deux listes : une pour les produits qui viennent avant la ""pomme du jeu"" et une pour ceux qui viennent après.
+
+En quelques minutes, vos 5000 produits sont triés par ordre alphabétique, et vos clients peuvent trouver facilement les produits qu'ils cherchent. Vous avez réduit le temps de recherche de 80% et amélioré la qualité de service!
+
+Et dans votre quotidien, où pourriez-vous utiliser cela ? Imaginez que vous avez 1000 fichiers sur votre ordinateur, et que vous voulez les trier par date de création. L'algorithme de tri rapide peut vous aider à les organiser en quelques secondes !",220,,100,True,0
+1100071045.avi,ennui_eleve,B4,boredom,2,"**Domaine d'application :** Intelligence Artificielle (IA) en santé
+
+**Problème :** Les hôpitaux et les centres de santé collectent des quantités massives de données médicales, telles que les résultats de tests, les médicaments prescrits, les dossiers médicaux, etc. L'un des défis consiste à analyser ces données pour identifier les modèles et les tendances qui peuvent améliorer la prise en charge des patients.
+
+**Les algorithmes de tri :** Les algorithmes de tri sont cruciaux dans ce contexte pour trier et organiser les données médicales en fonction de critères spécifiques, tels que l'âge du patient, le type de maladie, les résultats de tests, etc. Cela permet de :
+
+* Réduire les temps de traitement et d'analyse des données
+* Améliorer la précision des analyses statistiques
+* Identifier les modèles et les tendances qui peuvent être utilisés pour améliorer la prise en charge des patients
+
+**Entreprise/projet réel :** IBM Watson for Oncology est un exemple d'application réelle qui utilise les algorithmes de tri pour analyser les données médicales et identifier les meilleurs plans de traitement pour les patients atteints de cancer. Ce système utilise des algorithmes de tri pour trier et organiser les données médicales en fonction de critères spécifiques, tels que le type de tumeur, la gravité de la maladie, les résultats de tests, etc.
+
+**Compétences professionnelles associées :**
+
+* Analyse de données médicales
+* Programmation en langages de programmation tels que Python, R, SQL
+* Conception et mise en œuvre d'algorithmes de tri et d'analyse statistique
+* Intégration de données provenant de sources multiples
+* Développement d'applications web et mobile pour visualiser les résultats
+
+Si vous souhaitez améliorer les compétences de ces domaines, vous pouvez suivre des cours en ligne tels que ceux proposés par DataCamp, Coursera ou edX, ou encore obtenir une certification en Data Science ou en Intelligence Artificielle.",299,,100,True,0
+1100071045.avi,ennui_eleve,C3,boredom,2,"**Exercice : ""Le Festival des Musiques du Monde""**
+
+Imaginez que vous êtes chargé(e) de l'organisation d'un festival des musiques du monde. Vous avez reçu une liste de 50 groupes de musique provenant de différents pays, chacun avec un nom, un style musical et une durée de concert.
+
+Votre tâche consiste à réorganiser la liste de manière à ce que les groupes soient par ordre de:
+
+1. Durée de concert (du plus court au plus long)
+2. Style musical (du plus classique au plus contemporain)
+3. Nom du groupe (du début de l'alphabet au fin)
+
+Vous pouvez utiliser les algorithmes de tri (tri insertion, sélection, tri à bulles, etc.) pour réaliser ce travail.
+
+N'oubliez pas de considérer les contraintes suivantes :
+
+- Les groupes de musique ont des durées de concert allant de 30 minutes à 2 heures.
+- Les styles musicaux incluent le classique, le rock, le jazz, la musique électronique, etc.
+- Les noms des groupes sont écrits en français, en anglais ou en langues locales.
+
+Quelle solution choisissez-vous pour résoudre ce problème ?",175,,100,True,0
+4110212036.avi,ennui_eleve,C3,confusion,2,"**Exercice : ""Le Festival de Musique""**
+
+Imaginez que vous êtes le responsable de la programmation d'un grand festival de musique. Vous avez reçu la liste des groupes de musique qui seront présents au festival, mais les informations sont présentées de manière désorganisée. Votre tâche est de réorganiser les groupes par catégorie de musique (rock, pop, jazz, etc.) et par ordre chronologique de scène.
+
+Voici la liste des groupes de musique :
+
+- Rock : Guns N' Roses, AC/DC, Green Day
+- Jazz : Miles Davis, John Coltrane, Billie Holiday
+- Pop : Taylor Swift, Katy Perry, Justin Bieber
+- Rock : Queen, Led Zeppelin, Nirvana
+- Jazz : Ella Fitzgerald, Louis Armstrong, Duke Ellington
+- Pop : Ariana Grande, Lady Gaga, Justin Timberlake
+
+Appliquez les algorithmes de tri pour réorganiser les groupes de musique par catégorie et par ordre chronologique de scène. Vous pouvez choisir l'algorithme de tri qui vous convient le mieux (tri par sélection, insertion, fusion, etc.).
+
+**Remarque importante :** Il n'y a pas de réponse unique à ce problème. Vous pouvez choisir différentes approches et algorithmes de tri pour résoudre ce problème. La créativité et l'imagination sont les principaux objectifs de cet exercice.",196,,100,True,0
+3503610158.avi,ennui_eleve,C1,boredom,2,"**Exercice : Tri de données avec contraintes**
+
+**Problème**
+
+Un système de gestion de bibliothèque nécessite un algorithme de tri pour organiser les livres en fonction de leur titre, de leur auteur et de leur date de publication. Les livres sont représentés par des objets de la classe `Livre` avec les attributs suivants :
+
+- `titre` : chaîne de caractères
+- `auteur` : chaîne de caractères
+- `datePublication` : date (format ""YYYY-MM-DD"")
+
+Les livres sont stockés dans un tableau `livres` de taille variable. Votre tâche consiste à écrire un algorithme de tri qui trie les livres de la manière suivante :
+
+1. Trie les livres par ordre alphabétique de leur titre.
+2. Dans le cas d'une égalité de titre, trie les livres par ordre alphabétique de leur auteur.
+3. Dans le cas d'une égalité de titre et d'auteur, trie les livres par date de publication en décroissant (la date la plus récente est la première).
+
+**Contrainte supplémentaire**
+
+L'algorithme doit être capable de gérer des cas d'edge, tels que :
+
+- Un tableau vide : l'algorithme doit retourner le tableau vide.
+- Un tableau avec un seul élément : l'algorithme doit retourner le tableau avec un seul élément.
+- Des dates de publication semblables (au format ""YYYY-MM-DD"") mais avec des heures différentes.
+
+**Demande de justification**
+
+Justifiez votre choix d'algorithme de tri et expliquez pourquoi il est efficace pour ce problème.
+
+**Extension ""bonus""**
+
+En supposant que les livres aient également un attribut `ISBN` unique, écrivez un algorithme de tri qui trie les livres par ordre alphabétique de leur titre, puis par ordre alphabétique de leur auteur, puis par date de publication en décroissant, et enfin par ordre croissant de leur ISBN.",278,,100,True,0
+1100071045.avi,ennui_eleve,C1,frustration,3,"**Exercice avancé : Tri de données avec contraintes**
+
+**Problème :** Vous êtes chargé de trier un ensemble de données contenant des informations sur les clients d'une entreprise. Les données sont stockées dans un fichier texte et ont la forme suivante :
+
+`Nom;Âge;Adresse;Ville`
+
+Exemple :
+
+`Jean Dupont;32;Rue de la République;Paris`
+
+`Marie Martin;28;Avenue de la Paix;Lyon`
+
+`Pierre Lefebvre;45;Boulevard de la Liberté;Marseille`
+
+Le fichier contient 1000 lignes de données. Votre tâche est de trier les données par ordre alphabétique selon le nom du client, puis par ordre décroissant selon l'âge.
+
+**Contrainte :** Le fichier est trop volumineux pour être traité en mémoire, vous devez donc utiliser un algorithme de tri qui nécessite un espace de stockage minimal.
+
+**Demande :** Implémentez un algorithme de tri qui satisfait aux contraintes ci-dessus. Justifiez votre choix d'algorithme et expliquez pourquoi il est adapté à ce type de problème.
+
+**Extension ""bonus"" :** Ajoutez une contrainte supplémentaire : les données contiennent également des informations sur les clients qui ont un âge nul (ce qui signifie qu'ils ont dépassé la limite d'âge). Comment modifier l'algorithme de tri pour prendre en compte cette contrainte ?
+
+**Remarque :** N'oubliez pas de prendre en compte les edge cases (cas d'extrémités) et les cas de figure où les données sont déjà triées ou non triées.
+
+**Bon courage !**",214,,100,True,0
+1100062072.avi,ennui_eleve,C1,frustration,2,"**Exercice de niveau avancé : Optimisation de l'algorithme de tri dans un environnement de serveur web**
+
+Vous êtes le développeur d'un système de gestion de contenus pour un site web populaire. Le système stocke des milliers de fichiers de médias (photos, vidéos, etc.) qui doivent être triés et affichés dans un ordre spécifique. L'algorithme de tri actuel utilise le tri rapide (QuickSort) et prend environ 5 secondes pour trier 10 000 fichiers.
+
+Cependant, le système est sujet à une grande variabilité de charge, et pendant les périodes de forte activité, le temps de réponse doit être inférieur à 1 seconde. De plus, certains fichiers sont très volumineux (plus de 100 Mo) et nécessitent un traitement spécial.
+
+**Problème :**
+
+* Mettez en œuvre un algorithme de tri qui puisse gérer les fichiers volumineux et optimiser le temps de réponse pendant les périodes de forte activité.
+* Justifiez votre choix d'algorithme et expliquez comment vous avez résolu les contraintes.
+* Présentez des résultats de tests démontrant l'amélioration du temps de réponse.
+
+**Contraintes :**
+
+* Le système utilise un serveur web avec 4 processeurs et 16 Go de RAM.
+* Les fichiers sont stockés sur un disque dur SSD.
+* Le temps de réponse doit être inférieur à 1 seconde pendant les périodes de forte activité.
+
+**Extension ""bonus"" :**
+
+* Intégrez un mécanisme de mise à jour en temps réel des résultats de tri lorsque de nouveaux fichiers sont ajoutés ou supprimés.
+* Expliquez comment vous avez résolu les problèmes de concurrence et de synchronisation entre les processeurs.
+
+**Rappel :**
+
+* Vous pouvez utiliser n'importe quel langage de programmation et n'importe quel framework pour résoudre ce problème.
+* Assurez-vous de présenter des résultats de tests démontrant l'amélioration du temps de réponse.
+
+Notez que ce challenge est conçu pour un niveau avancé et nécessite une bonne compréhension des algorithmes de tri, de l'optimisation et de la concurrence.",313,,100,True,0
+3100821052.avi,engagement_faible,C2,engagement,0,"**Exercice de consolidation : Algorithmes de tri et structures de données**
+
+Tu as déjà acquis de solides compétences en algorithmes de tri et en structures de données. Maintenant, il est temps de les combiner pour résoudre des problèmes plus complexes !
+
+**Problème 1 : Tri d'une liste de notes (facile)**
+
+Imagine que tu as une liste de notes de tes étudiants, et tu veux les trier par ordre croissant. La liste est la suivante :
+
+- 85
+- 92
+- 78
+- 95
+- 88
+
+Quel algorithme de tri utiliser pour obtenir la liste triée ?
+
+**Indice :** Tu as appris les algorithmes de tri plus efficaces (tri par insertion, tri à bulles...), mais le plus simple pour ce cas est peut-être le tri par sélection.
+
+**Problème 2 : Tri d'une liste de personnes (moyen)**
+
+Maintenant, imagine que tu as une liste de personnes avec leur nom, prénom et date de naissance. Tu veux trier cette liste par date de naissance. La liste est la suivante :
+
+- Jean Dupont, 02/03/1990
+- Marie Lefebvre, 15/08/1985
+- Pierre Martin, 25/12/1992
+- Sophie Leroy, 10/05/1988
+- Louis Dubois, 01/01/1995
+
+Quel algorithme de tri utiliser pour obtenir la liste triée ?
+
+**Indice :** Tu as appris à utiliser des structures de données comme les tableaux associatifs pour stocker des informations complexes. Utilise-les pour résoudre ce problème !
+
+**Problème 3 : Tri d'une matrice de notes (difficile)**
+
+Enfin, imagine que tu as une matrice de notes de tes étudiants, où chaque ligne représente un élève et chaque colonne représente un sujet. Tu veux trier cette matrice par note moyenne des élèves. La matrice est la suivante :
+
+|          | Mathématiques | Physique | Chimie |
+|----------|---------------|----------|--------|
+| Élève 1 | 85            | 92       | 78     |
+| Élève 2 | 92            | 85       | 95     |
+| Élève 3 | 78            | 88       | 92     |
+| Élève 4 | 95            | 95       | 88     |
+| Élève 5 | 88            | 78       | 85     |
+
+Quel algorithme de tri utiliser pour obtenir la matrice triée ?
+
+**Indice :** Tu as appris à utiliser des algorithm",352,,100,True,0
+3100781074.avi,stable,C2,engagement,3,"**Exercice de consolidation : Tri et recherche dichotomique**
+
+**Contexte** : Vous êtes chargé de créer un système de gestion de bibliothèque. Vous devez développer un algorithme qui permet d'organiser les livres par titre en ordre alphabétique et de trouver rapidement un livre spécifique.
+
+**Étape 1 : Tri simple**
+
+Créez un algorithme de tri simple pour organiser les livres par titre en ordre alphabétique. Utilisez l'algorithme de tri à bulles.
+
+**Étape 2 : Recherche dichotomique**
+
+Créez une fonction de recherche dichotomique qui permet de trouver un livre spécifique dans la liste de livres triés. Utilisez l'algorithme de recherche dichotomique pour trouver le livre.
+
+**Étape 3 : Tri et recherche combinés**
+
+Créez un programme qui combine les deux fonctions précédentes. L'ordinateur doit d'abord trier les livres par titre en ordre alphabétique, puis utiliser la fonction de recherche dichotomique pour trouver un livre spécifique.
+
+**Indices progressifs :**
+
+- Pour l'étape 1, vous pouvez utiliser un tableau de livres avec des titres aléatoires.
+- Pour l'étape 2, vous pouvez utiliser un tableau de livres avec des titres déjà triés.
+- Pour l'étape 3, vous pouvez ajouter des fonctionnalités supplémentaires, comme la possibilité de rechercher les livres par auteur ou par date de publication.
+
+**Auto-évaluation :**
+
+- Pensez à la complexité algorithmique de vos solutions.
+- Estimez le temps de traitement de vos algorithmes.
+- Essayez de trouver des améliorations pour vos algorithmes.
+
+**Tu es presque là !** Continuer à travailler, et tu verras que les algorithmes de tri et de recherche dichotomique deviennent de plus en plus faciles à comprendre et à mettre en œuvre.",261,,100,True,0
+2100572021.avi,ennui_eleve,C1,boredom,2,"**Problème :**
+
+Un grand magasin souhaite organiser ses rayons de produits alimentaires pour une vente promotionnelle. Les produits sont classés en fonction de leur date de péremption, leur poids et leur prix. Les produits doivent être triés de la manière suivante :
+
+* Tous les produits avec une date de péremption inférieure à 3 jours doivent être mis en premier,
+* Ensuite, les produits avec un poids inférieur à 1 kg doivent être mis en deuxième,
+* Enfin, les produits doivent être triés en fonction de leur prix décroissant.
+
+Les produits sont représentés par un tableau avec les colonnes suivantes :
+
+| Nom | Date de péremption | Poids (kg) | Prix (€) |
+| --- | --- | --- | --- |
+
+**Contrainte :**
+
+L'algorithme de tri doit être capable de gérer un nombre important de produits (plus de 10 000) et doit être efficace pour un temps de traitement inférieur à 1 seconde.
+
+**Exercice :**
+
+Écrire un algorithme de tri capable de traiter les produits dans l'ordre précisé ci-dessus. Justifiez votre choix de l'algorithme utilisé et expliquez pourquoi il est adapté à ce problème.
+
+**Bonus :**
+
+En plus de l'algorithme de tri, implémentez une fonction qui permet de rechercher un produit dans le tableau en fonction de son nom et de son prix. La fonction doit retourner les informations du produit si il est trouvé, ou un message d'erreur si il n'est pas trouvé.
+
+**Note :**
+
+* Vous pouvez utiliser n'importe quelle langue de programmation pour résoudre ce problème.
+* N'oubliez pas de justifier votre choix de l'algorithme utilisé et d'expliquer pourquoi il est adapté à ce problème.
+* La fonction bonus doit être implémentée en plus de l'algorithme de tri.",283,,100,True,0
+2904280140.mp4,stable,C2,boredom,1,"**Exercice de consolidation : Algorithmes de tri et structures de données**
+
+**Objectif** : Combiner les algorithmes de tri avec les structures de données pour résoudre des problèmes de gestion de données.
+
+**Problème 1 : Tri d'une liste de fruits (faible difficulté)**
+
+Imaginez une liste de fruits à vendre dans votre magasin. Les fruits sont stockés dans une liste ordonnée par leur poids. Utilisez la méthode de tri par insertion pour organiser la liste des fruits par leur poids décroissant.
+
+**Liste initiale** :
+
+- Pomme (0,5 kg)
+- Poire (0,3 kg)
+- Fraise (0,2 kg)
+- Pêche (0,8 kg)
+- Cerise (0,4 kg)
+
+**Indice** : Commencez par trier la liste en utilisant la méthode de tri par insertion. Utilisez un tableau pour suivre vos étapes.
+
+**Problème 2 : Tri d'une liste de livres (moyenne difficulté)**
+
+Vous êtes responsable de la bibliothèque d'une école. Les livres sont stockés dans une liste ordonnée par leur titre. Utilisez la méthode de tri par sélection pour organiser la liste des livres par leur titre en majuscules.
+
+**Liste initiale** :
+
+- Alice au pays des merveilles (LEWIS CARROLL)
+- Le petit prince (ANTOINE DE SAINT-EXUPÉRY)
+- Le code de la route (MINISTÈRE DE L'INTÉRIEUR)
+- Le château (JEAN-PAUL SARTRE)
+
+**Indice** : Commencez par trier la liste en utilisant la méthode de tri par sélection. Utilisez un tableau pour suivre vos étapes. N'oubliez pas de convertir les titres en majuscules avant de trier.
+
+**Problème 3 : Tri d'une liste de clients (forte difficulté)**
+
+Vous êtes responsable de la gestion des clients d'une entreprise. Les clients sont stockés dans une liste ordonnée par leur nom. Utilisez la méthode de tri par insertion pour organiser la liste des clients par leur nom en ordre alphabétique. Supprimez également les clients qui ont un âge inférieur à 18 ans.
+
+**Liste initiale** :
+
+- Jean Dupont (25 ans)
+- Marie Dupont (30 ans)
+- Pierre Dupont (15 ans)
+- Jeanne Dupont (28 ans)
+- Marie Dupont junior (18 ans)
+
+**Indice** : Commencez par trier la liste en utilisant la méthode de tri par insertion. Utilisez un tableau pour suivre vos étapes. N'oubliez pas de supprimer les clients qui ont",357,,100,True,0
+3100771055.avi,stable,C2,engagement,2,"**Exercice de Consolidation : Algorithmes de Tri et Gestion de Tâches**
+
+**Introduction**
+
+Dans ce chapitre, nous allons combiner les algorithmes de tri avec la gestion de tâches. Vous aurez l'occasion de mettre en pratique vos compétences en programmation en résolvant un problème concret.
+
+**Problème**
+
+Vous êtes responsable de gérer une liste de tâches pour un projet. La liste comporte des tâches avec des priorités différentes. Votre objectif est de trier la liste de tâches par priorité et par date de déclenchement.
+
+**Étape 1 : Tri par Priorité (Facile)**
+
+Créez une fonction qui prend en entrée une liste de tâches et renvoie une nouvelle liste triée par priorité. Les tâches avec la priorité la plus élevée doivent être en tête de liste.
+
+Exemple de tâche :
+```python
+tâche = {""nom"": ""Tâche 1"", ""priorité"": 3, ""date"": ""2022-01-01""}
+```
+**Étape 2 : Tri par Date de Déclenchement (Moyen)**
+
+Améliorez la fonction précédente pour trier la liste de tâches par date de déclenchement. Si deux tâches ont la même priorité, celle avec la date de déclenchement la plus ancienne doit être en tête de liste.
+
+**Étape 3 : Gestion de Tâches en Temps Réel (Difficile)**
+
+Créez une fonction qui gère la liste de tâches en temps réel. La fonction doit :
+
+1. Trié la liste de tâches par priorité et par date de déclenchement.
+2. Retirer les tâches qui ont été complétées.
+3. Ajouter de nouvelles tâches à la liste.
+
+**Indices**
+
+* Utilisez la méthode `sorted()` pour trier la liste de tâches.
+* Utilisez des dictionnaires pour stocker les informations des tâches.
+* Utilisez des conditions pour gérer les cas spéciaux (par exemple, une tâche avec une date de déclenchement vide).
+
+**Auto-évaluation**
+
+1. Créez une fonction qui trie une liste de tâches par priorité.
+2. Améliorez la fonction pour trier la liste de tâches par date de déclenchement.
+3. Créez une fonction qui gère la liste de tâches en temps réel.
+4. Testez vos fonctions avec des exemples de tâches.
+
+**Bonne chance !**",329,,100,True,0
+1100071075.avi,stable,C2,boredom,2,"**Exercice de consolidation : Algorithmes de tri et gestion des structures de données**
+
+**Problème 1 : Tri d'une liste de nombres entiers**
+
+Voici une liste de 10 nombres entiers à trier : `[5, 2, 8, 3, 1, 6, 4, 9, 7, 0]`. Utilisez l'algorithme de tri de sélection pour classer cette liste par ordre croissant.
+
+**Indice 1** : Commencez par comprendre le principe de l'algorithme de tri de sélection. Il consiste à trouver le plus petit élément de la liste et à le placer à la position correcte.
+
+**Problème 2 : Tri d'une liste de données avec un champ de recherche**
+
+ Vous avez une liste de 15 éléments avec un champ de recherche `nom` : `[{nom: 'Jean', age: 25}, {nom: 'Pierre', age: 30}, {nom: 'Jacques', age: 20}, ...]`. Écrivez une fonction qui trie cette liste par ordre alphabétique en fonction du champ `nom` et qui conserve les éléments non triés qui correspondent à un certain nom de recherche (par exemple, 'Jean').
+
+**Indice 2** : Utilisez une combinaison d'algorithme de tri et d'itération pour résoudre ce problème.
+
+**Problème 3 : Tri d'un tableau de données dans une base de données**
+
+ Vous avez une base de données avec un tableau de 50 éléments qui contient des informations sur les employés d'une entreprise. Écrivez une requête SQL qui trie ce tableau par ordre alphabétique en fonction du nom de l'employé et qui conserve les 5 premiers éléments de la liste.
+
+**Indice 3** : Utilisez les connaissances acquises sur les algorithmes de tri et les structures de données pour résoudre ce problème.
+
+**Auto-évaluation**
+
+* Pouvez-vous expliquer l'algorithme de tri de sélection et comment il fonctionne ?
+* Pouvez-vous écrire une fonction qui trie une liste de nombres entiers par ordre croissant ?
+* Pouvez-vous écrire une fonction qui trie une liste de données avec un champ de recherche par ordre alphabétique ?
+* Pouvez-vous écrire une requête SQL qui trie un tableau de données dans une base de données par ordre alphabétique ?
+
+**Bonne chance !**",332,,100,True,0
+3503610158.avi,ennui_eleve,C4,boredom,2,"**Mini-projet : Développement d'un Algorithme de Tri**
+
+**Objectif :**
+Concevoir et développer un algorithme de tri efficace pour trier une liste de nombres entiers, en utilisant les concepts d'informatique et de programmation. L'objectif est de trier les nombres de manière ascendante ou descendante en minimisant le nombre d'opérations.
+
+**Étapes de réalisation :**
+
+1. **Analyse du problème** : Définir les entrées et les sorties du programme, ainsi que les contraintes de performance.
+2. **Conception de l'algorithme** : Sélectionner un algorithme de tri (par exemple, Bubble Sort, Selection Sort, Insertion Sort, etc.) et comprendre son fonctionnement.
+3. **Implémentation en programmation** : Écrire le code en utilisant un langage de programmation (par exemple, Python, Java, C++, etc.).
+4. **Test et validation** : Tester le programme avec différents jeux de données pour vérifier sa précision et sa performance.
+5. **Optimisation** : Améliorer le programme en optimisant les opérations et en réduisant les temps de calcul.
+
+**Concepts à mobiliser :**
+
+* Algorithmes de tri (Bubble Sort, Selection Sort, Insertion Sort, etc.)
+* Programmation en langages tels que Python, Java, C++, etc.
+* Analyse de complexité (temps et espace)
+* Test et validation de programmes
+
+**Livrable attendu :**
+
+Un programme de tri qui prend en entrée une liste de nombres entiers et retourne un tableau trié de manière ascendante ou descendante. Le programme doit être écrit en utilisant un langage de programmation choisi et doit être documenté pour faciliter la compréhension de son fonctionnement.",238,,100,True,0
+2100582002.avi,ennui_eleve,C1,boredom,2,"**Exercice de niveau avancé : Tri des données avec contrainte d'efficacité énergétique**
+
+Un centre de données informatique souhaite optimiser la gestion de ses serveurs pour réduire les coûts énergétiques. Chaque serveur est équipé d'un processeur qui traite les données à un rythme variable. Le centre de données possède 10 serveurs avec des vitesses de traitement allant de 1000 à 5000 opérations par seconde. Les données à traiter sont stockées dans un fichier texte de 100 000 lignes, avec chaque ligne représentant un serveur et sa vitesse de traitement.
+
+Le but est de trier les lignes du fichier de manière à ce que les serveurs les plus rapides soient traités en premier, puis les serveurs les moins rapides. Cependant, il y a une contrainte supplémentaire : les serveurs doivent être traités dans les 24 heures pour éviter les pannes de puissance. La limite de temps est de 864 000 secondes.
+
+**Exigences :**
+
+1. Écrire un programme qui trie les lignes du fichier de manière à ce que les serveurs les plus rapides soient traités en premier, puis les serveurs les moins rapides.
+2. Optimizez le programme pour réduire la durée de traitement à 864 000 secondes ou moins.
+3. Justifiez les choix d'algorithme et les modifications apportées pour atteindre l'objectif.
+
+**Extension ""Bonus"" :**
+
+En supposant que les vitesses de traitement des serveurs varient au fil du temps, ajoutez une fonctionnalité qui permet de prendre en compte les variations de vitesse des serveurs au cours des 24 heures. Les vitesses de traitement peuvent varier négativement ou positivement. Comment ajustez-vous l'algorithme de tri pour tenir compte de ces variations ?",267,,100,True,0
+1100151042.avi,ennui_eleve,C4,boredom,2,"**Mini-projet : Amélioration d'un Algorithme de Tri**
+
+**Objectif :**
+Concevoir et implémenter un algorithme de tri efficace pour trier un ensemble de données numériques. L'objectif est d'améliorer l'algorithme existant (Bubble Sort) pour augmenter sa performance.
+
+**Étapes de réalisation :**
+
+1. **Analyse de l'algorithme actuel** : Recherchez et comprenez les limites de l'algorithme Bubble Sort, notamment sa complexité en temps et en espace.
+2. **Mise en place de l'algorithme de tri à comparer** : Implémentez un autre algorithme de tri (par exemple, Quick Sort ou Merge Sort) pour comparer ses performances avec celles de l'algorithme Bubble Sort.
+3. **Mise en place de tests de performance** : Créez des tests pour comparer les performances des deux algorithmes sur différents jeux de données (taille, type de données, etc.).
+4. **Amélioration de l'algorithme Bubble Sort** : Identifiez les opportunités d'amélioration de l'algorithme Bubble Sort et implémentez les modifications nécessaires pour augmenter sa performance.
+5. **Comparaison et analyse des résultats** : Comparez les résultats des tests de performance pour évaluer l'efficacité de l'algorithme amélioré.
+
+**Concepts à mobiliser :**
+
+- Complexité algorithmique (temps et espace)
+- Algorithmes de tri (Bubble Sort, Quick Sort, Merge Sort)
+- Optimisation d'algorithmes
+- Programmation (langage de votre choix)
+
+**Livrable attendu :**
+Un rapport détaillé comprenant :
+
+- Une présentation de l'algorithme Bubble Sort et de ses limites
+- Une mise en place d'un autre algorithme de tri pour comparer les performances
+- Les résultats des tests de performance pour évaluer l'efficacité de l'algorithme amélioré
+- Des recommandations pour améliorer l'algorithme Bubble Sort
+
+Ce mini-projet vous permettra de développer vos compétences en algorithmique, en programmation et en analyse de performance, tout en appliquant vos connaissances à un problème concret.",278,,100,True,0
+1100151042.avi,ennui_eleve,C1,boredom,2,"**Exercice de niveau avancé : Optimisation des algorithmes de tri pour un système de gestion de bibliothèque**
+
+Imaginez que vous êtes chargé de développer un système de gestion de bibliothèque pour une grande bibliothèque publique. Les livres sont classés par thème, auteur et titre. Lorsque les utilisateurs effectuent une recherche, le système doit retourner les résultats triés par ordre alphabétique, puis par date de publication. Cependant, le système possède également une fonctionnalité de recherche avancée qui permet aux utilisateurs de rechercher des livres par thème, auteur, titre et date de publication. La base de données contient environ 100 000 entrées.
+
+**Problème :**
+
+Développez un algorithme de tri qui peut gérer ces deux scénarios de recherche (recherche simple et recherche avancée) de manière efficace. L'algorithme doit prendre en compte les contraintes suivantes :
+
+* La recherche simple doit être triée par ordre alphabétique, puis par date de publication.
+* La recherche avancée doit être triée par ordre alphabétique, puis par date de publication, puis par thème, auteur et titre.
+* L'algorithme doit être capable de gérer un grand nombre d'entrées (environ 100 000).
+* L'algorithme doit être efficace en termes de complexité temporelle.
+
+**Contrainte supplémentaire :**
+
+L'algorithme doit également prendre en compte les cas d'edge suivants :
+
+* Quand un thème ou un auteur est vide, l'algorithme doit ignorer cette contrainte.
+* Quand la date de publication est inconnue, l'algorithme doit la considérer comme la plus ancienne possible.
+
+**Demande de justification :**
+
+Justifiez pourquoi vous avez choisi un algorithme de tri particulier pour résoudre ce problème complexe. Expliquez en détail comment votre algorithme prend en compte les contraintes et les cas d'edge.
+
+**Extension ""bonus"" :**
+
+Supposons que la bibliothèque veuille utiliser un système de recommandation de livres basé sur les algorithmes de tri. Développez un algorithme qui prend en compte les informations de tri précédentes pour recommander des livres aux utilisateurs. L'algorithme doit prendre en compte les contraintes suivantes :
+
+* L'algorithme doit être capable de gérer un grand nombre d'utilisateurs et de livres.
+* L'algorithme doit être efficace en termes de complexité temporelle.
+* L'algorithme doit prendre en compte les préférences des utilisateurs pour les thèmes, les auteurs et",359,,100,True,0
+4000182067.avi,frustration,D1,frustration,3,"""Je comprends que les algorithmes de tri soient un peu difficiles à assimiler. Ce concept challenge beaucoup d'apprenants, et il est normal de ressentir de la frustration. Mais ne vous inquiétez pas, vous avez déjà fait des progrès importants dans ce cours. Vous avez déjà compris les bases de l'algorithmique et vous avez commencé à explorer les différents types de tri.
+
+Dans 2 modules, vous verrez pourquoi les algorithmes de tri sont si importants et comment vous pouvez les appliquer dans des situations réelles. Vous allez voir que cela vaut la peine de continuer à essayer. Alors, ne baissez pas les bras ! Continuez à travailler, et vous verrez que les choses commenceront à s'éclaircir. Vous êtes presque arrivé à la fin de ce module, et vous allez en sortir avec de nouvelles compétences et de la confiance en vous. Allez, vous pouvez le faire !""",146,,100,True,0
+2904280140.mp4,stable,D4,boredom,1,""" Félicitations pour votre engagement et votre persévérance ! Vous avez fait d'excellents progrès sur les algorithmes de tri, et c'est vraiment à souligner ! Vous avez compris les principes de tri par sélection, par insertion et par fusion, et vous êtes maintenant en train de les mettre en pratique avec une grande efficacité. C'est un grand pas devenu, et je suis extrêmement fier de vous ! Pour la suite, je sens que vous allez continuer à grandir en force et en confiance. Vous allez explorer les algorithmes de recherche, et je suis convaincu que vous allez les maîtriser aussi rapidement que les algorithmes de tri. Continuez à vous engager, à vous persévérer et à vous améliorer. Vous êtes en train de devenir un expert en algorithmique, et je suis ravi de vous accompagner sur ce chemin ! """,139,,100,True,0
+2100612043.avi,frustration,D3,frustration,2,"""Bonjour, je comprends que les algorithmes de tri puissent sembler difficiles à saisir, mais je veux te rappeler pourquoi tu es venu à ce cours initialement. Qu'est-ce qui t'a motivé à apprendre ces nouvelles compétences ? As-tu un projet personnel ou professionnel qui t'a conduit à chercher des connaissances en algorithmie ?
+
+Je me souviens que nous avons déjà parcouru un certain chemin ensemble. Nous avons abordé les notions de tri par sélection, d'échange et de insertion. Tu as déjà acquis des compétences solides qui te permettent de comprendre les principes de base des algorithmes de tri.
+
+Maintenant, je veux te suggérer de te fixer un micro-objectif immédiat. Qu'est-ce que tu veux accomplir d'ici la fin de ce prochain clip ? Veux-tu comprendre un type de tri en particulier, ou veux-tu réaliser un exemple concret pour illustrer tes nouvelles compétences ? Fixe-toi un objectif, et nous travaillerons ensemble pour l'atteindre. Tu es capable de réussir, et je suis là pour t'aider tout au long du chemin.""",166,,100,True,0
+1100171059.avi,engagement_faible,D3,engagement,1,"Bonjour !
+
+Je sens que quelque chose ne va pas. Vous semblez un peu découragé ces derniers jours, et je comprends que les algorithmes de tri puissent être intimidants. Mais avant de passer à autre chose, je voudrais vous poser une question : Qu'est-ce qui vous a amené à ce cours initialement ? Quels sont vos objectifs personnels que vous espérez atteindre en apprenant ces nouveaux concepts ?
+
+Rappelez-vous pourquoi vous avez décidé d'apprendre les algorithmes de tri. Est-ce pour améliorer vos compétences en informatique, pour résoudre des problèmes pratiques ou simplement par curiosité ?
+
+Vous avez déjà parcouru un long chemin ! Vous avez appris à reconnaître les différents types de tri, à comprendre les algorithmes de tri par sélection et par insertion, et même à écrire du code pour les mettre en pratique. C'est quelque chose à être fier de !
+
+Maintenant, je vous propose de fixer un micro-objectif immédiat. Qu'est-ce que vous allez faire pour progresser dans les algorithmes de tri ? Est-ce que vous allez essayer de résoudre un problème spécifique, ou de comprendre un concept en particulier ? Faites-le moi savoir, et nous pourrons travailler ensemble pour vous aider à y arriver.
+
+Vous avez la capacité de faire cela ! Je suis là pour vous soutenir. Qu'est-ce que vous allez faire ?",217,,100,True,0
+4000182015.avi,stable,D1,boredom,2,"Bravo ! Je suis vraiment fier de toi ! Tu as démontré une engagement exceptionnel dans l'apprentissage des algorithmes de tri. Ta persévérance a payé et tu as commencé à comprendre les principes clés de ces algorithmes complexes. C'est un grand pas en avant ! Tu as réussi à mettre en œuvre l'algorithme de tri à bulles, par exemple, et ça te donne confiance en toi. Je te prédis que tu vas continuer à progresser à un rythme rapide, et tu vas bientôt maîtriser d'autres algorithmes de tri, comme le tri rapide et le tri par insertion. Maintenant, je te encourage à continuer à travailler avec autant d'enthousiasme et de détermination. Tu es capable de grandir encore et de prendre en charge de nouveaux défis. Je suis fière de toi !",131,,100,True,0
+2026140128.mp4,stable,D4,confusion,2,""" Félicitations pour votre engagement et votre persévérance sur les algorithmes de tri ! Vous avez fait d'énormes progrès ces derniers temps, et je suis particulièrement fier de voir comment vous avez maîtrisé le tri par sélection. C'est un concept qui peut paraître complexe au premier abord, mais vous avez réussi à le comprendre et à l'appliquer avec succès. Je suis impatient de voir comment vous allez progresser sur les algorithmes de tri à bulles et à insertion. Vous avez déjà prouvé que vous étiez capable de relever les défis, et je suis sûr que vous allez continuer à faire des progrès étonnants. Continuez à vous donner du temps et des efforts, vous êtes sur la bonne voie ! """,120,,100,True,0
+4000182067.avi,frustration,D2,frustration,2,"""Bonjour, je sens que tu es en train de te sentir frustré par les algorithmes de tri. C'est tout à fait normal ! En fait, 85% des étudiants trouvent ce passage difficile au début. Cela signifie que tu es dans une situation tout à fait normale.
+
+Si tu te sens un peu dépassé, n'hésite pas à prendre une pause. Il est important de prendre soin de toi et de ne pas te mettre trop de pression.
+
+Maintenant, je veux te proposer une stratégie pour débloquer ce concept : essaye de visualiser les différentes étapes de l'algorithme de tri. Imagine-toi la manière dont les éléments sont triés et regroupés. Essaye de comprendre le rôle de chaque étape et comment elles s'enchaînent.
+
+Rappelle-toi que la persévérance est plus importante que la vitesse. Il est mieux d'apprendre lentement mais sûrement que de faire des progrès rapides mais incompréhensibles. Tu es sur la bonne voie, continue ainsi !""",154,,100,True,0
+2100532022.avi,frustration,D1,confusion+frustration,3,"""Je comprends que les algorithmes de tri peuvent sembler complexes et difficiles à saisir. C'est vrai, ce concept challenge beaucoup d'apprenants, mais vous avez fait d'excellents progrès dans ce cours jusqu'à présent. Vous avez déjà compris les fondamentaux de la programmation et avez commencé à appliquer les concepts de manipulation de données. Je sais que vous êtes prêt à relever le défi !
+
+Dans 2 modules, vous verrez pourquoi les algorithmes de tri sont essentiels en programmation et comment vous pouvez les appliquer dans des situations réelles. Vous allez apprendre à réfléchir de manière critique et à résoudre des problèmes complexes. Alors, n'abandonnez pas ! Vous êtes sur la bonne voie et vous allez réussir. Continuez à vous efforcer et vous verrez que les choses deviendront de plus en plus claires.""",131,,100,True,0
+3100771055.avi,stable,D5,engagement,2,"Cher apprenant,
+
+Je tiens à vous féliciter pour avoir réussi à surmonter le passage difficile sur les algorithmes de tri ! Vous avez démontré une compréhension solide de ces concepts complexes et vous avez mis en pratique vos compétences pour obtenir des résultats probants.
+
+Grâce à cette maîtrise, vous avez développé une compétence clé en programmation, à savoir la capacité à créer des algorithmes efficaces pour trier et organiser des données. C'est un jalon important dans votre parcours de formation, et je suis convaincu que cela vous ouvrira les portes de possibilités encore plus excitantes !
+
+Vous êtes désormais prêt à aborder les prochaines étapes de votre formation, où vous découvrirez des algorithmes encore plus avancés et vous améliorerez vos compétences en programmation. Je suis fier de vous et je suis convaincu que vous continuerez à faire des progrès remarquables. Continuez ainsi, vous êtes sur la bonne voie !",149,,100,True,0
+3344630120.avi,frustration,D2,frustration,3,"Cher apprenant,
+
+Je vois que vous êtes en train de lutter avec les algorithmes de tri. Je veux vous dire que vous ne êtes pas seul(e) ! En fait, 85% des apprenants trouvent ce passage difficile au début.
+
+Il est normal de se sentir frustré(e) lorsque les choses ne marchent pas comme prévu. Mais ne vous inquiétez pas, nous sommes tous en train de découvrir de nouvelles choses tous les jours.
+
+Prenez une pause si nécessaire. Aller faire une petite promenade, boire une tasse de café ou juste se détendre un peu peut faire beaucoup de bien.
+
+Maintenant, voici une stratégie qui vous a aidé(e) à de nombreux apprenants : essayez de visualiser l'algorithme de tri. Imaginez que vous avez une pile de cartes et que vous devez les trier par couleur. Essayez de décomposer l'algorithme en étapes simples et de les visualiser chaque fois que vous les utilisez.
+
+Rappelez-vous que la persévérance est plus importante que la vitesse. Il est normal de prendre son temps pour comprendre quelque chose. Les petits pas répétitifs peuvent conduire à de grands progrès en fin de compte.
+
+Vous y arriverez !",188,,100,True,0
+2100551006.avi,critique,D1,confusion,2,"""Je comprends que les algorithmes de tri soient un peu difficiles à saisir. Ce concept challenge beaucoup d'apprenants, mais vous avez déjà fait des progrès importants dans ce cours. Vous avez déjà compris les bases de l'algorithmique et vous avez commencé à explorer les différents types de tri. C'est déjà quelque chose à être fier !
+
+Dans 2 modules, vous verrez pourquoi les algorithmes de tri sont si importants et comment vous pouvez les appliquer dans la vie réelle. Vous allez comprendre comment les algorithmes de tri peuvent aider à résoudre des problèmes complexes et comment vous pouvez les utiliser pour améliorer vos compétences en informatique.
+
+N'abandonnez pas ! Vous êtes sur la bonne voie et vous allez y arriver. Vous êtes capable et vous êtes fort. Allez-y, continuez à progresser et vous verrez que les algorithmes de tri ne seront plus un mystère pour vous !""",147,,100,True,0
+2000481039.avi,frustration,D1,frustration,3,"**Ce concept est complexe, c'est normal**
+
+Je comprends que les algorithmes de tri peuvent sembler difficiles à comprendre. Mais ne vous inquiétez pas, c'est tout à fait normal ! De nombreuses personnes ont besoin de temps pour assimiler ces concepts.
+
+**Quel est le problème ?**
+
+Je pense que vous pouvez avoir du mal à comprendre comment les algorithmes de tri fonctionnent parce que vous essayez de visualiser les étapes de manière abstraite. Vous pouvez avoir l'impression que les algorithmes sont complexes et difficiles à suivre.
+
+**Une approche plus visuelle**
+
+Essayons de voir les choses différemment ! Imaginez que vous avez un panier de pommes et que vous voulez les trier par taille. Comment le feriez-vous ? Vous commenceriez par prendre la plus petite pomme et la mettrez dans un petit panier, puis la plus grande pomme dans un plus grand panier, et ainsi de suite.
+
+**Un mini-exercice guidé**
+
+Essayons de créer un petit exemple à ce modèle. Nous avons un tableau avec 4 éléments : 3, 1, 4, 2. Nous voulons les trier par ordre croissant.
+
+1. Prenez le plus petit élément (1) et mettez-le en haut du tableau.
+2. Prenez le deuxième élément le plus petit (2) et mettez-le en haut du tableau, juste après 1.
+3. Prenez le troisième élément le plus petit (3) et mettez-le en haut du tableau, juste après 2.
+4. Prenez le plus grand élément (4) et mettez-le en haut du tableau, juste après 3.
+
+Voilà ! Vous avez trié les éléments de 4 en utilisant l'algorithme de tri simple.",256,,100,True,0
+1110032037.avi,critique,D2,frustration,3,"Voici un message de soutien adapté au contexte de référence :
+
+""Bonjour ! Je vois que vous êtes un peu frustré en ce moment. C'est tout à fait normal ! Beaucoup d'apprenants trouvent ce passage sur les algorithmes de tri difficile, et c'est même normal de ressentir de la frustration. 
+
+Prenez une pause si nécessaire, vous ne devez pas vous sentir obligé de continuer si vous ne vous sentez pas prêt. Vous pouvez revenir à ce moment-là plus tard, lorsque vous vous sentirez plus frais et plus concentré.
+
+Si vous souhaitez continuer, je vous propose une stratégie pour débloquer ce concept : essayez de comprendre les principes généraux des algorithmes de tri, plutôt que de vous concentrer sur les détails techniques. Cela vous aidera à voir l'ensemble du problème et à trouver une solution plus facilement.
+
+Et surtout, ne vous inquiétez pas si vous ne comprenez pas tout de suite. La persévérance est plus importante que la vitesse. Vous pouvez y arriver, et je suis là pour vous aider. Alors, prenez votre temps, et n'hésitez pas à me poser des questions si vous en avez besoin.""",186,,100,True,0
+3503610120.avi,frustration,D1,engagement,2,"""Je comprends que les algorithmes de tri vous mettent à l'épreuve. Ce concept challenge beaucoup d'apprenants, mais c'est normal ! Vous avez déjà fait de grands progrès dans ce cours, et je suis fier de vous. Vous avez appris à manipuler des tableaux, à comprendre les concepts de complexité algorithmique et à mettre en œuvre des algorithmes de base.
+
+Dans 2 modules, vous verrez pourquoi ces algorithmes sont cruciaux en informatique et comment vous pourrez les utiliser pour résoudre des problèmes réels. Vous allez voir que tous ces efforts valent la peine. Alors, ne baissez pas les bras ! Continuez à travailler et à vous améliorer. Vous êtes capable de réussir et je suis là pour vous aider.""",118,,100,True,0
+3100781074.avi,stable,D5,engagement,3,""" Félicitations ! Vous avez réussi à surmonter le passage difficile sur les algorithmes de tri ! C'est un grand accomplissement qui démontre votre capacité à résoudre des problèmes complexes et à les simplifier. Vous avez développé une compréhension approfondie des différentes techniques de tri, de leur complexité et de leur efficacité.
+
+Cette compétence vous ouvrira les portes de nouvelles opportunités dans le monde de la programmation. Vous serez prêt à aborder les algorithmes plus avancés et à les appliquer à des problèmes réels.
+
+N'oubliez pas que la confiance en soi est un élément clé du succès. Vous avez la capacité de réussir, et je suis fier de vous ! Continuez à vous soutenir et à célébrer vos progrès. Les prochaines étapes vous attendent, et je suis convaincu que vous les franchirez avec succès ! """,136,,100,True,0

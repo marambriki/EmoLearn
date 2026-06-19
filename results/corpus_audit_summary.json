@@ -1,0 +1,15 @@
+{
+  "corpus_source": "C:\\Users\\Lenovo\\EmoLearn\\data\\corpus_200.csv",
+  "n_total": 220,
+  "n_ok": 215,
+  "n_with_issues": 5,
+  "pct_ok": 97.7,
+  "top_issues": {
+    "emotion_template_suspect": 4,
+    "ton_trop_positif_pour_frustration": 1,
+    "manque_marqueurs_explication": 1
+  },
+  "audit_csv": "C:\\Users\\Lenovo\\EmoLearn\\results\\corpus_audit_report.csv",
+  "evaluation_csv": "C:\\Users\\Lenovo\\EmoLearn\\data\\corpus_evaluation_60.csv",
+  "n_evaluation_sample": 58
+}

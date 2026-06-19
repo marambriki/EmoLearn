@@ -1,0 +1,48 @@
+{
+  "mode": "labels_analysis",
+  "split": "train",
+  "n_clips": 5000,
+  "distribution_etat_dominant": {
+    "Engagement": 3824,
+    "Boredom": 956,
+    "Confusion": 188,
+    "Frustration": 32
+  },
+  "co_occurrences": {
+    "confusion+frustration": 89,
+    "boredom_eleve": 1147,
+    "engagement_zero": 34
+  },
+  "mapping_fer_vers_daisee": {
+    "happy": {
+      "etat": "Engagement",
+      "niveau": 3
+    },
+    "neutral": {
+      "etat": "Boredom",
+      "niveau": 1
+    },
+    "sad": {
+      "etat": "Boredom",
+      "niveau": 2
+    },
+    "angry": {
+      "etat": "Frustration",
+      "niveau": 3
+    },
+    "fear": {
+      "etat": "Confusion",
+      "niveau": 3
+    },
+    "surprise": {
+      "etat": "Confusion",
+      "niveau": 2
+    },
+    "disgust": {
+      "etat": "Frustration",
+      "niveau": 2
+    }
+  },
+  "note": "Analyse des ground truth DAiSEE. Pour métriques FER réelles, fournir --frames-root avec frames extraites (ffmpeg).",
+  "timestamp": "2026-05-31T22:07:40.006110+00:00"
+}

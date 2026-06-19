@@ -1,0 +1,39 @@
+{
+  "total_utterances": 10039,
+  "emotions": {
+    "xxx": 2507,
+    "fru": 1849,
+    "neu": 1708,
+    "ang": 1103,
+    "sad": 1084,
+    "exc": 1041,
+    "hap": 595,
+    "sur": 107,
+    "fea": 40,
+    "oth": 3,
+    "dis": 2
+  },
+  "etats_daisee": {
+    "Boredom": 5302,
+    "Frustration": 2954,
+    "Engagement": 1636,
+    "Confusion": 147
+  },
+  "vad": {
+    "valence_mean": 2.778,
+    "activation_mean": 3.09,
+    "dominance_mean": 3.194
+  },
+  "sessions": {
+    "Ses01": 1819,
+    "Ses02": 1811,
+    "Ses03": 2136,
+    "Ses04": 2103,
+    "Ses05": 2170
+  },
+  "outputs": {
+    "iemocap_analyse_png": "c:\\Users\\Lenovo\\EmoLearn\\data\\iemocap_analyse.png",
+    "comparaison_png": "c:\\Users\\Lenovo\\EmoLearn\\data\\comparaison_daisee_iemocap.png",
+    "summary_csv": "c:\\Users\\Lenovo\\EmoLearn\\results\\iemocap_exploratory_summary.csv"
+  }
+}

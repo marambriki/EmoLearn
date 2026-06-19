@@ -1,0 +1,18 @@
+# EmoLearn — dépendances backend & scripts
+fastapi
+uvicorn
+pandas
+pydantic
+python-dotenv
+python-multipart
+groq
+chromadb
+Pillow
+transformers
+torch
+matplotlib
+pytest
+httpx
+librosa
+soundfile
+sentence-transformers

@@ -3,3 +3,7 @@ venv/
 __pycache__/
 *.pyc
 logs/
+
+# Datasets volumineux (à télécharger séparément — voir docs/)
+data/DAiSEE/DataSet/
+data/IEMOCAP_full_release/

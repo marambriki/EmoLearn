@@ -1,0 +1,333 @@
+%==============================================================================
+%  CHAPITRE 5 — VALIDATION ET RÉSULTATS
+%==============================================================================
+\titreduchapitre{Validation et Résultats}{chap:validation}
+
+Ce chapitre présente l'évaluation multi-niveaux du prototype \emolearn{},
+conformément à l'OS6. Il distingue les validations \textbf{techniques}
+(conduites et chiffrées) des validations \textbf{expertes et utilisateurs}
+(instrumentées mais non finalisées dans le cadre de ce mémoire).
+
+%==============================================================================
+\section{Méthodologie d'évaluation multi-niveaux}
+\label{sec:val-methodo}
+
+\subsection{Approche globale}
+
+L'évaluation s'organise en quatre niveaux complémentaires :
+
+\begin{enumerate}[leftmargin=1.4em]
+  \item \textbf{Niveau technique — perception.} Exactitude des modules visage
+  (FER\,$\rightarrow$\,DAiSEE), voix (SER) et fusion multimodale sur jeux de
+  test documentés.
+
+  \item \textbf{Niveau décision.} Cohérence du mapping
+  engagement\,$\rightarrow$\,stratégie et couverture des cinquante scénarios
+  simulés.
+
+  \item \textbf{Niveau contenu.} Métriques automatiques de forme sur le corpus
+  généré ; protocole d'évaluation experte préparé (60 fiches).
+
+  \item \textbf{Niveau utilisateur.} Protocole d'étude pilote ($n=30$) documenté,
+  non exécuté dans la version actuelle du mémoire.
+\end{enumerate}
+
+Cette hiérarchie privilégie la \emph{mesure honnête} des compromis observés
+plutôt qu'une démonstration de performance maximale.
+
+\subsection{Métriques et critères}
+
+Les métriques retenues varient selon le niveau :
+
+\begin{itemize}[leftmargin=1.4em]
+  \item \textbf{Classification} : accuracy, F1 macro, matrices de confusion ;
+  pour la fusion, rappel des états « urgents » (confusion, frustration).
+  \item \textbf{Corpus généré} : longueur en mots, indice de lisibilité
+  (Kandel--Moles), taux de répétition, taux de conformité à l'audit automatique.
+  \item \textbf{Évaluation experte} (protocole) : Likert 1--5 sur pertinence,
+  clarté, adéquation émotionnelle, qualité pédagogique, utilisabilité MOOC et
+  absence d'erreurs factuelles (avec RAG).
+\end{itemize}
+
+%==============================================================================
+\section{Validation de la perception et de la fusion}
+\label{sec:val-perception}
+
+\subsection{Classifieur FER\,$\rightarrow$\,DAiSEE (Random Forest)}
+
+Un échantillon de \textbf{1\,200} clips \textsc{DAiSEE} a servi à l'entraînement
+d'un Random Forest (GridSearchCV, $n\_estimators=200$) sur les sept scores de
+probabilité du modèle FER pré-entraîné \cite{li2020deepfer,wolf2020transformers}. Le jeu de test ($n=300$) est fortement
+déséquilibré ($\approx$75\,\% Engagement).
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|l|c|c|}
+\hline
+\rowcolor{gray!20}
+\textbf{Approche} & \textbf{Accuracy} & \textbf{F1 macro} \\
+\hline
+Mapping heuristique (baseline) & 0{,}193 & 0{,}141 \\
+\hline
+\textbf{Random Forest appris} & \textbf{0{,}723} & \textbf{0{,}264} \\
+\hline
+Gain absolu & +0{,}530 & +0{,}123 \\
+\hline
+\end{tabular}
+\caption{Comparaison mapping heuristique vs classifieur appris (FER\,$\rightarrow$\,DAiSEE, $n=300$).}
+\label{tab:fer-rf}
+\end{table}
+
+Le classifieur appris améliore nettement l'accuracy mais le F1 macro reste
+modeste : le modèle prédit surtout \emph{Engagement}, avec un rappel nul sur
+\emph{Confusion} et \emph{Frustration} sur ce split. Le gain justifie néanmoins
+le déploiement du modèle appris en production, sous réserve de compléter
+l'évaluation par le rappel des classes minoritaires.
+
+\subsection{Fine-tuning SER (tête wav2vec2)}
+
+La tête de classification d'un modèle \emph{wav2vec2} pré-entraîné
+\cite{baevski2020wav2vec2} a été fine-tunée sur 600 segments \textsc{IEMOCAP}
+(150 par état DAiSEE, oversampling des classes rares), avec validation interne
+$n=120$ sur deux époques (CPU) :
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|c|c|c|}
+\hline
+\rowcolor{gray!20}
+\textbf{Époque} & \textbf{Accuracy} & \textbf{F1 macro} \\
+\hline
+1 & 0{,}275 & 0{,}279 \\
+\hline
+2 & 0{,}300 & \textbf{0{,}309} \\
+\hline
+\end{tabular}
+\caption{Progression du fine-tuning SER (validation interne).}
+\label{tab:ser-ft}
+\end{table}
+
+Ces chiffres mesurent la progression d'entraînement ; la performance en usage
+réel est évaluée ci-dessous sur le banc d'essai audiovisuel aligné.
+
+\subsection{Banc d'essai audiovisuel aligné ($n=80$)}
+
+Un sous-corpus \textsc{IEMOCAP} \textbf{aligné} (même locuteur, visage et voix
+synchronisés, 20 segments par état) permet de comparer modalités uniques et
+fusion sans biais d'appariement. Le tableau~\ref{tab:fusion-av} synthétise les
+résultats.
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{|l|c|c|}
+\hline
+\rowcolor{gray!20}
+\textbf{Variante} & \textbf{Accuracy} & \textbf{Rappel urgents} \\
+\hline
+Visage — FER 1 frame & 0{,}375 & 0{,}250 \\
+\hline
+Visage — FER multi-frames & 0{,}412 & 0{,}275 \\
+\hline
+Voix — SER heuristique & 0{,}263 & 0{,}225 \\
+\hline
+Voix — \textbf{SER appris (wav2vec2)} & \textbf{0{,}487} & 0{,}200 \\
+\hline
+Fusion — priorité pédagogique & 0{,}338 & \textbf{0{,}400} \\
+\hline
+Fusion — \textbf{vote pondéré} & \textbf{0{,}500} & 0{,}125 \\
+\hline
+\end{tabular}
+\caption{Validation multimodale sur sous-corpus IEMOCAP aligné ($n=80$).}
+\label{tab:fusion-av}
+\end{table}
+
+\paragraph{Lecture.} Le SER appris double quasi l'accuracy de la voix
+($+0{,}224$ vs heuristique). La fusion par \emph{weighted vote} atteint la
+meilleure accuracy (0{,}500) ; la stratégie \emph{pedagogical priority} maximise
+le rappel des états urgents (0{,}400) au prix d'une accuracy plus faible. Ce
+compromiss est assumé : le prototype retient 60\,\%/40\,\% (visage/voix) pour
+équilibrer les deux objectifs (tableau~\ref{tab:poids-fusion}).
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|c|c|c|}
+\hline
+\rowcolor{gray!20}
+\textbf{Poids visage / voix} & \textbf{Accuracy} & \textbf{Rappel urgents} \\
+\hline
+0{,}5 / 0{,}5 & 0{,}287 & 0{,}375 \\
+\hline
+\textbf{0{,}6 / 0{,}4 (retenu)} & 0{,}300 & \textbf{0{,}425} \\
+\hline
+0{,}7 / 0{,}3 & 0{,}338 & 0{,}400 \\
+\hline
+0{,}8 / 0{,}2 & 0{,}325 & 0{,}350 \\
+\hline
+\end{tabular}
+\caption{Balayage des poids de fusion (variante vote pondéré, $n=80$).}
+\label{tab:poids-fusion}
+\end{table}
+
+\subsection{Analyse de sensibilité du mapping IEMOCAP\,$\rightarrow$\,DAiSEE}
+
+Sur 10\,039 utterances \textsc{IEMOCAP}, des variantes plausibles du mapping
+émotion\,$\rightarrow$\,engagement modifient jusqu'à \textbf{17\,\%} des
+étiquettes (neutre\,$\rightarrow$\,Engagement au lieu d'Ennui). La sensibilité
+confirme que cette hypothèse n'est pas anodine et justifie une validation
+experte prioritaire sur les correspondances neutre/tristesse.
+
+%==============================================================================
+\section{Validation du modèle d'adaptation}
+\label{sec:val-decision}
+
+\subsection{Analyse de la pertinence du mapping}
+
+La cascade engagement\,$\rightarrow$\,type de contenu (A/B/C/D) + patron (A1--D5)
+a été appliquée aux cinquante scénarios du référentiel. La distribution des
+patrons est concentrée sur l'encouragement (type D) en cas de frustration
+élevée, conforme à la conception (section~\ref{sec:impl-corpus} du
+chapitre~\ref{chap:implementation}).
+
+\subsection{Couverture des états d'engagement}
+
+Les cinquante séquences couvrent les quatre états \textsc{DAiSEE} avec un
+échantillonnage stratifié favorisant les états problématiques (confusion,
+frustration). Six patrons de séquence (stable, dégradation, récupération, etc.)
+sont représentés.
+
+\subsection{Validation par experts pédagogiques}
+
+Un protocole Delphi simplifié (deux tours, trois experts, 15 cas tests +
+20 fiches de patrons) a été préparé. Les fiches d'évaluation
+(\texttt{results/validation\_expert\_fiches.csv}, 58 contenus stratifiés) sont
+prêtes ; les scores Likert restent à compléter. Le livrable final visé est
+documenté dans \texttt{docs/PROTOCOLE\_EVALUATION.md}.
+
+%==============================================================================
+\section{Validation de la qualité du contenu généré}
+\label{sec:val-contenu}
+
+\subsection{Corpus produit et audit automatique}
+
+La chaîne complète (perception simulée, décision, LLM + RAG) a produit
+\textbf{220} contenus (\texttt{corpus\_200.csv}). Les métriques automatiques
+donnent :
+
+\begin{itemize}[leftmargin=1.4em]
+  \item Longueur moyenne : \textbf{225} mots (min 115, max 434).
+  \item Indice Kandel--Moles moyen : 94{,}2 (textes accessibles).
+  \item Taux de répétition moyen : 0{,}485.
+  \item Conformité à l'audit heuristique : \textbf{97{,}7\,\%} (215/220 sans
+  anomalie majeure ; 5 contenus avec alertes mineures).
+\end{itemize}
+
+Les patrons d'encouragement (D1--D5) produisent les textes les plus courts
+($\approx$130--190 mots) ; les exercices (C1--C2) les plus longs
+($\approx$320--350 mots), en cohérence avec les contraintes des patrons.
+
+\subsection{Évaluation experte (protocole)}
+
+Un échantillon de 60 contenus stratifiés par type (A/B/C/D) a été extrait
+(\texttt{corpus\_evaluation\_60.csv}). La grille comprend six critères Likert,
+dont l'absence d'erreurs factuelles \emph{avec RAG}. Cette évaluation humaine
+n'a pas été menée à terme dans le délai du mémoire ; elle constitue la
+perspective immédiate de validation du fond pédagogique.
+
+\subsection{Métriques automatiques complémentaires}
+
+Le script \texttt{scripts/metrics\_contenu.py} calcule longueur, lisibilité et
+présence heuristique des éléments structurants des patrons. Ces métriques
+contrôlent la \emph{forme} mais ne garantissent pas la pertinence sémantique.
+
+%==============================================================================
+\section{Validation utilisateur (étude pilote)}
+\label{sec:val-utilisateur}
+
+\subsection{Protocole expérimental}
+
+Un protocole \emph{within-subject} ($n=30$, deux conditions : contenu statique
+vs contenu adaptatif \emolearn{}) est documenté (durée $\approx$45 min, SUS,
+Likert utilité/adéquation émotionnelle). Les hypothèses exploratoires (C2 $>$
+C1 sur utilité ; SUS $\geq 68$) n'ont pas été testées empiriquement dans cette
+version du travail.
+
+\subsection{Simulation de parcours adaptatifs}
+
+Le prototype React permet néanmoins une démonstration qualitative : lecture de
+séquences vidéo, affichage de l'état détecté, de la décision et du contenu
+généré (avec sources RAG), export PDF et journal SQLite.
+
+%==============================================================================
+\section{Résultats et analyses}
+\label{sec:val-resultats}
+
+\subsection{Synthèse quantitative}
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{|>{\raggedright\arraybackslash}p{4.2cm}|c|c|}
+\hline
+\rowcolor{gray!20}
+\textbf{Composant} & \textbf{Métrique clé} & \textbf{Valeur} \\
+\hline
+FER\,$\rightarrow$\,DAiSEE (appris) & Accuracy test & 0{,}723 \\
+\hline
+SER wav2vec2 (banc aligné) & Accuracy & 0{,}487 \\
+\hline
+Fusion vote pondéré & Accuracy & 0{,}500 \\
+\hline
+Fusion priorité pédagogique & Rappel urgents & 0{,}400 \\
+\hline
+Corpus généré (LLM + RAG) & Audit OK & 97{,}7\,\% \\
+\hline
+\end{tabular}
+\caption{Synthèse des résultats chiffrés disponibles.}
+\label{tab:synthese-val}
+\end{table}
+
+\subsection{Retours qualitatifs}
+
+Les démonstrations internes du prototype mettent en évidence la \emph{lisibilité}
+de la chaîne de décision (journal complet) et l'apport visible du RAG (sources
+documentaires affichées dans l'interface). Les limites perceptives sur les
+classes minoritaires et le compromis fusion accuracy/rappel urgent sont
+explicitement documentées plutôt que masquées.
+
+%==============================================================================
+\section{Discussion approfondie}
+\label{sec:val-discussion}
+
+\subsection{Interprétation des résultats}
+
+Les validations techniques confirment que (i) l'apprentissage léger améliore
+fortement le mapping FER\,$\rightarrow$\,DAiSEE, (ii) le SER appris surpasse
+l'heuristique vocale, (iii) la fusion apporte un gain mesurable mais impose un
+arbitrage entre exactitude globale et sensibilité aux états critiques. Le module
+RAG et les patrons structurés maintiennent la forme du corpus à un niveau
+acceptable (97{,}7\,\% d'audit OK), sans préjuger de la qualité pédagogique
+profonde, qui requiert l'évaluation experte prévue.
+
+\subsection{Comparaison avec l'état de l'art}
+
+Peu de travaux publient une chaîne comparable (multimodal + règles + RAG + LLM)
+avec métriques de fusion \emph{et} corpus généré audité. La contribution
+distinctive réside dans l'architecture reproductible et l'honnêteté sur les
+compromis, plus que dans des scores de référence établis sur MOOC réels.
+
+\subsection{Forces et limites identifiées}
+
+\begin{itemize}[leftmargin=1.4em]
+  \item \textbf{Forces} : pipeline bout-en-bout, traçabilité, RAG intégré,
+  banc d'essai aligné, protocoles d'évaluation documentés.
+  \item \textbf{Limites} : simulation (pas de captation live), appariement
+  visage--voix hétérogène en production, évaluations experte et utilisateur non
+  finalisées, déséquilibre \textsc{DAiSEE} pénalisant le F1 macro.
+\end{itemize}

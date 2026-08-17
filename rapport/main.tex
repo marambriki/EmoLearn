@@ -1,0 +1,170 @@
+%==============================================================================
+%  EmoLearn — Mémoire de Master
+%  Fichier principal. Compiler avec : pdfLaTeX + Biber + pdfLaTeX + pdfLaTeX
+%  (dans TeXstudio : choisir "PDFLaTeX" et "Biber" comme backend bibliographie)
+%==============================================================================
+\documentclass[12pt,a4paper,oneside]{report}
+
+%------------------------- Encodage & langue ---------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern} % police type modèle LaTeX (comme l'image collée)
+\usepackage[french]{babel}
+\usepackage{csquotes}
+\babelhyphenation{régulation}
+
+%------------------------- Mise en page --------------------------------------
+\usepackage[a4paper,top=2.5cm,bottom=2.5cm,left=3cm,right=2.5cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{parskip}
+\usepackage{emptypage}
+
+%------------------------- Graphismes & tableaux -----------------------------
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{enumitem}
+
+%------------------------- Maths ---------------------------------------------
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+%------------------------- Pseudo-code ---------------------------------------
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\floatname{algorithm}{Algorithme}
+\renewcommand{\algorithmicrequire}{\textbf{Entrée :}}
+\renewcommand{\algorithmicensure}{\textbf{Sortie :}}
+\renewcommand{\algorithmicif}{\textbf{si}}
+\renewcommand{\algorithmicthen}{\textbf{alors}}
+\renewcommand{\algorithmicelse}{\textbf{sinon}}
+\renewcommand{\algorithmicend}{\textbf{fin}}
+\renewcommand{\algorithmicfor}{\textbf{pour}}
+\renewcommand{\algorithmicdo}{\textbf{faire}}
+\renewcommand{\algorithmicreturn}{\textbf{retourner}}
+
+%------------------------- Schémas (TikZ) ------------------------------------
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,calc,fit,backgrounds}
+
+%------------------------- En-têtes & pieds de page --------------------------
+\usepackage{fancyhdr}
+\setlength{\headheight}{15pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\nouppercase{\leftmark}}
+\fancyfoot[C]{\thepage}% numérotation en bas, au milieu
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+% Pages de chapitre / liminaires : numéro seul, en bas au centre
+\fancypagestyle{plain}{%
+  \fancyhf{}%
+  \fancyfoot[C]{\thepage}%
+  \renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\footrulewidth}{0pt}%
+}
+% S'assurer que le style plain (numéro au milieu) est utilisé partout où besoin
+\makeatletter
+\let\ps@chapter\ps@plain
+\makeatother
+
+%------------------------- Titres de chapitres (style Lenny) ------------------
+\usepackage[Lenny]{fncychap}
+
+%------------------------- Mini-sommaires de chapitre -------------------------
+\usepackage[french,nolistfiles,nohints]{minitoc}
+\setcounter{minitocdepth}{2}
+
+% Page de titre + Sommaire (sections et sous-sections), contenu à la page suivante.
+\newcommand{\titreduchapitre}[2]{%
+  \chapter{\textbf{#1}}%
+  \label{#2}%
+  \minitoc
+  \thispagestyle{plain}% numéro de page en bas au centre
+  \newpage
+  \thispagestyle{fancy}}
+
+%------------------------- Liens & références ---------------------------------
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  citecolor=blue!50!black,
+  urlcolor=blue!50!black,
+  pdftitle={EmoLearn — Mémoire de Master},
+  pdfauthor={BRIKI Maram}
+}
+
+%------------------------- Bibliographie (biblatex + biber) -------------------
+\usepackage[backend=biber,style=numeric-comp,sorting=nyt,maxbibnames=99]{biblatex}
+\addbibresource{references.bib}
+
+%------------------------- Raccourcis ----------------------------------------
+\newcommand{\emolearn}{\textsc{EmoLearn}}
+
+% Marqueur des parties non encore rédigées. Il évite aussi les pages blanches
+% que produisent de longues suites de titres sans texte intercalé.
+% Pour faire disparaître tous les marqueurs d'un coup :
+%   \renewcommand{\arediger}{}
+\newcommand{\arediger}{\par\nobreak\vspace{2pt}%
+  \emph{\small[Contenu à rédiger.]}\par\medskip}
+
+%==============================================================================
+\begin{document}
+\dominitoc
+
+%--------------------------- PAGE DE GARDE ------------------------------------
+\input{pages/garde}
+
+%--------------------------- PAGES LIMINAIRES ---------------------------------
+\pagenumbering{roman}
+
+\input{pages/dedicaces}
+\input{pages/remerciements}
+
+\cleardoublepage
+\renewcommand{\contentsname}{\textbf{Table des matières}}
+\tableofcontents
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Table des figures}
+\mtcaddchapter % entrée TOC sans \chapter numéroté : resync minitoc
+\renewcommand{\listfigurename}{\textbf{Table des figures}}
+\listoffigures
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Liste des tableaux}
+\mtcaddchapter % entrée TOC sans \chapter numéroté : resync minitoc
+\renewcommand{\listtablename}{\textbf{Liste des tableaux}}
+\listoftables
+
+%--------------------------- CORPS DU MÉMOIRE ---------------------------------
+\cleardoublepage
+\pagenumbering{arabic}
+
+\include{chapters/chapitre1_introduction}
+\include{chapters/chapitre1_fondements}
+\include{chapters/chapitre2_etat_art}
+\include{chapters/chapitre3_conception}
+\include{chapters/chapitre4_implementation}
+\include{chapters/chapitre5_validation}
+\include{chapters/chapitre6_conclusion}
+
+%--------------------------- BIBLIOGRAPHIE ------------------------------------
+\cleardoublepage
+\printbibliography[heading=bibintoc,title={\textbf{Bibliographie}}]
+
+%--------------------------- ANNEXES ------------------------------------------
+\appendix
+\include{chapters/annexes}
+
+\end{document}

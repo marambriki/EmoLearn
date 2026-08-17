@@ -33,7 +33,7 @@ Pour chaque cas test, l’expert note sur Likert 1–5 :
 | C4 Urgence | Le déclenchement est-il opportun ? |
 
 **Tour 2 — Synthèse (1h en visio)**  
-Consensus sur les cas < 3/5 ; ajustement des règles dans `adaptation.py` / `decision_engine.py`.
+Consensus sur les cas < 3/5 ; ajustement des règles dans `decision_engine.py`.
 
 ### Livrable
 
@@ -71,16 +71,30 @@ Mesurer pertinence pédagogique, clarté et adéquation à l’état émotionnel
 
 ### Métriques automatiques (complément)
 
-À calculer via `scripts/metrics_contenu.py` :
+**Forme** — via `scripts/metrics_contenu.py` :
 
 - Nombre de mots (cible : 150–250 selon template)
 - Indice de lisibilité (adaptation française si possible)
 - Taux de répétition de phrases
 - Présence des 4 points des instructions template (heuristique mots-clés)
 
+**Similarité vs référence** — via `scripts/metrics_llm_similarity.py` :
+
+```bash
+# Sur le corpus réel (défaut) : référence auto = contenu médian par template
+python scripts/metrics_llm_similarity.py --skip-bertscore
+```
+
+- BLEU-4, ROUGE-1/2/L (+ BERTScore si installé)
+- Mode `auto` (défaut) : mesure la **cohérence interne** des générations d’un même template
+- Mode `gold` : si textes experts disponibles (`--mode gold --references …`)
+
+Ces scores ne remplacent pas la grille L2 (qualité pédagogique).
+
 ### Livrable
 
 - `results/evaluation_experts_contenu.csv`
+- `results/llm_similarity_metrics.json` (+ `.csv`, `llm_similarity_memoire.md`)
 - Boxplots par `template_id`
 - Section 5.3 du mémoire
 
@@ -91,7 +105,7 @@ Mesurer pertinence pédagogique, clarté et adéquation à l’état émotionnel
 ### Protocole
 
 1. Extraire N frames (ex. 500) depuis clips DAiSEE avec labels.
-2. Inférer avec `fer_module.analyser_visage(path)`.
+2. Inférer avec `fer_offline.analyser_visage(path)` (script hors produit).
 3. Mapper émotions FER → états DAiSEE (`mapping_fer_daisee`).
 4. Comparer à l’état dominant du label clip.
 
@@ -167,12 +181,12 @@ Pour chaque session API, conserver :
   "fusion": { "etat": "...", "niveau": 3 },
   "decision": { "template_id": "A3", "strategie": "..." },
   "prompt_hash": "...",
-  "model": "llama-3.1-8b-instant",
+  "model": "openai/gpt-oss-20b",
   "rag_sources": []
 }
 ```
 
-*(Implémentation future : `backend/decision_log.py`)*
+*(Implémentation : `pipeline.enregistrer_decision` → `logs/decisions.jsonl`)*
 
 ---
 

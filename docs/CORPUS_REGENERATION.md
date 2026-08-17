@@ -7,7 +7,6 @@ L’audit initial (`scripts/audit_corpus.py`) a signalé **46 entrées** incohé
 Une première passe **`--metadata-only`** a corrigé les métadonnées (template, émotion, niveau) via `decision_engine` :
 
 - Résultat : **91,4 % OK** (201/220)
-- Backup : `data/corpus_200_backup.csv`
 
 Il reste ~**19 entrées** dont le **texte** ne correspond pas au template (marqueurs manquants, ton inadapté).
 
@@ -60,7 +59,6 @@ python scripts/metrics_contenu.py
 
 | Fichier | Description |
 |---------|-------------|
-| `data/corpus_200_backup.csv` | Sauvegarde avant modification |
 | `results/corpus_audit_report.csv` | Détail des problèmes par ligne |
 | `data/corpus_evaluation_60.csv` | Échantillon pour évaluation experte (régénéré à chaque audit) |
 

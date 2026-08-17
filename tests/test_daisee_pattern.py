@@ -30,12 +30,19 @@ def test_tous_scenarios_csv_coherents():
     df = pd.read_csv(csv_path)
     df.columns = [c.strip() for c in df.columns]
 
+    assert len(df) == 50
+    assert df["ClipID"].duplicated().sum() == 0, "ClipID en doublon dans scenarios_50.csv"
+
     for _, row in df.iterrows():
         etat, _, _ = etat_dominant_depuis_scores(
             row["Boredom"], row["Confusion"], row["Engagement"], row["Frustration"]
         )
         pattern = pattern_depuis_scores(
             row["Boredom"], row["Confusion"], row["Engagement"], row["Frustration"]
+        )
+
+        assert row["pattern"] == pattern, (
+            f"{row['ClipID']}: pattern CSV={row['pattern']!r} != recalculé={pattern!r}"
         )
 
         if pattern == "critique":

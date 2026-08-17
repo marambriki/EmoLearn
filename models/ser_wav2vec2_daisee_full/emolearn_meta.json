@@ -1,0 +1,17 @@
+{
+  "base_model": "superb/wav2vec2-base-superb-er",
+  "labels": [
+    "Boredom",
+    "Confusion",
+    "Engagement",
+    "Frustration"
+  ],
+  "label2id": {
+    "Boredom": 0,
+    "Confusion": 1,
+    "Engagement": 2,
+    "Frustration": 3
+  },
+  "inclut_confusion": true,
+  "source_labels": "IEMOCAP emotion → etat_daisee (sur/fea → Confusion)"
+}

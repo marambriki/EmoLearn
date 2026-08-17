@@ -12,7 +12,7 @@ Document de révision pour expliquer le **code** et les **résultats** de chaque
 |----------|------|---------------------------|----------------|
 | **OS1Daisee** | Analyse exploratoire DAiSEE | `data/scenarios_50.csv` | `daisee_utils.py` |
 | **OS1IEMOCAP** | Voix IEMOCAP + fusion multimodale | `data/iemocap_parsed.csv` | `ser_module.py`, `fusion_module.py` |
-| **OS2fini** | Engagement → stratégie A/B/C/D | `data/scenarios_avec_strategies.csv` | `adaptation.py`, `decision_engine.py` |
+| **OS2fini** | Engagement → stratégie A/B/C/D | `data/scenarios_avec_strategies.csv` | `decision_engine.py` |
 | **OS3fini** | 20 templates Groq + corpus | `data/corpus_200.csv` | `prompts/templates.py` |
 | **OS4** | Module LLM intégré | — | `llm_module.py` |
 | **Rag** | RAG ChromaDB (sans vs avec) | base vectorielle | `rag_module.py` |
@@ -233,7 +233,8 @@ result = analyser_voix_depuis_scenario(scenario_id=i)
 
 1. Filtre utterances IEMOCAP par **état dominant** du scénario DAiSEE.
 2. Sélection : `scenario_id % len(pool)`.
-3. Retourne émotion, état DAiSEE, niveau, score.
+3. Analyse le signal audio réel (.wav, SER fine-tuné ou heuristique) — **obligatoire**, aucun mode CSV.
+4. Retourne émotion, état DAiSEE, niveau, score.
 
 ### Cellule 4 — Pipeline multimodal
 
@@ -242,8 +243,8 @@ from fer_module import analyser_visage_depuis_scenario
 from ser_module import analyser_voix_depuis_scenario
 from fusion_module import fusionner_modalites
 
-result_visage = analyser_visage_depuis_scenario(scenario)  # scores CSV
-result_voix   = analyser_voix_depuis_scenario(scenario_id)
+result_visage = analyser_visage_depuis_scenario(scenario)  # vidéo DAiSEE réelle (FER)
+result_voix   = analyser_voix_depuis_scenario(scenario_id)  # audio IEMOCAP réel (SER)
 fusion        = fusionner_modalites(result_visage, result_voix)
 ```
 
@@ -283,7 +284,7 @@ def mapper_emotion_daisee(emotion_fer):
 
 Modèle : `dima806/facial_emotions_image_detection` (7 émotions → 4 états DAiSEE).
 
-### Fonction centrale `selectionner_strategie` (`backend/adaptation.py`)
+### Fonction centrale `selectionner_strategie` (`backend/decision_engine.py`)
 
 | Priorité | Condition | Type | Stratégie |
 |----------|-----------|------|-----------|
@@ -391,7 +392,7 @@ pattern_templates_complet = {
 
 > « OS4 teste `generer_contenu_adaptatif()` — même fonction que l'API `POST /analyser`. »
 
-Le notebook enchaîne **4 appels Groq** (un par type A/B/C/D). Sur le plan gratuit Groq (`llama-3.1-8b-instant`, ~6 000 tokens/min), le **4ᵉ appel** peut échouer avec une erreur **429 (rate limit)** si les requêtes sont trop rapprochées — ce n'est pas un bug de logique.
+Le notebook enchaîne **4 appels Groq** (un par type A/B/C/D). Sur le plan gratuit Groq (`openai/gpt-oss-20b`), le **4ᵉ appel** peut échouer avec une erreur **429 (rate limit)** si les requêtes sont trop rapprochées — ce n'est pas un bug de logique. Groq a retiré `llama-3.1-8b-instant` le 16/08/2026.
 
 **Mitigations en place :**
 - **`llm_module.py`** : retry automatique sur `RateLimitError` (jusqu'à 4 tentatives, attentes 2 / 5 / 8 s).
@@ -474,7 +475,7 @@ Code émotion = **non classifié / indéterminé** (~25 % des utterances). Mapp�
 ```
 OS1Daisee     → scenarios_50.csv
 OS1IEMOCAP    → iemocap_parsed.csv + fusion
-OS2fini       → Type A/B/C/D (adaptation.py)
+OS2fini       → Type A/B/C/D (decision_engine.py)
 OS3fini       → 20 templates → corpus_200.csv
 OS4 + Rag     → llm_module.py → POST /analyser (UI)
 ```

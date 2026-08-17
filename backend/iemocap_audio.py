@@ -13,8 +13,8 @@ IEMOCAP_PATH = os.path.join(
 
 
 def dialogue_id_from_utterance(utterance_id: str) -> str:
-    """Ses01F_impro01_F000 → Ses01F_impro01"""
-    return re.sub(r"_F\d+$", "", str(utterance_id))
+    """Ses01F_impro01_F000 → Ses01F_impro01 (gère locuteur _F### ET _M###)."""
+    return re.sub(r"_[FM]\d+$", "", str(utterance_id))
 
 
 def session_num_from_utterance(utterance_id: str) -> int | None:
@@ -94,3 +94,29 @@ def charger_segment_wav(
         return y, loaded_sr
     except Exception:
         return None, sr
+
+
+def extract_segment_wav_bytes(
+    utterance_id: str,
+    start_time: float,
+    end_time: float,
+    wav_path: str | None = None,
+    sr: int = 16000,
+) -> bytes | None:
+    """Segment utterance en bytes WAV (pour le lecteur UI)."""
+    import io
+
+    import soundfile as sf
+
+    y, loaded_sr = charger_segment_wav(
+        utterance_id,
+        start_time,
+        end_time,
+        sr=sr,
+        wav_path=wav_path,
+    )
+    if y is None or len(y) == 0:
+        return None
+    buf = io.BytesIO()
+    sf.write(buf, y, loaded_sr, format="WAV")
+    return buf.getvalue()

@@ -1,0 +1,208 @@
+{
+  "mode": "fer_daisee_classifier_au",
+  "with_au": true,
+  "classifier": "rf",
+  "grid_search": true,
+  "best_params": {
+    "clf__max_depth": 8,
+    "clf__min_samples_leaf": 2,
+    "clf__n_estimators": 100
+  },
+  "cv_best_score": 0.32012169963728015,
+  "n_samples": 800,
+  "distribution_gt": {
+    "Boredom": 200,
+    "Confusion": 200,
+    "Engagement": 200,
+    "Frustration": 200
+  },
+  "oversample": {
+    "enabled": true,
+    "avant": {
+      "Engagement": 150,
+      "Frustration": 150,
+      "Confusion": 150,
+      "Boredom": 150
+    },
+    "ajoutes": {
+      "Engagement": 0,
+      "Frustration": 0,
+      "Confusion": 0,
+      "Boredom": 0
+    },
+    "apres": {
+      "Engagement": 150,
+      "Frustration": 150,
+      "Confusion": 150,
+      "Boredom": 150
+    },
+    "n_train_avant": 600,
+    "n_train_apres": 600
+  },
+  "baseline_heuristique_test": {
+    "accuracy": 0.255,
+    "f1_macro": 0.1893,
+    "confusion_matrix": {
+      "labels": [
+        "Boredom",
+        "Confusion",
+        "Engagement",
+        "Frustration"
+      ],
+      "counts": [
+        [
+          38,
+          3,
+          9,
+          0
+        ],
+        [
+          40,
+          4,
+          3,
+          3
+        ],
+        [
+          36,
+          3,
+          7,
+          4
+        ],
+        [
+          33,
+          10,
+          5,
+          2
+        ]
+      ]
+    },
+    "report": {
+      "Boredom": {
+        "precision": 0.2585034013605442,
+        "recall": 0.76,
+        "f1-score": 0.38578680203045684,
+        "support": 50.0
+      },
+      "Confusion": {
+        "precision": 0.2,
+        "recall": 0.08,
+        "f1-score": 0.11428571428571428,
+        "support": 50.0
+      },
+      "Engagement": {
+        "precision": 0.2916666666666667,
+        "recall": 0.14,
+        "f1-score": 0.1891891891891892,
+        "support": 50.0
+      },
+      "Frustration": {
+        "precision": 0.2222222222222222,
+        "recall": 0.04,
+        "f1-score": 0.06779661016949153,
+        "support": 50.0
+      },
+      "accuracy": 0.255,
+      "macro avg": {
+        "precision": 0.2430980725623583,
+        "recall": 0.255,
+        "f1-score": 0.18926457891871296,
+        "support": 200.0
+      },
+      "weighted avg": {
+        "precision": 0.24309807256235827,
+        "recall": 0.255,
+        "f1-score": 0.18926457891871296,
+        "support": 200.0
+      }
+    }
+  },
+  "learned_test": {
+    "accuracy": 0.37,
+    "f1_macro": 0.3735,
+    "confusion_matrix": {
+      "labels": [
+        "Boredom",
+        "Confusion",
+        "Engagement",
+        "Frustration"
+      ],
+      "counts": [
+        [
+          18,
+          7,
+          17,
+          8
+        ],
+        [
+          3,
+          17,
+          14,
+          16
+        ],
+        [
+          5,
+          14,
+          22,
+          9
+        ],
+        [
+          5,
+          15,
+          13,
+          17
+        ]
+      ]
+    },
+    "report": {
+      "Boredom": {
+        "precision": 0.5806451612903226,
+        "recall": 0.36,
+        "f1-score": 0.4444444444444444,
+        "support": 50.0
+      },
+      "Confusion": {
+        "precision": 0.32075471698113206,
+        "recall": 0.34,
+        "f1-score": 0.3300970873786408,
+        "support": 50.0
+      },
+      "Engagement": {
+        "precision": 0.3333333333333333,
+        "recall": 0.44,
+        "f1-score": 0.3793103448275862,
+        "support": 50.0
+      },
+      "Frustration": {
+        "precision": 0.34,
+        "recall": 0.34,
+        "f1-score": 0.34,
+        "support": 50.0
+      },
+      "accuracy": 0.37,
+      "macro avg": {
+        "precision": 0.393683302901197,
+        "recall": 0.37,
+        "f1-score": 0.3734629691626679,
+        "support": 200.0
+      },
+      "weighted avg": {
+        "precision": 0.393683302901197,
+        "recall": 0.37,
+        "f1-score": 0.3734629691626678,
+        "support": 200.0
+      }
+    }
+  },
+  "gain_accuracy": 0.115,
+  "gain_f1_macro": 0.1842,
+  "beats_baseline": true,
+  "recommandation": "learned",
+  "model_path": "C:\\Users\\Lenovo\\EmoLearn\\models\\fer_daisee_clf_au.joblib",
+  "timestamp": "2026-08-17T21:35:07.468357+00:00",
+  "note": "Algo = Random Forest (ou logreg). Features = FER 7 + AU MediaPipe. GridSearchCV + options --stratified / --oversample.",
+  "grid_scoring": "f1_macro",
+  "sample_arg": 800,
+  "labels_split": "all",
+  "stratified": true,
+  "oversample_flag": true
+}

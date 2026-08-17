@@ -1,0 +1,124 @@
+%==============================================================================
+%  EmoLearn — MÉMOIRE COMPLET (projet Overleaf, un seul main.tex)
+%  --------------------------------------------------------------------------
+%  Overleaf : Menu > Compiler = pdfLaTeX (Biber est lancé automatiquement).
+%  Structure du projet :
+%    main.tex               <- ce fichier (préambule + assemblage)
+%    references.bib         <- bibliographie unique
+%    pages/garde.tex        <- page de garde
+%    pages/dedicaces.tex    <- dédicaces
+%    pages/remerciements.tex<- remerciements
+%    chapters/chapitre1.tex <- Introduction générale
+%    chapters/chapitre3.tex <- Modélisation et conception
+%    (chapitres 2,4,5,6 : décommenter les \include quand ils seront rédigés)
+%==============================================================================
+\documentclass[12pt,a4paper]{report}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage{booktabs}
+\usepackage{ltablex}
+\setcounter{secnumdepth}{4}
+\usepackage{xcolor}
+\usepackage{multirow}
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{fullpage}
+\usepackage{alltt}
+\usepackage{times}
+\usepackage[a4paper]{geometry}
+\footskip = 65pt
+\headsep = 20pt
+\topmargin= 8pt
+\usepackage[T1]{fontenc}
+\usepackage[Lenny]{fncychap}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\setlength{\headheight}{15pt}
+\fancyhead{}
+\fancyhead[R]{\nouppercase{\leftmark}}
+
+\usepackage{amsmath}
+\usepackage{minitoc}
+\usepackage{kpfonts}
+\let\tmp\oddsidemargin
+\let\oddsidemargin\evensidemargin
+\let\evensidemargin\tmp
+\reversemarginpar
+
+\usepackage{array,multirow}
+\title{} \author{} \date{}
+\usepackage{titlesec}
+\usepackage{hyperref}
+
+\titleclass{\subsubsubsection}{straight}[\subsection]
+\newcounter{subsubsubsection}[subsubsection]
+\renewcommand\thesubsubsubsection{\thesubsubsection.\arabic{subsubsubsection}}
+\renewcommand\theparagraph{\thesubsubsubsection.\arabic{paragraph}}
+\titleformat{\subsubsubsection}
+  {\normalfont\normalsize\bfseries}{\thesubsubsubsection}{1em}{}
+\titlespacing*{\subsubsubsection}
+{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+\makeatletter
+\renewcommand\paragraph{\@startsection{paragraph}{5}{\z@}%
+  {3.25ex \@plus1ex \@minus.2ex}{-1em}{\normalfont\normalsize\bfseries}}
+\renewcommand\subparagraph{\@startsection{subparagraph}{6}{\parindent}%
+  {3.25ex \@plus1ex \@minus .2ex}{-1em}{\normalfont\normalsize\bfseries}}
+\def\toclevel@subsubsubsection{4}
+\def\toclevel@paragraph{5}
+\def\l@subsubsubsection{\@dottedtocline{4}{7em}{4em}}
+\def\l@paragraph{\@dottedtocline{5}{10em}{5em}}
+\def\l@subparagraph{\@dottedtocline{6}{14em}{6em}}
+\makeatother
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{4}
+\frenchbsetup{StandardLists=false}
+\usepackage{enumitem}
+\usepackage{pifont}
+\usepackage{setspace}
+\usepackage{colortbl}
+
+%==== Ajouts pour le contenu (schémas TikZ + bibliographie) ==================
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,calc,fit,backgrounds}
+\usepackage{float}
+\usepackage[backend=biber,style=numeric-comp,sorting=nyt,maxbibnames=99]{biblatex}
+\addbibresource{references.bib}
+\newcommand{\emolearn}{\textsc{EmoLearn}}
+
+%==============================================================================
+\begin{document}
+\dominitoc
+\singlespacing
+
+%--------------------- PAGES LIMINAIRES (numérotation romaine) ----------------
+\pagenumbering{roman}
+
+\include{pages/garde}
+\include{pages/dedicaces}
+\include{pages/remerciements}
+
+\newpage
+\tableofcontents
+\newpage
+\listoffigures
+\newpage
+\listoftables
+
+%--------------------- CORPS DU MÉMOIRE (numérotation arabe) ------------------
+\newpage
+\pagenumbering{arabic}
+
+\include{chapters/chapitre1}
+% \include{chapters/chapitre2}   % État de l'art (à rédiger)
+\include{chapters/chapitre3}
+% \include{chapters/chapitre4}   % Implémentation (à rédiger)
+% \include{chapters/chapitre5}   % Validation et résultats (à rédiger)
+% \include{chapters/chapitre6}   % Conclusion générale (à rédiger)
+
+%--------------------- BIBLIOGRAPHIE UNIQUE -----------------------------------
+\printbibliography[heading=bibintoc,title={Bibliographie}]
+
+\end{document}

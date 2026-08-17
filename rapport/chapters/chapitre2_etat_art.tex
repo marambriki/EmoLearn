@@ -1,0 +1,659 @@
+%==============================================================================
+%  CHAPITRE 2 — ÉTAT DE L'ART
+%==============================================================================
+\titreduchapitre{État de l'Art}{chap:etat_art}
+
+%==============================================================================
+\section{Introduction}
+\label{sec:ea-intro}
+
+Après les fondements posés au chapitre~\ref{chap:fondements}, ce chapitre
+situe \emolearn{} dans la littérature récente. La régulation pédagogique
+automatique d'un apprenant isolé devant un écran relève de deux axes de
+recherche complémentaires, encore trop souvent traités séparément.
+
+Le premier axe porte sur la \textbf{détection} de l'engagement. Les travaux
+s'appuient soit sur les traces textuelles des forums (présence cognitive,
+émotions épistémiques), soit sur des signaux multimodaux (visage, voix,
+posture). Le second axe porte sur l'\textbf{intervention} : systèmes de
+tutorat intelligent, stratégies d'adaptation, et, plus récemment, génération
+de contenu par grands modèles de langue. La convergence de ces deux axes
+(percevoir un état, décider d'une stratégie, produire un contenu) constitue
+la direction la plus prometteuse, et aussi la moins couverte de bout en bout.
+
+Ce chapitre est organisé en trois niveaux progressifs, selon la logique
+retenue pour un état de l'art de mémoire. Nous examinons d'abord les enjeux
+d'engagement dans les MOOC et les cadres théoriques qui permettent de le
+décrire. Nous analysons ensuite les méthodes de
+détection automatique, en distinguant les approches textuelles fondées sur
+les forums et les approches visuelles ou multimodales. Nous présentons enfin les systèmes qui
+passent de la détection à l'intervention, des tuteurs intelligents historiques
+aux dispositifs génératifs contemporains. Une
+synthèse comparative identifie les lacunes
+que le chapitre~\ref{chap:conception} vise à combler.
+
+%==============================================================================
+\section{Engagement dans les MOOC : enjeux et cadres théoriques}
+\label{sec:ea-mooc}
+
+\subsection{Décrochage massif et rôle de l'engagement}
+
+Les analyses empiriques confirment que le décrochage n'est pas uniquement dû
+à des contraintes externes (temps, prérequis) : la baisse d'engagement
+cognitif, comportemental et émotionnel constitue un facteur central
+\cite{kizilcec2013deconstructing,hew2016promoting}, avec des taux de
+complétion souvent proches de 10\,\%
+\cite{reich2019mooc,liu2022automated}. Restaurer une adaptation automatique
+suppose donc, en amont, de mesurer l'engagement autrement que par de simples
+proxies de présence (clics, durée de session).
+
+\subsection{Trois dimensions de l'engagement}
+
+La définition aujourd'hui la plus partagée distingue trois composantes
+\cite{fredricks2004school} :
+\begin{itemize}
+  \item l'\textbf{engagement comportemental} (participation, persévérance,
+  effort observable)~;
+  \item l'\textbf{engagement cognitif} (profondeur du traitement, stratégies
+  d'apprentissage, présence cognitive)~;
+  \item l'\textbf{engagement émotionnel} (intérêt, ennui, confusion,
+  frustration, sentiment d'affiliation).
+\end{itemize}
+Les traces de plateforme capturent surtout la première dimension. Les forums
+donnent un accès partiel à la seconde. La troisième, pourtant déterminante
+pour la motivation et la persévérance
+\cite{pekrun2006control,dmello2012dynamics}, reste la plus difficile à
+inférer sans capteurs affectifs. \emolearn{} se concentre sur cette dimension
+émotionnelle, tout en visant un effet sur la persévérance globale.
+
+Liu \emph{et al.} montrent, sur 8\,867 apprenants d'un forum MOOC, que
+engagement émotionnel et engagement cognitif sont liés et prédisent
+conjointement la réussite : les émotions positives et la confusion contribuent
+davantage à une cognition de haut niveau que les émotions négatives, et les
+indicateurs co-occurrents sont plus fiables qu'un facteur isolé
+\cite{liu2022automated}. Ce résultat justifie de ne pas réduire l'engagement
+à un score unique, et d'associer à chaque état (ennui, confusion, frustration,
+engagement) une stratégie pédagogique distincte.
+
+\subsection{Cadres d'analyse de l'engagement cognitif}
+
+Lorsque le signal disponible est textuel, trois cadres dominent la littérature
+de détection dans les forums \cite{sakeef2025detecting}.
+
+Le modèle de \emph{Community of Inquiry} (CoI)
+\cite{garrison1999critical} décompose l'expérience d'apprentissage en ligne
+en présences sociale, enseignante et cognitive. La présence cognitive
+s'opérationnalise en quatre phases (événement déclencheur, exploration,
+intégration, résolution) et sert de référence à de nombreux classifieurs
+automatiques \cite{hu2021automatic,liu2023moocbert,sakeef2025detecting}.
+
+Le cadre ICAP (\emph{Interactive, Constructive, Active, Passive})
+\cite{chi2014icap} relie le mode d'engagement à la qualité des apprentissages :
+plus l'activité est constructive ou interactive, plus le traitement est
+profond. Il est largement utilisé pour coder les messages de forums
+\cite{sakeef2025detecting}.
+
+Ces cadres sont précieux pour l'analyse \emph{a posteriori} des discussions.
+Ils ne couvrent toutefois pas la situation visée par \emolearn{} : un
+apprenant seul, devant une vidéo de cours, sans produire de texte, dont
+l'état affectif doit être estimé en temps quasi réel pour déclencher une
+intervention. La taxonomie \textsc{DAiSEE} (engagement, ennui, confusion,
+frustration) \cite{gupta2016daisee} est alors plus opératoire, car elle
+relie directement un état observable à un besoin pédagogique.
+
+\subsection{Émotions d'apprentissage et charge cognitive}
+
+Les émotions ne sont pas périphériques à la cognition : elles modulent
+l'attention, la persévérance et la mémorisation
+\cite{picard1997affective,pekrun2006control}. La dynamique
+confusion--frustration--ennui, documentée par D'Mello et Graesser, montre
+qu'un épisode de confusion résolu favorise l'apprentissage, tandis qu'une
+confusion non résolue dérive vers la frustration puis l'ennui
+\cite{dmello2012dynamics,baker2010better}. Baker \emph{et al.} concluent
+qu'il vaut mieux être frustré qu'ennuyé : la frustration signale encore un
+investissement, l'ennui une désengagement déjà avancé
+\cite{baker2010better}.
+
+La théorie de la charge cognitive \cite{sweller1988cognitive,sweller2019cognitive}
+éclaire le même phénomène sous un autre angle : un contenu trop dense favorise
+la confusion ; un contenu sous-stimulant favorise l'ennui. La théorie de
+l'apprentissage multimédia \cite{mayer2021multimedia} et les méta-analyses sur
+les émotions en environnements technologiques
+\cite{loderer2020beyond,graesser2020emotions} confirment qu'un système
+adaptatif doit ajuster la complexité, le rythme et le type d'exemple en
+fonction de l'état détecté, plutôt que de proposer un unique parcours moyen.
+
+%==============================================================================
+\section{Détection automatique de l'engagement}
+\label{sec:ea-detection}
+
+La détection automatique vise à substituer, au questionnaire ou à
+l'observation humaine, un estimateur reproductible. Deux familles de signaux
+structurent l'état de l'art : le \textbf{texte} des forums, abondant dans les
+MOOC, et les \textbf{signaux perceptifs} (visage, voix, posture), plus proches
+de la régulation en classe.
+
+\subsection{Approches textuelles fondées sur les forums}
+
+Sakeef \emph{et al.} proposent une revue des cadres (CoI, ICAP, KCSA) et des
+méthodes de TALN / apprentissage profond utilisées pour détecter l'engagement
+cognitif dans les forums \cite{sakeef2025detecting}. Ils soulignent que
+l'annotation manuelle est trop coûteuse pour un suivi en continu, et que
+l'automatisation devient indispensable. Ils rappellent aussi une limite
+structurelle : l'absence de indices visuels et auditifs dans le texte rend
+l'inférence de l'état interne partielle. Cette limite motive, pour \emolearn{},
+le recours aux modalités visage et voix (corpus annotés) plutôt qu'au seul forum.
+
+Hu, Ferreira Mello et Gašević comparent un CNN à des forêts aléatoires fondées
+sur des traits linguistiques pour classer la présence cognitive selon le CoI
+\cite{hu2021automatic}. Le CNN atteint un $\kappa$ de Cohen de 0,528, comparable
+aux approches classiques, avec une généralisabilité inter-cours similaire. L'apport
+principal est l'explicabilité (XAI) au niveau des mots, qui complète
+l'importance des descripteurs de la forêt aléatoire. Le travail reste toutefois
+une tâche de \emph{catégorisation} de messages, sans lien avec une intervention
+pédagogique automatique.
+
+Liu \emph{et al.} (2022) introduisent BERT-CNN pour détecter conjointement
+l'engagement émotionnel et cognitif dans les discussions MOOC
+\cite{liu2022automated}. Par rapport aux modèles antérieurs, le F1 s'améliore
+d'environ 10\,\% (émotion) et 8\,\% (cognition). L'analyse par équations
+structurelles sur 8\,867 apprenants confirme l'effet combiné des deux
+dimensions sur la réussite. Méthodologiquement, le papier établit qu'un
+détecteur robuste et interprétable est un prérequis à toute régulation ;
+opérationnellement, il s'arrête à la prédiction de la réussite, sans générer
+de contenu adaptatif.
+
+MOOC-BERT pousse plus loin le pré-entraînement : le modèle est pré-entraîné
+sur des discussions non étiquetées issues de plusieurs MOOC et disciplines,
+puis utilisé pour identifier la présence cognitive
+\cite{liu2023moocbert}. Il surpasse les algorithmes représentatifs d'apprentissage
+automatique et de deep learning, y compris en généralisation inter-cours, et
+permet une analyse longitudinale de l'évolution des phases cognitives. Là
+encore, la boucle s'arrête à l'aide à l'enseignant : fournir un diagnostic,
+non produire l'intervention.
+
+Liu \emph{et al.} (2021) articulent analyse de réseaux sociaux et analyse de
+réseaux épistémiques sur 3\,925 participants d'un forum MOOC
+\cite{liu2021exploring}. Les groupes à haute et basse réussite diffèrent
+significativement en centralité ; les connexions cognitives sont plus fortes
+chez les apprenants performants et dans les communautés animées par
+l'enseignant. Ce résultat éclaire le rôle de l'accompagnement, mais concerne
+une dynamique \emph{collective} (forum), distincte du scénario
+\emph{individuel} visé par \emolearn{}.
+
+\subsection{Approches visuelles et multimodales}
+
+Lorsque l'apprenant ne produit pas de texte (cas typique du visionnage
+d'une vidéo de cours), le signal pertinent redevient perceptif. Picard a
+fondé l'informatique affective \cite{picard1997affective} ; Whitehill
+\emph{et al.} ont montré qu'un classifieur d'expressions faciales peut estimer
+l'engagement d'un étudiant avec une fiabilité comparable à celle d'annotateurs
+humains \cite{whitehill2014faces}. Les revues récentes de reconnaissance
+d'expressions faciales profondes \cite{li2020deepfer} et les architectures
+Transformer \cite{dosovitskiy2021vit,zheng2023poster} ont nettement relevé
+le niveau de ces estimateurs. En salle de classe, des approches par vision
+estiment l'engagement visible \cite{goldberg2021attentive,mehta2022three}
+ou le décrochage attentionnel (\emph{mind wandering})
+\cite{bosch2022automatic,hutt2021automated}. Sur \textsc{DAiSEE} et des
+scénarios d'e-learning, des réseaux hybrides CNN/TCN et des descripteurs
+faciaux multimodaux ont été proposés
+\cite{abedi2021improving,bhardwaj2021application,gupta2023multimodal}. La
+méta-analyse de D'Mello rappelle que
+les états discrets pertinents en apprentissage médiatisé (ennui, confusion,
+frustration, engagement) ont des incidences relatives stables, et que la
+fusion multimodale peut améliorer la robustesse au prix de questions de
+calibration \cite{dmello2015review,sharma2020multimodal,liang2024foundations,gandhi2023multimodal}.
+
+Deux corpus publics structurent aujourd'hui cet axe. \textsc{DAiSEE}
+fournit des vidéos d'apprenants annotées en quatre états d'engagement, avec
+une intensité de 0 à 3 \cite{gupta2016daisee} ; la classe \emph{Engagement}
+domine largement, ce qui rend l'accuracy globale insuffisante comme seule
+métrique. \textsc{IEMOCAP} offre un signal vocal riche et, dans sa version
+audiovisuelle, un cadre où visage et voix proviennent du même locuteur
+\cite{busso2008iemocap}. \emolearn{} s'appuie explicitement sur ces deux
+ressources complémentaires : le premier pour la taxonomie d'engagement
+facial, le second pour l'émotion vocale.
+
+Xiong, Guo et Xu proposent un CNN-Transformer qui combine l'information
+fine des expressions faciales (CNN) et l'information plus grossière de la
+posture (Transformer), en réduisant le clutter de fond
+\cite{xiong2024cnntransformer}. Sur un jeu de données de classe réelle,
+annoté par crowdsourcing puis validation experte, le modèle atteint 92,9\,\%
+d'accuracy et surpasse plusieurs architectures de deep learning. Ce travail
+est le plus proche d'\emolearn{} du point de vue du \emph{signal} (vision en
+situation d'apprentissage). Il s'en distingue toutefois sur deux points
+décisifs : il ne fusionne pas la voix, et il ne relie pas la détection à une
+génération de contenu. L'identification s'arrête au diagnostic.
+
+Côté voix, le passage des descripteurs acoustiques classiques aux
+représentations auto-supervisées (wav2vec~2.0, SUPERB) a transformé la
+reconnaissance d'émotions vocales
+\cite{pepino2021emotion,yang2021superb,latif2023survey}. Le fine-tuning de
+wav2vec~2.0 \cite{chen2023exploring} et les architectures Transformer
+\cite{wagner2023dawn} réduisent notamment l'écart de performance sur la
+valence, longtemps le point faible du SER. Ces avancées justifient le choix
+d'\emolearn{} de fine-tuner un encodeur de parole vers la taxonomie
+\textsc{DAiSEE}, plutôt que de s'en tenir à des seuils acoustiques.
+
+\subsection{Apports et limites des détecteurs}
+
+Trois constats se dégagent. Premièrement, l'état de l'art textuel (BERT-CNN,
+MOOC-BERT, CNN+XAI) est mature pour les forums, mais aveugle dès que
+l'apprenant ne poste pas. Deuxièmement, l'état de l'art visuel (Whitehill,
+\textsc{DAiSEE}, CNN-Transformer) montre qu'une détection faciale fiable
+est possible, mais reste rarement multimodale (visage \emph{et} voix) et
+rarement évaluée au-delà de l'accuracy, malgré le déséquilibre des classes.
+Troisièmement, presque aucun de ces détecteurs ne ferme la boucle : détecter
+n'est pas encore intervenir. C'est précisément le passage que la section
+suivante examine.
+
+%==============================================================================
+\section{De la détection à l'intervention : IA générative et systèmes adaptatifs}
+\label{sec:ea-genai}
+
+\subsection{Tuteurs intelligents et adaptation pédagogique}
+
+Les systèmes de tutorat intelligent (ITS) combinent historiquement un modèle
+de l'apprenant, un modèle pédagogique et une interface adaptative
+\cite{vanlehn2011relative}. Ils s'appuient sur des règles explicites ou des
+modèles cognitifs (traçage bayésien des connaissances, théorie des espaces
+de connaissances) et sur un contenu \emph{pré-auteuré}. VanLehn montre que
+les meilleurs ITS approchent l'efficacité d'un tuteur humain, à condition
+que le domaine soit bien modélisé \cite{vanlehn2011relative}. Leur limite,
+dans un MOOC aux contenus ouverts et aux états affectifs fluctuants, est
+double : le contenu ne peut pas être entièrement pré-écrit pour chaque état,
+et le modèle de l'apprenant est surtout cognitif, rarement émotionnel,
+même si des travaux récents visent une explication personnalisée des
+décisions de tuteurs \cite{conati2021toward}.
+
+Les stratégies d'adaptation classiques distinguent simplification,
+enrichissement, remédiation et encouragement. \emolearn{} les
+opérationnalise via une matrice \emph{état\,$\rightarrow$\,type de contenu}
+(explication, exemple, exercice, encouragement) et des règles temporelles
+sur les séquences de clips. Le moteur reste volontairement interprétable :
+chaque adaptation doit être justifiable par l'état détecté, la stratégie
+retenue et le patron mobilisé.
+
+\subsection{Grands modèles de langue, prompts et RAG}
+
+Les LLM \cite{brown2020language,vaswani2017attention,touvron2023llama,touvron2023llama2,dubey2024llama3,openai2023gpt4,ouyang2022training}
+permettent de produire, à la demande, des explications, reformulations et
+exercices en langage naturel. Kasneci \emph{et al.} recensent les
+opportunités (personnalisation, accessibilité) et les risques (hallucinations,
+biais, absence de traçabilité) de leur usage éducatif
+\cite{kasneci2023chatgpt}. Les revues 2023--2024 confirment à la fois le
+potentiel et les tensions éthiques, pédagogiques et d'intégrité académique
+\cite{lo2023chatgpt,tlili2023what,yan2024practical,crompton2023artificial,bond2024systematic,holmes2022state,luckin2022empowering,gasevic2023empowering,farrokhnia2023swot,jeon2023large,lim2023generative,chiu2023systematic,wang2024large,dwivedi2023so,cotton2024chatting,unesco2023guidance}.
+Sans guidage, un LLM produit un texte libre dont
+la forme pédagogique et la fidélité factuelle ne sont pas garanties.
+
+Deux mécanismes d'encadrement s'imposent. Le \emph{prompt engineering}
+structure la génération par un rôle, un format, un ton et une longueur
+\cite{liu2023pretrain,white2023prompt,wei2022chain}.
+La génération augmentée par récupération (RAG) \cite{lewis2020retrieval,gao2023retrieval,fan2024survey,asai2024selfrag,izacard2023atlas}
+ancre le prompt sur des passages extraits d'une base documentaire, ce qui
+réduit les inventions factuelles. En contexte pédagogique, le RAG permet
+d'adosser le contenu à des fiches de cours validées, mécanisme retenu
+par \emolearn{}.
+
+Liu \emph{et al.} (2025) évaluent les LLM non pas comme générateurs de
+cours, mais comme classifieurs d'engagement textuel
+\cite{liu2025agka}. Leur méthode AGKA enrichit le prompt par les définitions
+extraites des guides d'annotation et par quelques exemples typiques. GPT-4
+\cite{openai2023gpt4} et LLaMA~3 70B \cite{dubey2024llama3} ainsi augmentés rivalisent avec BERT/RoBERTa fine-tunés sur
+des tâches binaires, mais restent en retrait sur les taxonomies multi-classes
+sémantiquement proches. Ce résultat est doublement utile : il confirme que
+le guidage par consignes d'annotation améliore les LLM en éducation, et il
+rappelle qu'un LLM n'est pas, à lui seul, un détecteur multimodal d'états
+affectifs. \emolearn{} inverse la perspective : le LLM n'y classifie pas
+l'engagement, il \emph{génère} le contenu une fois l'état décidé par la
+couche de perception.
+
+\subsection{Génération de contenu conditionnée par le profil psychologique}
+
+Hu et Shao proposent PAGE (\emph{Psychologically-Aware Generative Education}),
+un système GenAI qui adapte le style, la difficulté et les mécanismes de
+soutien au profil Big Five et au feedback émotionnel en temps réel
+\cite{hu2025page}. Sur 200 étudiants, PAGE améliore la satisfaction
+émotionnelle (4,4/5 contre 3,6/5), le taux de complétion des tâches
+(87,6\,\% contre 72,3\,\%) et la durée d'étude (+34\,\%) par rapport à un
+système adaptatif classique ; le bénéfice est particulièrement marqué pour
+les étudiants à neuroticisme élevé (baisse de 48\,\% du décrochage). PAGE
+est le travail le plus proche d'\emolearn{} du point de vue de la
+\emph{génération} : il relie un signal affectif à un contenu produit par
+LLM.
+
+Trois écarts demeurent. Premièrement, l'émotion y est un feedback (souvent
+déclaratif ou de surface), et non une estimation multimodale visage--voix
+fondée sur des corpus publics. Deuxièmement, l'adaptation est pilotée par
+un profil de personnalité relativement stable, alors qu'\emolearn{} vise
+un état d'engagement \emph{momentané} (confusion de cette minute, ennui de
+ce clip). Troisièmement, PAGE ne documente pas de moteur de décision
+explicite ni d'ancrage RAG : la génération n'est pas contrainte par une
+bibliothèque de patrons traçables ni par un corpus de fiches pédagogiques.
+
+\subsection{Outils d'intervention sur les discussions}
+
+Kong \emph{et al.} évaluent un outil de représentation des discussions
+assisté par IA (représentations comportementales, cognitives, ou mixtes)
+auprès de 122 étudiants \cite{kong2025exploratory}. L'outil n'améliore pas
+significativement la motivation, mais augmente la présence cognitive de
+haut niveau et la performance, et module positivement le lien
+motivation--présence cognitive--réussite. Il s'agit d'une intervention
+\emph{sur le forum} (rendre visible le processus collaboratif), non d'une
+génération de contenu de cours conditionnée par l'état d'un apprenant isolé.
+Le résultat confirme néanmoins qu'une médiation IA, si elle est bien conçue,
+peut élever le niveau cognitif, argument en faveur d'une boucle
+détection--intervention, à condition d'en changer le canal (vidéo de cours
+plutôt que fil de discussion).
+
+\subsection{Évaluation de la qualité pédagogique}
+
+La qualité du contenu généré se juge sur des critères humains (pertinence,
+clarté, adéquation à l'état) complétés par des métriques automatiques de
+forme (longueur, lisibilité, respect du patron). Aucune métrique automatique
+ne se substitue à une validation experte ou utilisateur
+\cite{kasneci2023chatgpt,hu2025page}. Les travaux de détection rapportent
+surtout des F1 et des $\kappa$ ; les travaux génératifs rapportent des scores
+de satisfaction. Un protocole multi-niveaux (perception, décision,
+génération) reste rare. C'est l'un des choix méthodologiques d'\emolearn{},
+détaillé au chapitre~\ref{chap:validation}.
+
+%==============================================================================
+\section{Synthèse comparative des travaux}
+\label{sec:ea-synthese}
+
+Les tableaux suivants proposent une synthèse comparative des travaux récents: 
+
+\providecommand{\eatabhead}{}
+\renewcommand{\eatabhead}{%
+\rowcolor{gray!20}
+\textbf{Référence} & \textbf{Approche} & \textbf{Contexte} &
+\textbf{Forces} & \textbf{Limites} & \textbf{Résultats clés} \\}
+
+{\scriptsize
+\setlength{\tabcolsep}{2.4pt}
+\setlength{\LTcapwidth}{\textwidth}
+\renewcommand{\arraystretch}{1.08}
+\begin{longtable}{
+  |>{\raggedright\arraybackslash}p{1.85cm}
+  |>{\raggedright\arraybackslash}p{2.15cm}
+  |>{\raggedright\arraybackslash}p{2.05cm}
+  |>{\raggedright\arraybackslash}p{2.55cm}
+  |>{\raggedright\arraybackslash}p{2.55cm}
+  |>{\raggedright\arraybackslash}p{2.70cm}|}
+\caption{Synthèse comparative des travaux.}
+\label{tab:ea-comparatif}\\
+\hline
+\eatabhead
+\hline
+\endfirsthead
+\multicolumn{6}{l}{\emph{Suite du tableau~\ref{tab:ea-comparatif}}}\\
+\hline
+\eatabhead
+\hline
+\endhead
+\hline
+\multicolumn{6}{r}{\emph{Suite à la page suivante\ldots}}\\
+\endfoot
+\hline
+\endlastfoot
+\rowcolor{gray!12}
+\multicolumn{6}{|l|}{\textbf{Cadres théoriques, enjeux MOOC et corpus}} \\
+\hline
+Daniel \cite{daniel2012making} ; Breslow \emph{et al.} \cite{breslow2013studying}
+  & Analyse de plateformes MOOC
+  & Formation en ligne massive
+  & Accès ouvert, données à grande échelle
+  & Pas de détection d'état affectif
+  & Démocratisation de l'accès, pédagogie à l'échelle \\
+\hline
+Onah \emph{et al.} \cite{onah2014dropout} ; Jordan \cite{jordan2015massive} ; Reich et Ruipérez-Valiente \cite{reich2019mooc}
+  & Statistiques de rétention
+  & Achèvement des MOOC
+  & Diagnostic robuste du décrochage
+  & Constat sans levier d'intervention
+  & Abandon précoce ; taux moyen $\approx 10\,\%$ \\
+\hline
+Kizilcec \emph{et al.} \cite{kizilcec2013deconstructing} ; Hew \cite{hew2016promoting}
+  & Clustering de trajectoires ; études de cas
+  & Engagement dans les MOOC
+  & Identification de sous-populations et de leviers
+  & Proxies comportementaux (clics, progression)
+  & L'engagement explique une part majeure du décrochage \\
+\hline
+Fredricks \emph{et al.} \cite{fredricks2004school}
+  & Synthèse conceptuelle
+  & Psychologie de l'éducation
+  & Trois dimensions (comportement, cognition, émotion)
+  & Pas d'estimateur automatique
+  & Cadre de référence encore dominant \\
+\hline
+Garrison \emph{et al.} \cite{garrison1999critical}
+  & Community of Inquiry (CoI)
+  & Discussions en ligne
+  & Quatre phases de présence cognitive
+  & Conçu pour les forums, pas pour la vidéo
+  & Schéma d'annotation largement repris \\
+\hline
+Chi et Wylie \cite{chi2014icap}
+  & Taxonomie ICAP
+  & Engagement cognitif
+  & Lien mode d'activité $\rightarrow$ apprentissage
+  & Codage d'activités, pas d'affect facial/vocal
+  & Plus l'activité est constructive, plus le traitement est profond \\
+\hline
+Picard \cite{picard1997affective}
+  & Informatique affective
+  & Reconnaissance d'émotions
+  & Fondement théorique de la détection
+  & Socle, sans pipeline pédagogique
+  & L'affect est mesurable et actionnable \\
+\hline
+Pekrun \cite{pekrun2006control}
+  & Théorie contrôle--valeur
+  & Émotions d'accomplissement
+  & Lien valence / activation / performance
+  & Pas d'opérationnalisation logicielle
+  & Les émotions modulent attention et persévérance \\
+\hline
+D'Mello et Graesser \cite{dmello2012dynamics} ; Baker \emph{et al.} \cite{baker2010better}
+  & Dynamique d'états affectifs
+  & Apprentissage complexe médiatisé
+  & Séquence confusion--frustration--ennui
+  & Pas de génération de contenu
+  & Mieux vaut être frustré qu'ennuyé \\
+\hline
+D'Mello \cite{dmello2015review}
+  & Méta-analyse
+  & États affectifs en EIAH
+  & Incidence relative des états ; fusion multimodale
+  & Synthèse, pas de système
+  & Ennui, confusion, engagement et frustration sont les états clés \\
+\hline
+Sweller \cite{sweller1988cognitive}
+  & Théorie de la charge cognitive
+  & Conception pédagogique
+  & Explique surcharge et sous-stimulation
+  & Théorie, sans détecteur
+  & Ajuster la complexité au profil de l'apprenant \\
+\hline
+\textsc{DAiSEE} \cite{gupta2016daisee}
+  & Corpus vidéo annoté
+  & Engagement « in the wild »
+  & Quatre états, intensité 0--3
+  & Fort déséquilibre de classes
+  & Taxonomie opératoire pour la détection faciale \\
+\hline
+\textsc{IEMOCAP} \cite{busso2008iemocap}
+  & Corpus audiovisuel
+  & Émotion conversationnelle
+  & Voix riche, visage et voix alignés
+  & Taxonomie émotionnelle, pas d'engagement MOOC
+  & Référence SER ; cadre de fusion alignée \\
+\hline
+\rowcolor{gray!12}
+\multicolumn{6}{|l|}{\textbf{Détection de l'engagement, ITS et génération adaptative}} \\
+\hline
+Sakeef \emph{et al.} \cite{sakeef2025detecting}
+  & Revue CoI / ICAP / KCSA + TALN
+  & Forums de cours en ligne
+  & Cartographie des cadres et des méthodes IA
+  & Texte seul ; pas de webcam/micro
+  & L'automatisation du codage est indispensable au suivi continu \\
+\hline
+Hu \emph{et al.} \cite{hu2021automatic}
+  & CNN + XAI
+  & Présence cognitive (CoI)
+  & Explicabilité au niveau des mots
+  & Texte seul ; généralisabilité limitée
+  & $\kappa$ de Cohen $= 0{,}528$, comparable aux forêts aléatoires \\
+\hline
+Liu \emph{et al.} \cite{liu2021exploring}
+  & SNA + ENA
+  & Forum MOOC (3\,925 apprenants)
+  & Lien réseau social / traitement cognitif / réussite
+  & Analyse collective, hors temps réel
+  & Centralité et connexions cognitives plus fortes chez les performants \\
+\hline
+Liu \emph{et al.} \cite{liu2022automated}
+  & BERT-CNN
+  & Forums MOOC (8\,867 apprenants)
+  & Détection conjointe émotion + cognition
+  & Pas d'intervention générée
+  & F1 $+10\,\%$ (émotion) et $+8\,\%$ (cognition) ; effet combiné sur la réussite \\
+\hline
+Liu \emph{et al.} \cite{liu2023moocbert}
+  & MOOC-BERT (pré-entraînement multi-cours)
+  & Présence cognitive dans les MOOC
+  & Généralisation inter-cours, sans ingénierie de traits
+  & Diagnostic enseignant, sans contenu adaptatif
+  & Surpasse ML et DL représentatifs ; analyse longitudinale des phases \\
+\hline
+Liu \emph{et al.} \cite{liu2025agka}
+  & LLM + AGKA (guides d'annotation)
+  & Classification d'engagement textuel
+  & GPT-4 / LLaMA~3 rivalisent avec BERT en binaire
+  & LLM comme détecteur, pas comme générateur ancré
+  & Retrait sur les taxonomies multi-classes sémantiquement proches \\
+\hline
+Whitehill \emph{et al.} \cite{whitehill2014faces}
+  & Classifieur d'expressions faciales
+  & Engagement en classe / e-learning
+  & Fiabilité comparable à l'annotation humaine
+  & Pas de voix, pas de génération
+  & L'engagement facial est mesurable automatiquement \\
+\hline
+Xiong \emph{et al.} \cite{xiong2024cnntransformer}
+  & CNN-Transformer (visage + posture)
+  & Classe réelle annotée
+  & Combine grain fin (visage) et grain large (posture)
+  & Pas de voix, pas de boucle pédagogique
+  & Accuracy $92{,}9\,\%$, supérieure aux baselines DL \\
+\hline
+Baevski \emph{et al.} \cite{baevski2020wav2vec2}
+  & wav2vec~2.0
+  & Représentations de parole
+  & Encodeur auto-supervisé réutilisable (SER)
+  & Générique, pas d'engagement pédagogique
+  & Socle de fine-tuning vocal largement adopté \\
+\hline
+VanLehn \cite{vanlehn2011relative}
+  & ITS, contenu pré-auteuré
+  & Tutorat cognitif
+  & Efficacité proche d'un tuteur humain
+  & Peu d'affect ; contenu figé
+  & Les meilleurs ITS approchent le tutorat humain \\
+\hline
+Brown \emph{et al.} \cite{brown2020language} ; Touvron \emph{et al.} \cite{touvron2023llama}
+  & LLM (GPT-3, LLaMA)
+  & Génération de texte
+  & Production à la demande, few-shot
+  & Hallucinations ; pas d'état d'engagement
+  & Faisabilité d'un contenu pédagogique généré \\
+\hline
+Kasneci \emph{et al.} \cite{kasneci2023chatgpt}
+  & Revue LLM pour l'éducation
+  & Enseignement et apprentissage
+  & Cartographie opportunités / risques
+  & Pas de prototype multimodal
+  & Fiabilité, biais et traçabilité restent ouverts \\
+\hline
+Lewis \emph{et al.} \cite{lewis2020retrieval}
+  & RAG (index + générateur)
+  & Tâches NLP intensives en connaissances
+  & Ancrage documentaire, moins d'hallucinations
+  & Non couplé à l'engagement
+  & Le contexte récupéré conditionne la génération \\
+\hline
+Kong \emph{et al.} \cite{kong2025exploratory}
+  & Outil de représentation IA
+  & Apprentissage collaboratif en ligne ($n=122$)
+  & Hausse de la présence cognitive de haut niveau
+  & Canal forum, pas de contenu de cours
+  & Performance améliorée ; motivation non significativement accrue \\
+\hline
+Hu et Shao \cite{hu2025page}
+  & GenAI PAGE (Big Five + émotion)
+  & Contenu pédagogique personnalisé ($n=200$)
+  & Adaptation du style, de la difficulté et du soutien
+  & Pas de fusion visage--voix, ni RAG, ni règles explicites
+  & Satisfaction $4{,}4/5$ vs $3{,}6$ ; complétion $87{,}6\,\%$ vs $72{,}3\,\%$ \\
+\hline
+
+\end{longtable}
+}
+
+Quatre lacunes se dégagent, aucune n'étant comblée isolément par les travaux
+ci-dessus.
+
+\begin{enumerate}[leftmargin=1.4em]
+  \item \textbf{Signal.} La majorité des détecteurs récents opèrent sur le
+  texte des forums \cite{sakeef2025detecting,liu2022automated,liu2023moocbert}.
+  Les approches visuelles existent \cite{whitehill2014faces,xiong2024cnntransformer}
+  mais fusionnent rarement visage \emph{et} voix, alors que ces deux modalités
+  sont réalistes devant une vidéo de cours.
+
+  \item \textbf{Décision.} Quand une intervention existe, elle est souvent
+  opaque (réglage de style d'un LLM) ou pédagogique au niveau du groupe
+  (outil de forum). Un moteur de règles \emph{explicites}, journalisé, reliant
+  un état discret à un type de contenu, reste rare.
+
+  \item \textbf{Génération.} PAGE montre le bénéfice d'un contenu GenAI
+  psychologiquement adapté \cite{hu2025page}, mais sans ancrage documentaire.
+  Inversement, le RAG \cite{lewis2020retrieval} n'est presque jamais couplé
+  à un état d'engagement multimodal.
+
+  \item \textbf{Évaluation.} Les papiers de détection rapportent F1 / $\kappa$
+  / accuracy ; les papiers génératifs rapportent satisfaction et complétion.
+  Un protocole unique qui évalue perception, décision et qualité du contenu
+  sur un banc d'essai partagé n'apparaît pas dans les travaux recensés.
+\end{enumerate}
+
+\emolearn{} se positionne précisément sur ces quatre écarts : chaîne
+perception (FER + SER + fusion) $\rightarrow$ décision interprétable
+$\rightarrow$ génération par LLM guidée par vingt patrons et ancrée par RAG,
+évaluée de façon multi-niveaux. Les limites assumées (simulation sur corpus
+annotés, appariement visage--voix hétérogène en production, mapping
+émotion\,$\rightarrow$\,engagement comme hypothèse) sont traitées au
+chapitre~\ref{chap:conclusion} plutôt que dissimulées.
+
+%==============================================================================
+\section{Conclusion}
+\label{sec:ea-concl}
+
+Ce chapitre a organisé l'état de l'art en trois familles. Les travaux sur
+l'engagement dans les MOOC établissent le diagnostic : décrochage massif,
+centralité des dimensions émotionnelle et cognitive, cadres CoI / ICAP
+opératoires pour les forums mais insuffisants pour un apprenant silencieux
+devant une vidéo. Les travaux de détection montrent une maturité réelle du
+côté textuel (BERT-CNN, MOOC-BERT, AGKA) et des avancées visuelles
+(CNN-Transformer, \textsc{DAiSEE}), sans fermer la boucle pédagogique. Les
+travaux d'intervention (ITS, PAGE, outils de discussion) montrent qu'une
+médiation IA peut élever engagement et performance, mais rarement à partir
+d'une perception multimodale traçable et d'un contenu ancré.
+
+La lacune scientifique n'est donc pas l'absence de détecteurs, ni l'absence
+de générateurs : c'est l'absence d'une architecture intégrale, reproductible,
+qui relie les deux. C'est cette architecture que le chapitre suivant
+modélise et conçoit.

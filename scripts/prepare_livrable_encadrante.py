@@ -71,7 +71,7 @@ INTRO_OS2 = """# OS2 — Reconnaissance faciale et stratégies d'adaptation
 **Prérequis :**
 - `data/scenarios_50.csv` (OS1)
 - `data/sample_face.jpg` — photo de visage pour la démo
-- `backend/adaptation.py`
+- `backend/decision_engine.py`
 
 **Fichier produit :** `data/scenarios_avec_strategies.csv`"""
 
@@ -140,7 +140,7 @@ EmoLearn/
 │   ├── scenarios_50.csv
 │   └── sample_face.jpg      ← requis pour OS2 (photo de visage)
 ├── backend/
-│   ├── adaptation.py        ← requis pour OS2
+│   ├── decision_engine.py   ← requis pour OS2
 │   ├── iemocap_parser.py    ← requis pour OS1IEMOCAP
 │   ├── ser_module.py
 │   ├── fer_module.py

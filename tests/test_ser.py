@@ -1,4 +1,4 @@
-"""Tests module SER IEMOCAP (annotations + audio .wav)."""
+"""Tests module SER IEMOCAP (signal audio .wav réel, obligatoire)."""
 
 import os
 import sys
@@ -9,6 +9,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "backend"))
 
 from ser_module import (
     analyser_voix_depuis_scenario,
+    fusionner_probs_ser,
     get_statistiques_iemocap,
     selectionner_utterance_iemocap,
     charger_iemocap,
@@ -19,37 +20,36 @@ def test_statistiques_iemocap():
     stats = get_statistiques_iemocap()
     assert stats["total"] > 9000
     assert "distribution" in stats
+    # Couverture .wav attendue = 100% (corpus complet présent localement)
+    assert stats["wav_disponibles"] == stats["total"]
+    assert stats["wav_manquants"] == 0
 
 
-def test_voix_csv_mode():
+def test_voix_audio_toujours_actif():
+    """L'audio réel est désormais la SEULE voie : plus de mode CSV/annotations."""
     result = analyser_voix_depuis_scenario(
         scenario_id=10,
         etat_dominant="Engagement",
-        utiliser_audio=False,
+        methode="heuristique",
     )
     assert result["erreur"] is None
-    assert "annotations" in result["source"].lower()
+    assert "audio" in result["source"].lower()
     assert result["utterance_id"]
+    assert result.get("wav_path")
     assert result["appariement"]["methode"].startswith("emotion_dominante")
     assert result["appariement"]["etat_cible"] == "Engagement"
 
 
 def test_appariement_emotion_dominante():
-    """Scénario Frustration → utterance IEMOCAP Frustration (plus modulo ligne 30 = Boredom)."""
-    df = charger_iemocap()
-    row_modulo = df.iloc[30]
-    assert row_modulo["etat_daisee"] == "Boredom"
-
+    """Scénario Frustration → utterance IEMOCAP appariée sur l'état Frustration."""
     result = analyser_voix_depuis_scenario(
         scenario_id=30,
         etat_dominant="Frustration",
-        utiliser_audio=False,
+        methode="heuristique",
     )
-    assert result["appariement"]["methode"] == "emotion_dominante"
+    assert result["appariement"]["methode"].startswith("emotion_dominante")
     assert result["appariement"]["etat_cible"] == "Frustration"
-    # En mode CSV, l'état voix suit l'annotation IEMOCAP sélectionnée
-    assert result["etat"] == "Frustration"
-    assert result["utterance_id"] != row_modulo["utterance_id"]
+    assert result["appariement"]["etat_iemocap"] == "Frustration"
 
 
 def test_selectionner_utterance_reproductible():
@@ -60,14 +60,45 @@ def test_selectionner_utterance_reproductible():
     assert meta1["methode"] == "emotion_dominante"
 
 
-def test_voix_audio_mode():
-    result = analyser_voix_depuis_scenario(scenario_id=42, utiliser_audio=True)
-    assert result["erreur"] is None
-    assert result["source"] in (
-        "IEMOCAP audio (SER acoustique)",
-        "IEMOCAP annotations (fallback, .wav absent)",
-        "IEMOCAP annotations (fallback, segment audio)",
+def test_voix_audio_mode_heuristique():
+    # Forcer heuristique pour rester déterministe sans charger le fine-tuné
+    result = analyser_voix_depuis_scenario(
+        scenario_id=42, methode="heuristique"
     )
-    if result["source"] == "IEMOCAP audio (SER acoustique)":
-        assert result.get("features_acoustiques")
-        assert result.get("wav_path")
+    assert result["erreur"] is None
+    assert result["source"] == "IEMOCAP audio (SER acoustique)"
+    assert result.get("features_acoustiques")
+    assert result.get("wav_path")
+    assert result.get("ser_methode") == "heuristique"
+
+
+def test_fusion_ser_corrige_hap_vs_confusion():
+    """SUPERB confiant Engagement doit battre un FT qui dit Confusion (cas hap)."""
+    p_ft = {
+        "Boredom": 0.10,
+        "Confusion": 0.55,
+        "Engagement": 0.20,
+        "Frustration": 0.15,
+    }
+    p_superb = {
+        "Boredom": 0.05,
+        "Confusion": 0.0,
+        "Engagement": 0.80,
+        "Frustration": 0.15,
+    }
+    etat, score, probs, meta = fusionner_probs_ser(p_ft, p_superb)
+    assert etat == "Engagement"
+    assert probs["Engagement"] > probs["Confusion"]
+    assert meta["mode"] == "superb_prioritaire_vs_confusion"
+
+
+def test_fusion_ser_ft_seul_sans_superb():
+    p_ft = {
+        "Boredom": 0.1,
+        "Confusion": 0.2,
+        "Engagement": 0.6,
+        "Frustration": 0.1,
+    }
+    etat, score, probs, meta = fusionner_probs_ser(p_ft, None)
+    assert etat == "Engagement"
+    assert meta["mode"] == "ft_seul"

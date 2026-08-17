@@ -1,0 +1,145 @@
+%==============================================================================
+%  CHAPITRE 6 — CONCLUSION ET PERSPECTIVES
+%==============================================================================
+\titreduchapitre{Conclusion et Perspectives}{chap:conclusion}
+
+%==============================================================================
+\section{Synthèse des contributions}
+\label{sec:concl-contributions}
+
+Ce mémoire a conçu, implémenté et évalué partiellement \emolearn{}, un prototype
+de recherche qui relie la \textbf{perception multimodale} de l'engagement, une
+\textbf{décision pédagogique explicite} et la \textbf{génération adaptative} de
+contenu par LLM, complétée par un module \textbf{RAG} d'ancrage documentaire.
+
+Les contributions concrètes sont les suivantes :
+
+\begin{enumerate}[leftmargin=1.4em]
+  \item Une architecture client--serveur reproductible (FastAPI, React, SQLite)
+  partageant un unique moteur de fusion et de décision entre le pipeline produit
+  et le banc d'essai.
+
+  \item Un modèle engagement\,$\rightarrow$\,adaptation formalisé (20 patrons
+  A1--D5, règles temporelles, journal de traçabilité).
+
+  \item Un apprentissage léger des correspondances modalité\,$\rightarrow$\,état
+  (Random Forest sur FER ; fine-tuning de tête wav2vec2 pour le SER).
+
+  \item Un module RAG (ChromaDB, embeddings multilingues, neuf fiches
+  pédagogiques, top-3 avec seuil de similarité) réduisant le risque
+  d'hallucinations \cite{lewis2020retrieval,gao2023retrieval,asai2024selfrag}.
+
+  \item Une évaluation instrumentée et transparente : gains mesurés sur FER
+  (+0{,}53 accuracy), SER (+0{,}224), fusion (0{,}500 accuracy en vote
+  pondéré), sensibilité du mapping IEMOCAP, audit automatique du corpus
+  (97{,}7\,\% OK).
+
+  \item Un protocole d'évaluation multi-niveaux (experts, contenu, utilisateurs)
+  prêt à être exécuté.
+\end{enumerate}
+
+%==============================================================================
+\section{Réponses aux questions de recherche}
+\label{sec:concl-qr}
+
+\paragraph{QR1 — Perception.} La fusion multimodale améliore l'exactitude dans
+le cadre aligné ($n=80$) lorsque l'on retient le vote pondéré (0{,}500), au prix
+d'un rappel faible sur les états urgents. L'apprentissage supervisé améliore
+nettement chaque modalité par rapport aux mappings heuristiques. Le compromis
+accuracy/rappel urgent est quantifié et documenté.
+
+\paragraph{QR2 — Décision.} Le modèle engagement\,$\rightarrow$\,adaptation est
+implémenté, testé sur cinquante scénarios stratifiés et exposé de manière
+interprétable dans l'interface. La validation experte Delphi est préparée mais
+non finalisée.
+
+\paragraph{QR3 — Génération.} Le pipeline LLM + RAG + patrons produit un corpus
+de 220 contenus dont 97{,}7\,\% passent l'audit automatique de forme. La
+pertinence pédagogique profonde reste à confirmer par évaluation humaine.
+
+\paragraph{QR4 — Validation.} Un protocole multi-niveaux a été appliqué aux
+composants techniques ; les niveaux expert et utilisateur sont instrumentés pour
+une exécution ultérieure.
+
+%==============================================================================
+\section{Limites de l'étude}
+\label{sec:concl-limites}
+
+\begin{enumerate}[leftmargin=1.4em]
+  \item \textbf{Prototype de simulation} : pas de déploiement live sur MOOC réels ;
+  les états proviennent de corpus annotés a posteriori.
+
+  \item \textbf{Appariement visage--voix} : hétérogène en production
+  (\textsc{DAiSEE} + \textsc{IEMOCAP}) ; aligné uniquement pour le banc d'essai.
+
+  \item \textbf{Mapping émotion\,$\rightarrow$\,engagement} : hypothèse de
+  construit, sensible jusqu'à 17\,\% des utterances selon la variante.
+
+  \item \textbf{Déséquilibre \textsc{DAiSEE}} : F1 macro modeste malgré une
+  accuracy élevée sur le classifieur FER.
+
+  \item \textbf{Évaluations humaines} : protocoles prêts, exécution incomplète
+  (experts, $n=30$ utilisateurs).
+
+  \item \textbf{RAG} : base documentaire réduite (neuf fiches) ; généralisation
+  à d'autres disciplines non démontrée.
+\end{enumerate}
+
+%==============================================================================
+\section{Perspectives de recherche}
+\label{sec:concl-perspectives}
+
+\begin{itemize}[leftmargin=1.4em]
+  \item \textbf{Captation live} : intégrer webcam/micro en temps réel avec
+  consentement et anonymisation.
+
+  \item \textbf{Enrichissement RAG} : indexer les ressources MOOC complètes,
+  évaluer l'impact du RAG sur les erreurs factuelles (critère Q6).
+
+  \item \textbf{Fusion end-to-end} : apprendre la fusion plutôt que des règles
+  fixes, tout en préservant l'interprétabilité pédagogique.
+
+  \item \textbf{Validation experte et utilisateur} : exécuter les protocoles
+  documentés ; analyser statistiquement les Likert et verbatims.
+
+  \item \textbf{Fine-tuning LLM} : adapter un modèle open-weight
+  \cite{dubey2024llama3,ouyang2022training} à la pédagogie française sous
+  contrainte des patrons, en tenant compte des recommandations éthiques
+  \cite{unesco2023guidance,yan2024practical,holmes2022state}.
+\end{itemize}
+
+%==============================================================================
+\section{Implications pratiques pour les MOOC}
+\label{sec:concl-mooc}
+
+\emolearn{} suggère qu'une régulation pédagogique automatique — détecter un état
+dégradé, choisir une stratégie explicite, générer une réponse ancrée — est
+techniquement réalisable comme couche \emph{additionnelle} aux plateformes
+existantes. Le journal de décision faciliterait l'audit pédagogique et
+l'amélioration itérative des règles. Le RAG offre une piste concrète pour
+limiter les erreurs de contenu généré, à condition d'investir dans une base
+documentaire curatée.
+
+%==============================================================================
+\section{Recommandations}
+\label{sec:concl-recommandations}
+
+Pour un passage au-delà du prototype de recherche, nous recommandons :
+
+\begin{enumerate}[leftmargin=1.4em]
+  \item Prioriser le \textbf{rappel des états urgents} dans le choix de la
+  stratégie de fusion, même au détriment de l'accuracy globale.
+
+  \item Conduire la \textbf{validation experte} du mapping et des patrons avant
+  tout déploiement.
+
+  \item Étendre la \textbf{base RAG} et mesurer son effet sur la factualité.
+
+  \item Documenter et publier les \textbf{artefacts reproductibles} (code, jeux
+  de scénarios, métriques) pour permettre la comparaison avec l'état de l'art.
+\end{enumerate}
+
+En conclusion, ce travail démontre la faisabilité d'une chaîne perception --
+décision -- génération (LLM + RAG) pour l'adaptation émotionnelle en contexte
+MOOC, tout en assumant et en mesurant ses limites — condition, à notre sens,
+d'une recherche crédible en informatique affective appliquée à l'éducation.

@@ -1,0 +1,357 @@
+%==============================================================================
+%  CHAPITRE 1 — INTRODUCTION GÉNÉRALE
+%==============================================================================
+\chapter{Introduction Générale}
+\label{chap:introduction}
+\minitoc
+
+%==============================================================================
+\section{Contexte et motivation}
+\label{sec:contexte}
+
+L'enseignement à distance a connu, au cours de la dernière décennie, une
+transformation profonde portée par l'essor des plateformes d'apprentissage en
+ligne ouvertes et massives, communément désignées par l'acronyme anglais MOOC
+(\emph{Massive Open Online Courses}). Depuis le lancement des premiers cours à
+large échelle au début des années 2010, ces dispositifs ont permis de
+démocratiser l'accès à la connaissance en offrant à des millions d'apprenants,
+sans condition géographique ni, le plus souvent, financière, des contenus
+pédagogiques produits par des établissements de premier plan
+\cite{breslow2013studying,daniel2012making}. La crise sanitaire de 2020 a encore
+accéléré cette dynamique, faisant de l'apprentissage en ligne une composante
+désormais structurelle des systèmes éducatifs contemporains.
+
+Cette promesse de massification se heurte toutefois à un constat largement
+documenté : les MOOC souffrent de taux d'abandon particulièrement élevés. La
+proportion d'apprenants menant un cours à son terme dépasse rarement dix à
+quinze pour cent des inscrits, et la majorité des décrochages survient dès les
+premières semaines \cite{onah2014dropout,jordan2015massive}. Ce phénomène,
+souvent qualifié de paradoxe des MOOC, oppose une accessibilité sans précédent à
+une efficacité pédagogique réelle bien plus modeste qu'attendu. Comprendre et
+réduire ce décrochage constitue, depuis lors, l'un des enjeux majeurs de la
+recherche en technologies éducatives.
+
+Parmi les multiples facteurs explicatifs de l'abandon — manque de temps,
+prérequis insuffisants, absence de reconnaissance institutionnelle — un
+déterminant occupe une place centrale : la baisse de l'\textbf{engagement} de
+l'apprenant \cite{kizilcec2013deconstructing,hew2016promoting}. L'engagement
+recouvre la mobilisation cognitive, comportementale et émotionnelle de
+l'individu vis-à-vis de la tâche d'apprentissage. Or, dans une salle de classe
+traditionnelle, un enseignant perçoit en permanence des signaux fins — un regard
+fuyant, une posture affaissée, une expression de perplexité — et adapte
+spontanément son discours : il reformule, ralentit, propose un exemple, relance
+l'attention. Cette boucle de régulation, fondamentale pour l'apprentissage,
+disparaît presque entièrement dans les environnements en ligne de masse, où
+l'apprenant fait face seul à un contenu figé, identique pour tous et insensible
+à son état du moment.
+
+Cette absence de rétroaction affective n'est pas anodine. Les travaux en
+psychologie de l'apprentissage et en informatique affective
+(\emph{affective computing}) ont établi que les émotions ne sont pas
+périphériques à la cognition mais en constituent un rouage essentiel
+\cite{picard1997affective,pekrun2006control}. Des états tels que l'ennui, la
+confusion ou la frustration influencent directement la profondeur du traitement
+de l'information, la persévérance et la mémorisation
+\cite{dmello2012dynamics,baker2010better}. Détecter ces états et y répondre de
+manière appropriée apparaît dès lors comme une voie prometteuse pour restaurer,
+au moins partiellement, la régulation pédagogique perdue dans les MOOC.
+
+Deux évolutions technologiques rendent aujourd'hui cette ambition crédible. La
+première est la maturité des méthodes de \textbf{détection automatique de
+l'engagement} à partir de signaux multimodaux. L'analyse des expressions
+faciales, de la posture, de la voix ou de signaux physiologiques permet
+désormais d'inférer, avec une fiabilité croissante, l'état affectif d'un
+apprenant \cite{dmello2015review,whitehill2014faces}. La diffusion de corpus
+annotés de référence, au premier rang desquels \textsc{DAiSEE}
+\cite{gupta2016daisee} pour l'engagement et \textsc{IEMOCAP}
+\cite{busso2008iemocap} pour l'émotion vocale, a fourni à la communauté les
+ressources nécessaires à l'entraînement et à l'évaluation de tels modèles.
+
+La seconde évolution est l'avènement de l'\textbf{intelligence artificielle
+générative}, et plus particulièrement des grands modèles de langue
+(\emph{Large Language Models}, LLM). Ces modèles sont capables de produire, à la
+demande et en langage naturel, des explications, des reformulations, des
+analogies ou des encouragements de qualité, ouvrant la perspective d'une
+génération de contenu pédagogique personnalisée à grande échelle
+\cite{brown2020language,kasneci2023chatgpt}. Là où la personnalisation
+supposait jusqu'ici de produire et de maintenir manuellement d'innombrables
+variantes de contenu, un LLM correctement guidé peut générer, en quelques
+secondes, une réponse adaptée à un état d'apprentissage particulier.
+
+C'est à la croisée de ces deux courants que se situe le présent travail. L'idée
+directrice consiste à réunir, au sein d'une même chaîne de traitement, la
+\emph{perception} de l'engagement émotionnel et la \emph{génération} adaptative
+de contenu, afin d'esquisser une forme de régulation pédagogique automatique
+inspirée de celle de l'enseignant humain. C'est cette intuition que matérialise
+le prototype \emolearn{}, objet de ce mémoire.
+
+%==============================================================================
+\section{Problématique}
+\label{sec:problematique}
+
+Le constat précédent fait apparaître un écart à combler. D'un côté, les MOOC
+disposent d'une audience massive mais d'une capacité d'adaptation quasi nulle aux
+états affectifs de leurs apprenants. De l'autre, les briques technologiques —
+détection multimodale de l'engagement, génération de contenu par LLM — existent
+mais demeurent largement étudiées de manière isolée. La question centrale qui
+structure ce mémoire peut dès lors s'énoncer ainsi :
+
+\begin{quote}
+\itshape
+Comment concevoir un dispositif capable d'inférer automatiquement l'état
+d'engagement d'un apprenant à partir de signaux multimodaux, puis de générer en
+réponse un contenu pédagogique adapté à cet état, tout en garantissant la
+cohérence et la traçabilité de la décision pédagogique sous-jacente ?
+\end{quote}
+
+Cette interrogation générale se décline en plusieurs questions de recherche plus
+précises, qui guideront l'ensemble du travail :
+
+\begin{description}
+  \item[QR1 — Perception.] Dans quelle mesure des signaux multimodaux
+  hétérogènes (expressions faciales issues de \textsc{DAiSEE}, signal vocal issu
+  de \textsc{IEMOCAP}) peuvent-ils être combinés par une stratégie de fusion pour
+  estimer l'état d'engagement de manière plus fiable qu'une modalité unique, et
+  quel est le coût de cette fusion en termes de compromis entre exactitude
+  globale et sensibilité aux états critiques ? Dans quelle mesure, en outre,
+  l'apprentissage supervisé de la correspondance entre les sorties de modèles
+  pré-entraînés et la taxonomie d'engagement visée améliore-t-il cette perception
+  par rapport à une mise en correspondance définie \emph{a priori} ?
+
+  \item[QR2 — Décision.] Comment formaliser une correspondance pédagogiquement
+  justifiable entre les états d'engagement détectés et les stratégies
+  d'intervention, c'est-à-dire un modèle \emph{engagement\,$\rightarrow$\,adaptation}
+  reliant chaque état à un type de contenu et à un patron de génération précis ?
+
+  \item[QR3 — Génération.] Dans quelle mesure un grand modèle de langue, guidé
+  par une bibliothèque de patrons de prompts structurés, peut-il produire un
+  contenu pédagogique pertinent, clair et effectivement adapté à l'état
+  d'engagement visé ?
+
+  \item[QR4 — Validation.] Selon quel protocole peut-on évaluer, de façon
+  honnête et multi-niveaux, à la fois la qualité de la perception, la pertinence
+  du modèle de décision et la qualité du contenu généré, compte tenu des
+  contraintes propres à un travail de master ?
+\end{description}
+
+Au-delà de ces questions, le travail assume d'emblée plusieurs
+\textbf{tensions conceptuelles} qui en délimitent le périmètre et qu'il convient
+d'expliciter dès l'introduction, par souci de rigueur. Premièrement, \emolearn{}
+est un \emph{prototype de simulation} et non un système déployé en temps réel sur
+de véritables MOOC : l'engagement y provient de corpus annotés a posteriori et
+non d'une captation \emph{live} d'apprenants. Deuxièmement, la dimension
+multimodale repose, dans la chaîne de production, sur un appariement entre des
+signaux issus de populations distinctes, le visage et la voix ne provenant pas du
+même individu ; cette limite est levée uniquement pour la phase de validation, à
+l'aide d'un sous-corpus audiovisuel aligné. Troisièmement, la mise en
+correspondance d'émotions conversationnelles avec des états d'engagement constitue
+une hypothèse de construit, et non une équivalence démontrée. Plutôt que de
+masquer ces tensions, ce mémoire fait le choix de les identifier, de les cadrer et,
+chaque fois que possible, de les \emph{mesurer} : c'est précisément cette honnêteté
+méthodologique qui constitue la valeur scientifique du travail.
+
+%==============================================================================
+\section{Objectifs et contributions visées}
+\label{sec:objectifs}
+
+\subsection*{Objectif général}
+
+L'objectif général de ce mémoire est de \textbf{concevoir, implémenter et
+évaluer un framework de bout en bout}, baptisé \emolearn{}, qui détecte l'état
+d'engagement émotionnel d'un apprenant à partir de signaux multimodaux, décide
+s'il convient d'intervenir et selon quelle stratégie, puis génère un contenu
+pédagogique adaptatif au moyen d'un grand modèle de langue.
+
+\subsection*{Objectifs spécifiques}
+
+Cet objectif général se décompose en objectifs spécifiques (OS) qui structurent
+également la progression technique du projet :
+
+\begin{description}
+  \item[OS1 — Analyse des données.] Conduire une analyse exploratoire du corpus
+  \textsc{DAiSEE} (engagement facial) et du corpus \textsc{IEMOCAP} (émotion
+  vocale), caractériser la distribution des états d'engagement et constituer des
+  scénarios d'apprentissage représentatifs.
+
+  \item[OS2 — Modèle de décision.] Définir une taxonomie des états d'engagement,
+  établir une matrice \emph{engagement\,$\rightarrow$\,besoin pédagogique} et
+  formaliser les règles de déclenchement et de sélection de stratégie.
+
+  \item[OS3 — Génération adaptative.] Concevoir une bibliothèque de patrons de
+  prompts structurés et un pipeline de génération de contenu par LLM,
+  accompagnés de mécanismes de contrôle de qualité.
+
+  \item[OS4 — Fusion multimodale et apprentissage léger.] Implémenter et évaluer
+  un moteur de fusion combinant visage et voix ; apprendre, pour chaque modalité,
+  la correspondance entre les sorties des modèles de perception pré-entraînés et
+  la taxonomie d'engagement, plutôt que de la postuler ; mesurer honnêtement
+  l'apport du multimodal par rapport aux modalités unimodales.
+
+  \item[OS5 — Prototype de simulation.] Développer un prototype fonctionnel
+  (interface de visualisation et lecteur de parcours d'apprentissage) permettant
+  de simuler des parcours adaptatifs et de visualiser les adaptations produites.
+
+  \item[OS6 — Validation multi-niveaux.] Définir et instrumenter un protocole
+  d'évaluation couvrant la cohérence du modèle de décision, la qualité du contenu
+  généré et l'acceptabilité du dispositif.
+\end{description}
+
+\subsection*{Contributions visées}
+
+Les contributions revendiquées par ce travail sont les suivantes :
+
+\begin{enumerate}
+  \item Une \textbf{architecture multimodale de bout en bout} cohérente, reliant
+  perception, décision et génération au sein d'une même chaîne, et reposant sur
+  un moteur de décision et un moteur de fusion uniques, partagés entre la
+  production de contenu et le banc d'essai de validation.
+
+  \item Un \textbf{modèle engagement\,$\rightarrow$\,adaptation} explicite,
+  associant chaque état d'engagement à un type de contenu et à un patron de
+  génération parmi une bibliothèque de vingt patrons structurés, assorti de
+  règles temporelles tenant compte de la dynamique d'une séquence.
+
+  \item Un \textbf{apprentissage léger des correspondances} entre modèles
+  pré-entraînés et taxonomie d'engagement, conduit sur les deux modalités : un
+  \emph{supervised classifier} (\textbf{Random Forest} + \textbf{GridSearchCV}) reliant
+  les sorties du module facial aux états \textsc{DAiSEE}, et le fine-tuning de la
+  \emph{classification head} d'un modèle \textbf{wav2vec2} afin d'y faire émerger
+  la classe \emph{Confusion}, absente du modèle d'origine. Chaque modalité conserve,
+  en regard, une correspondance heuristique explicite servant de référence comparative.
+
+  \item Une \textbf{évaluation honnête et instrumentée} de la fusion multimodale,
+  qui ne dissimule pas les compromis observés mais les quantifie — notamment
+  l'arbitrage entre l'exactitude globale et le rappel des états critiques.
+
+  \item Une \textbf{analyse de sensibilité} des deux hypothèses les plus
+  discutables du dispositif — la mise en correspondance des émotions
+  conversationnelles avec les états d'engagement, et la pondération des modalités
+  dans la fusion — qui substitue une mesure d'impact à une simple déclaration de
+  limite.
+
+  \item Un \textbf{prototype logiciel complet et reproductible} (API, interface,
+  scripts d'évaluation, journalisation des décisions), pensé comme un support de
+  démonstration et d'expérimentation.
+
+  \item Un \textbf{protocole d'évaluation multi-niveaux} documenté, prêt à être
+  exécuté, articulant validation experte du modèle de décision, évaluation de la
+  qualité du contenu et étude pilote auprès d'utilisateurs.
+\end{enumerate}
+
+%==============================================================================
+\section{Méthodologie générale}
+\label{sec:methodologie}
+
+La démarche adoptée relève de la \emph{recherche orientée conception}
+(\emph{design science research}), paradigme particulièrement adapté à la
+conception d'artefacts informatiques répondant à un problème identifié
+\cite{hevner2004design}. Elle articule l'analyse d'un problème réel — le
+décrochage lié à la baisse d'engagement dans les MOOC —, la construction d'un
+artefact — le framework \emolearn{} — et son évaluation au regard d'objectifs
+explicites.
+
+Concrètement, le travail s'organise autour d'une chaîne de traitement en trois
+étages, illustrée par la figure~\ref{fig:pipeline} : un étage de
+\emph{perception}, un étage de \emph{décision} et un étage de \emph{génération}.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=0.9cm and 1.2cm,
+    box/.style={rectangle, rounded corners, draw=black, very thick,
+                text width=3.4cm, minimum height=1.5cm, align=center,
+                font=\small},
+    io/.style={rectangle, draw=black!60, dashed, text width=3.4cm,
+               minimum height=1.1cm, align=center, font=\footnotesize},
+    arr/.style={-{Stealth[length=3mm]}, very thick}
+]
+\node[io] (in) {Scénario (clip vidéo + audio) + contexte pédagogique};
+\node[box, below=of in] (perc) {\textbf{Perception}\\ Visage (DAiSEE) + Voix (IEMOCAP)\\ mappings appris + fusion};
+\node[box, below=of perc] (dec) {\textbf{Décision}\\ état d'engagement\\ $\rightarrow$ type de contenu + patron};
+\node[box, below=of dec] (gen) {\textbf{Génération}\\ LLM + 20 patrons de prompts};
+\node[io, below=of gen] (out) {Contenu adaptatif + journal de décision};
+
+\draw[arr] (in) -- (perc);
+\draw[arr] (perc) -- (dec);
+\draw[arr] (dec) -- (gen);
+\draw[arr] (gen) -- (out);
+\end{tikzpicture}
+\caption{Vue d'ensemble de la chaîne de traitement d'\emolearn{} :
+perception multimodale, décision pédagogique, puis génération de contenu
+adaptatif.}
+\label{fig:pipeline}
+\end{figure}
+
+\paragraph{Ressources de données.} Le projet s'appuie sur deux corpus publics de
+référence, mobilisés à des fins complémentaires. Le corpus \textsc{DAiSEE}
+\cite{gupta2016daisee} constitue le socle du projet : il fournit la taxonomie
+d'engagement (quatre états déclinés en niveaux d'intensité) ainsi que les
+scénarios d'apprentissage. Ce sont les \textbf{clips vidéo eux-mêmes} qui
+alimentent la couche de perception, leurs annotations d'engagement étant réservées
+au rôle de vérité terrain, pour l'entraînement des modèles supervisés et pour
+l'évaluation. Le corpus \textsc{IEMOCAP} \cite{busso2008iemocap}
+apporte la modalité vocale et, à travers un sous-corpus audiovisuel aligné, le
+support de la validation de la fusion, seul cadre où le visage et la voix
+proviennent effectivement du même locuteur.
+
+\paragraph{Outils et environnement.} Le prototype repose sur une architecture
+client-serveur : une interface développée avec une bibliothèque web moderne et un
+service applicatif exposant une interface de programmation. La couche de
+perception combine des modèles pré-entraînés — reconnaissance d'expressions
+faciales et représentation neuronale de la parole — et des modèles supervisés
+légers entraînés dans le cadre de ce travail, au moyen des bibliothèques usuelles
+d'apprentissage automatique et d'apprentissage profond. La génération de
+contenu s'appuie sur un grand modèle de langue accessible par interface de
+programmation. L'ensemble est instrumenté de manière à journaliser chaque
+décision (état détecté, stratégie retenue, patron mobilisé), garantissant la
+traçabilité indispensable à l'analyse scientifique.
+
+\paragraph{Stratégie d'évaluation.} Conformément à la nature exploratoire du
+travail, l'évaluation est conçue comme un dispositif \emph{multi-niveaux}. Elle
+combine des métriques automatiques (exactitude de la perception, indicateurs de
+forme du contenu généré), une validation experte de la pertinence du modèle de
+décision et du contenu produit, et une étude pilote auprès d'utilisateurs visant
+à apprécier l'utilité et l'adéquation perçues. Ce protocole, détaillé au
+chapitre~5, vise moins à démontrer une performance maximale qu'à rendre compte,
+avec honnêteté, des forces et des limites du dispositif.
+
+%==============================================================================
+\section{Structure du mémoire}
+\label{sec:structure}
+
+Le présent mémoire s'organise en six chapitres.
+
+Le \textbf{chapitre~1}, que conclut la présente section, a posé le contexte, la
+problématique, les objectifs et la méthodologie générale du travail.
+
+Le \textbf{chapitre~2} propose un état de l'art structuré autour de cinq axes :
+l'engagement de l'apprenant dans les MOOC, la détection automatique de
+l'engagement, la psychologie des émotions appliquée à l'apprentissage, l'IA
+générative pour l'éducation et, enfin, les systèmes d'apprentissage adaptatifs.
+Il se clôt sur une synthèse critique permettant de positionner \emolearn{} par
+rapport aux travaux existants.
+
+Le \textbf{chapitre~3} est consacré à la modélisation et à la conception du
+framework. Il présente l'architecture globale, l'analyse du corpus \textsc{DAiSEE},
+le modèle engagement\,$\rightarrow$\,adaptation — incluant l'apprentissage des
+correspondances propres à chaque modalité et les deux familles de fusion —, le
+système de génération fondé sur des patrons de prompts, ainsi que la conception du
+prototype de simulation.
+
+Le \textbf{chapitre~4} décrit l'implémentation : l'infrastructure technique, la
+préparation des données, la réalisation du modèle de décision, du module de
+génération adaptative et du prototype, jusqu'à la constitution du corpus de
+contenu adaptatif.
+
+Le \textbf{chapitre~5} expose la validation et les résultats. Il détaille la
+méthodologie d'évaluation multi-niveaux, la validation du modèle de décision,
+celle de la qualité du contenu généré, l'étude pilote utilisateur, puis discute
+les résultats au regard de l'état de l'art.
+
+Le \textbf{chapitre~6}, enfin, synthétise les contributions, répond aux questions
+de recherche, expose les limites de l'étude et trace des perspectives, tant pour
+la recherche que pour les implications pratiques dans le contexte des MOOC.
+
+Le mémoire se termine par la bibliographie et un ensemble d'annexes regroupant
+les patrons de prompts, les questionnaires, des exemples de contenu généré et les
+résultats détaillés.

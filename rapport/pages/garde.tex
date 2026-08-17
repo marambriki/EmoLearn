@@ -1,0 +1,83 @@
+%==============================================================================
+%  PAGE DE GARDE — modèle ESCT / UMA (comme la figure)
+%  Logos : logo_esct.png | logo_isamm.png | logo_uma.png
+%==============================================================================
+\definecolor{titrebleu}{RGB}{0,0,180}
+
+\begin{titlepage}
+\thispagestyle{empty}
+\newgeometry{top=1.5cm,bottom=1.8cm,left=2cm,right=2cm}
+\setlength{\parskip}{0pt}
+\centering
+\renewcommand{\rmdefault}{lmr}%
+\normalfont\rmfamily
+
+%------------------------- En-tête : logos | texte | logo --------------------
+% Comme la figure : ESCT+ISAMM côte à côte | texte centre | UMA à droite
+\noindent
+\begin{minipage}[c]{0.28\textwidth}
+\centering
+\begin{tabular}{@{}c@{\hspace{0.12cm}}c@{}}
+\includegraphics[width=1.5cm,height=1.3cm,keepaspectratio]{logos/logo_esct.png} &
+\includegraphics[width=1.5cm,height=1.3cm,keepaspectratio]{logos/logo_isamm.png}
+\end{tabular}
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.44\textwidth}
+\centering
+{\normalsize République Tunisienne\par}
+\vspace{1pt}
+{\footnotesize Ministère de l'Enseignement Supérieur et de la Recherche Scientifique\par}
+\vspace{4pt}
+{\normalsize Université de La Manouba\par}
+\vspace{1pt}
+{\normalsize Ecole Supérieure de Commerce de Tunis\par}
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.22\textwidth}
+\centering
+\includegraphics[height=2.1cm]{logos/logo_uma.png}%
+\end{minipage}
+
+\vspace{1.8cm}
+
+%------------------------- Type de diplôme -----------------------------------
+{\Large MÉMOIRE DE MASTER DE RECHERCHE\par}
+\vspace{0.55cm}
+{\normalsize \textbf{ Présenté en vue de l'obtention de la}\par}
+\vspace{0.28cm}
+{\normalsize MÉMOIRE DE MASTER DE RECHERCHE EN INFORMATIQUE\\[2pt]
+DÉCISIONNELLE ET INTELLIGENTE APPLIQUÉE À LA GESTION\par}
+\vspace{0.4cm}
+{\normalsize \textbf{Parcours :} Aide à la Décision\par}
+
+\vspace{1.3cm}
+
+%------------------------- Titre (bleu, entre filets) ------------------------
+\rule{\textwidth}{1.5pt}\\[0.55cm]
+{\large\bfseries\color{titrebleu}%
+EmoLearn : personnalisation pédagogique adaptative\\[0.25cm]
+multimodale fondée sur la détection de l'engagement\\[0.25cm]
+émotionnel et la génération de contenu par IA générative\par}
+\vspace{0.5cm}
+\rule{\textwidth}{1.5pt}
+
+\vspace{1.4cm}
+
+%------------------------- Auteur --------------------------------------------
+{\large \textit{Par}\par}
+\vspace{0.3cm}
+{\Large Briki Maram\par}
+
+\vspace{1.15cm}
+
+%------------------------- Encadrante ----------------------------------------
+{\normalsize \textbf{Encadrante académique :} Dr. REZGUI Kalthom, \textit{ESCT}\par}
+
+\vfill
+
+%------------------------- Année ---------------------------------------------
+{\normalsize Année Universitaire : 2025 -- 2026\par}
+
+\restoregeometry
+\end{titlepage}

@@ -10,9 +10,18 @@ chromadb
 Pillow
 transformers
 torch
+torchvision
 matplotlib
 pytest
 httpx
 librosa
 soundfile
 sentence-transformers
+opencv-python
+mediapipe>=1.0.0
+scikit-learn
+joblib
+# Métriques similarité LLM (optionnel — scripts/metrics_llm_similarity.py)
+sacrebleu
+rouge-score
+bert-score

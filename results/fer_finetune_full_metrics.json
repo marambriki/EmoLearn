@@ -1,0 +1,111 @@
+{
+  "mode": "fer_vit_finetune_full",
+  "base_model": "dima806/facial_emotions_image_detection",
+  "unfreeze_all": true,
+  "unfreeze_layers": 2,
+  "lr": 1e-05,
+  "epochs": 5,
+  "sample": 800,
+  "n_train": 600,
+  "n_test": 200,
+  "distribution_train": {
+    "Engagement": 150,
+    "Frustration": 150,
+    "Confusion": 150,
+    "Boredom": 150
+  },
+  "distribution_test": {
+    "Engagement": 50,
+    "Confusion": 50,
+    "Frustration": 50,
+    "Boredom": 50
+  },
+  "trainable_params": 85801732,
+  "total_params": 85801732,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 1.3083,
+      "loss": 1.3489,
+      "accuracy": 0.3,
+      "f1_macro": 0.2979
+    },
+    {
+      "epoch": 2,
+      "train_loss": 1.187,
+      "loss": 1.3545,
+      "accuracy": 0.345,
+      "f1_macro": 0.3383
+    },
+    {
+      "epoch": 3,
+      "train_loss": 1.0708,
+      "loss": 1.3581,
+      "accuracy": 0.32,
+      "f1_macro": 0.3146
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.9222,
+      "loss": 1.343,
+      "accuracy": 0.36,
+      "f1_macro": 0.3531
+    },
+    {
+      "epoch": 5,
+      "train_loss": 0.7897,
+      "loss": 1.3541,
+      "accuracy": 0.39,
+      "f1_macro": 0.3881
+    }
+  ],
+  "best_val_f1_macro": 0.3881,
+  "final_test": {
+    "loss": 1.3541,
+    "accuracy": 0.39,
+    "f1_macro": 0.3881,
+    "report": {
+      "Boredom": {
+        "precision": 0.3684210526315789,
+        "recall": 0.42,
+        "f1-score": 0.3925233644859813,
+        "support": 50.0
+      },
+      "Confusion": {
+        "precision": 0.35294117647058826,
+        "recall": 0.36,
+        "f1-score": 0.3564356435643564,
+        "support": 50.0
+      },
+      "Engagement": {
+        "precision": 0.5,
+        "recall": 0.3,
+        "f1-score": 0.375,
+        "support": 50.0
+      },
+      "Frustration": {
+        "precision": 0.3870967741935484,
+        "recall": 0.48,
+        "f1-score": 0.42857142857142855,
+        "support": 50.0
+      },
+      "accuracy": 0.39,
+      "macro avg": {
+        "precision": 0.4021147508239289,
+        "recall": 0.39,
+        "f1-score": 0.38813260915544157,
+        "support": 200.0
+      },
+      "weighted avg": {
+        "precision": 0.4021147508239289,
+        "recall": 0.39,
+        "f1-score": 0.38813260915544157,
+        "support": 200.0
+      }
+    }
+  },
+  "model_path": "models/fer_vit_daisee",
+  "checkpoint_dir": "models/fer_vit_daisee_ckpt",
+  "timestamp": "2026-08-07T19:02:30.527563+00:00",
+  "note": "Fine-tune ViT : nouvelle tête 4 classes DAiSEE + FULL backbone. WeightedRandomSampler + class weights."
+}

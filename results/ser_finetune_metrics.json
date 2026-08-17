@@ -1,0 +1,114 @@
+{
+  "mode": "ser_wav2vec2_finetune_head",
+  "base_model": "superb/wav2vec2-base-superb-er",
+  "out_dir": "C:\\Users\\Lenovo\\EmoLearn\\models\\ser_wav2vec2_daisee",
+  "max_samples": 600,
+  "epochs": 2,
+  "unfreeze_last": false,
+  "device": "cpu",
+  "distribution": {
+    "Confusion": 146,
+    "Frustration": 150,
+    "Engagement": 150,
+    "Boredom": 150
+  },
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 2.9225,
+      "loss": 2.873,
+      "accuracy": 0.275,
+      "f1_macro": 0.2789,
+      "report": {
+        "Boredom": {
+          "precision": 0.6666666666666666,
+          "recall": 0.26666666666666666,
+          "f1-score": 0.38095238095238093,
+          "support": 30.0
+        },
+        "Confusion": {
+          "precision": 0.32558139534883723,
+          "recall": 0.4666666666666667,
+          "f1-score": 0.3835616438356164,
+          "support": 30.0
+        },
+        "Engagement": {
+          "precision": 0.17142857142857143,
+          "recall": 0.2,
+          "f1-score": 0.18461538461538463,
+          "support": 30.0
+        },
+        "Frustration": {
+          "precision": 0.16666666666666666,
+          "recall": 0.16666666666666666,
+          "f1-score": 0.16666666666666666,
+          "support": 30.0
+        },
+        "accuracy": 0.275,
+        "macro avg": {
+          "precision": 0.3325858250276855,
+          "recall": 0.275,
+          "f1-score": 0.2789490190175122,
+          "support": 120.0
+        },
+        "weighted avg": {
+          "precision": 0.3325858250276855,
+          "recall": 0.275,
+          "f1-score": 0.2789490190175121,
+          "support": 120.0
+        }
+      },
+      "n": 120
+    },
+    {
+      "epoch": 2,
+      "train_loss": 2.2202,
+      "loss": 2.4221,
+      "accuracy": 0.3,
+      "f1_macro": 0.3088,
+      "report": {
+        "Boredom": {
+          "precision": 0.5769230769230769,
+          "recall": 0.5,
+          "f1-score": 0.5357142857142857,
+          "support": 30.0
+        },
+        "Confusion": {
+          "precision": 0.34782608695652173,
+          "recall": 0.26666666666666666,
+          "f1-score": 0.3018867924528302,
+          "support": 30.0
+        },
+        "Engagement": {
+          "precision": 0.22857142857142856,
+          "recall": 0.26666666666666666,
+          "f1-score": 0.24615384615384617,
+          "support": 30.0
+        },
+        "Frustration": {
+          "precision": 0.1388888888888889,
+          "recall": 0.16666666666666666,
+          "f1-score": 0.15151515151515152,
+          "support": 30.0
+        },
+        "accuracy": 0.3,
+        "macro avg": {
+          "precision": 0.323052370334979,
+          "recall": 0.3,
+          "f1-score": 0.3088175189590284,
+          "support": 120.0
+        },
+        "weighted avg": {
+          "precision": 0.323052370334979,
+          "recall": 0.3,
+          "f1-score": 0.30881751895902837,
+          "support": 120.0
+        }
+      },
+      "n": 120
+    }
+  ],
+  "best_val_f1_macro": 0.3088,
+  "timestamp": "2026-08-01T15:57:56.035350+00:00",
+  "note": "Tête de classification fine-tunée vers 4 états DAiSEE. Confusion couverte via surprise/fear (et mapping IEMOCAP→DAiSEE)."
+}

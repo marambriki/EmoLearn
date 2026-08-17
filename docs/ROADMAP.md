@@ -22,7 +22,7 @@ Document de suivi aligné sur le plan de mémoire et l'état du dépôt.
 | 1.4 | API `/analyser` cohérente | `backend/main.py` | ✅ |
 | 1.5 | Route `GET /templates` | `backend/main.py` | ✅ |
 | 1.6 | Interface professionnelle | `frontend/src/App.js` | ✅ |
-| 1.7 | Journal de décision JSON | `backend/decision_log.py` | ✅ |
+| 1.7 | Journal de décision JSON | `pipeline.enregistrer_decision` | ✅ |
 
 ---
 
@@ -31,7 +31,7 @@ Document de suivi aligné sur le plan de mémoire et l'état du dépôt.
 | # | Tâche | Fichiers | Statut |
 |---|--------|----------|--------|
 | 2.1 | Script évaluation DAiSEE | `scripts/eval_fer_daisee.py` | ✅ |
-| 2.2 | Mode FER image API | `POST /analyser/fer` | ✅ |
+| 2.2 | Mode FER image API | retiré du produit (simulation clip) | ❌ produit |
 | 2.3 | Métriques F1 / confusion | `results/fer_metrics.json` | ✅ (si frames dispo) |
 | 2.4 | Section mémoire Mode A vs B | Chapitre 4–5 | ⏳ |
 | 2.5 | Notebook DeepFace reproductible | `notebooks/` | ⏳ |
@@ -45,8 +45,8 @@ Document de suivi aligné sur le plan de mémoire et l'état du dépôt.
 | 3.1 | Analyse exploratoire DAiSEE | `notebooks/OS1*.ipynb` | ✅ |
 | 3.2 | Séquences 5–10 clips | `data/scenarios_sequences.csv` | ✅ |
 | 3.3 | Règles multi-clips | `backend/temporal_rules.py` | ✅ |
-| 3.4 | État de session | `backend/session_state.py` | ✅ |
-| 3.5 | API parcours séquence | `POST /analyser/sequence` | ✅ |
+| 3.4 | Branché dans pipeline | `pipeline.py` (`utiliser_temporel`) | ✅ |
+| 3.5 | API parcours séquence | `GET /sequences`, `POST /analyser/sequence` | ✅ |
 
 ---
 
@@ -77,10 +77,11 @@ Document de suivi aligné sur le plan de mémoire et l'état du dépôt.
 
 | Niveau | Objectif | Statut |
 |--------|----------|--------|
-| L1 | Delphi experts mapping | ⏳ (fiches prêtes) |
-| L2 | 3 enseignants × 60 | ⏳ |
-| L3 | Métriques auto | ✅ script + exécutable |
+| L1 | Delphi experts mapping | ⏳ formulaires `results/forms/l1_*.csv` + agrégation |
+| L2 | 3 enseignants × 60 | ⏳ formulaires `results/forms/l2_*.csv` + agrégation |
+| L3 | Métriques auto | ✅ `metrics_contenu.py` + export MD |
 | L4 | Pilote n=30 | ⏳ |
+| Proxy fusion produit | `eval_fusion_produit_proxy.py` | ✅ |
 
 ---
 
@@ -95,16 +96,23 @@ Document de suivi aligné sur le plan de mémoire et l'état du dépôt.
 
 ---
 
-## API v2.2 — Endpoints
+## Phase 8 — Entraînement léger (complément pré-entraînés)
+
+| # | Tâche | Statut |
+|---|--------|--------|
+| 8.1 | Classifieur sklearn FER→DAiSEE | ✅ `scripts/train_fer_daisee_classifier.py` |
+| 8.2 | Fine-tune tête SER wav2vec2 (Confusion) | ✅ `scripts/finetune_ser_wav2vec2.py` |
+| 8.3 | Doc usage | ✅ `docs/TRAINING.md` |
+
+---
+
+## API v2.4 — Endpoints (prototype simulation — clip)
 
 | Route | Description |
 |-------|-------------|
 | `GET /health` | Santé API |
 | `GET /scenarios` | 50 clips DAiSEE |
-| `GET /sequences` | 10 parcours multi-clips |
-| `POST /analyser` | Clip unique (simulation) |
-| `POST /analyser/fer` | FER image + fusion |
-| `POST /analyser/sequence` | Parcours temporel complet |
-| `POST /session/start` | Nouvelle session |
-| `POST /session/clip` | Clip incrémental |
+| `POST /analyser` | Clip de simulation |
+| `POST /chat` | Tuteur conversationnel |
 | `GET /sessions` | Historique SQLite |
+| `GET /templates` | 20 templates A1–D5 |

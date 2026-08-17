@@ -9,6 +9,8 @@ import time
 from dotenv import load_dotenv
 from groq import Groq, RateLimitError
 
+from groq_config import extraire_texte, options_completion
+
 load_dotenv()
 client = Groq(api_key=os.getenv('GROQ_API_KEY'))
 
@@ -124,10 +126,8 @@ Si le contexte ne contient pas l'information, dis-le clairement.""",
     for tentative in range(4):
         try:
             response = client.chat.completions.create(
-                model="llama-3.1-8b-instant",
                 messages=messages,
-                max_tokens=600,
-                temperature=0.3,
+                **options_completion(600, 0.3),
             )
             break
         except RateLimitError:
@@ -137,7 +137,7 @@ Si le contexte ne contient pas l'information, dis-le clairement.""",
             print(f"⚠️ Limite Groq (429) — nouvelle tentative dans {attente}s...")
             time.sleep(attente)
 
-    contenu = response.choices[0].message.content
+    contenu = extraire_texte(response.choices[0].message)
     return {
         "etat": etat,
         "niveau": niveau,

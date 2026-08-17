@@ -1,0 +1,193 @@
+%==============================================================================
+%  INTRODUCTION GÉNÉRALE — non numérotée (avant le chapitre 1)
+%==============================================================================
+\chapter*{\textbf{Introduction générale}}
+\addcontentsline{toc}{chapter}{Introduction générale}
+\mtcaddchapter % aligne le compteur minitoc (pas de Sommaire sur l'intro)
+\label{chap:introduction}
+\markboth{Introduction générale}{Introduction générale}
+\thispagestyle{plain}
+
+L'évolution rapide des technologies numériques et le développement des
+plateformes éducatives en ligne ont profondément transformé les pratiques
+d'apprentissage, en particulier à travers la diffusion des cours en ligne
+ouverts et massifs (MOOC, \emph{Massive Open Online Courses}). Ces dispositifs
+permettent aujourd'hui de collecter, diffuser et personnaliser des contenus
+pédagogiques à grande échelle, offrant à des millions d'apprenants un accès
+élargi à la formation, indépendamment des contraintes géographiques
+\cite{breslow2013studying,daniel2012making}. La crise sanitaire de 2020 a
+encore accéléré cette dynamique, faisant de l'apprentissage en ligne une
+composante désormais structurelle des systèmes éducatifs contemporains.
+
+Toutefois, cette évolution s'accompagne d'un constat largement documenté :
+les MOOC souffrent de taux d'abandon particulièrement élevés. Une part
+importante des inscrits interrompt son parcours dès les premières semaines,
+ce qui limite fortement l'efficacité pédagogique réelle de ces dispositifs
+\cite{onah2014dropout,jordan2015massive}. Parmi les facteurs explicatifs,
+la baisse de l'\textbf{engagement} de l'apprenant occupe une place centrale
+\cite{kizilcec2013deconstructing,hew2016promoting}. Dans une salle de classe
+traditionnelle, l'enseignant perçoit en permanence des signaux fins (regard,
+posture, expression) et adapte spontanément son discours. Cette boucle de
+régulation disparaît presque entièrement dans les environnements en ligne de
+masse, où l'apprenant fait face à un contenu figé, identique pour tous et
+insensible à son état du moment.
+
+Dans ce contexte, plusieurs travaux en informatique affective et en
+psychologie de l'apprentissage ont établi que les émotions ne sont pas
+périphériques à la cognition, mais en constituent un rouage essentiel
+\cite{picard1997affective,pekrun2006control}. Des états tels que l'ennui, la
+confusion ou la frustration influencent directement la profondeur du traitement
+de l'information, la persévérance et la mémorisation
+\cite{dmello2012dynamics,baker2010better}. Une détection inefficace de ces
+états, combinée à l'absence d'adaptation pédagogique, peut entraîner une
+dégradation de l'expérience d'apprentissage et favoriser le décrochage. Cette
+problématique est d'autant plus critique que les décisions pédagogiques doivent
+idéalement intervenir en temps utile, avant que le désengagement ne s'installe.
+
+Ainsi, ce mémoire s'inscrit dans cette problématique en proposant une approche
+visant à réunir, au sein d'une même chaîne de traitement, la perception de
+l'engagement émotionnel et la génération adaptative de contenu pédagogique.
+
+Face à ces enjeux, la question centrale de ce travail est la suivante :
+
+\begin{center}
+\textit{Comment concevoir un dispositif capable d'inférer automatiquement
+l'état d'engagement d'un apprenant à partir de signaux multimodaux, puis de
+générer en réponse un contenu pédagogique adapté à cet état, tout en
+garantissant la cohérence et la traçabilité de la décision pédagogique
+sous-jacente~?}
+\end{center}
+
+Cette question se décompose en quatre sous-questions opérationnelles :
+
+\begin{itemize}
+  \item Comment estimer de manière fiable l'état d'engagement à partir de
+  signaux multimodaux hétérogènes (expressions faciales issues de
+  \textsc{DAiSEE}, signal vocal issu de \textsc{IEMOCAP}), et quel gain la
+  fusion apporte-t-elle par rapport à une modalité unique~?
+
+  \item Comment formaliser une correspondance pédagogiquement justifiable
+  entre les états d'engagement détectés et les stratégies d'intervention,
+  c'est-à-dire un modèle \emph{engagement\,$\rightarrow$\,adaptation}~?
+
+  \item Dans quelle mesure un grand modèle de langue, guidé par des patrons
+  de prompts structurés et ancré par un mécanisme de récupération augmentée
+  (RAG), peut-il produire un contenu pédagogique pertinent et adapté à l'état
+  d'engagement visé~?
+
+  \item Selon quel protocole peut-on évaluer, de façon honnête et
+  multi-niveaux, la qualité de la perception, la pertinence de la décision et
+  la qualité du contenu généré~?
+\end{itemize}
+
+L'analyse de la littérature montre que, malgré les progrès importants réalisés
+dans les domaines de la détection de l'engagement et de l'IA générative
+appliquée à l'éducation, ces deux axes restent majoritairement traités de
+manière indépendante. D'une part, les modèles de perception multimodale
+permettent d'inférer l'état affectif d'un apprenant avec une fiabilité
+croissante \cite{dmello2015review,whitehill2014faces,gupta2016daisee}.
+D'autre part, les grands modèles de langue ouvrent la voie à une génération
+de contenu pédagogique personnalisée à grande échelle
+\cite{brown2020language,kasneci2023chatgpt}. Cependant, ces approches
+demeurent souvent séquentielles ou fragmentées~: la détection n'est pas
+systématiquement reliée à une décision pédagogique explicite, tandis que la
+génération n'est pas toujours conditionnée par un état d'engagement mesuré,
+ce qui limite la capacité des systèmes à restaurer une forme de régulation
+pédagogique automatique.
+
+Pour répondre à ces limitations, ce mémoire propose un framework hybride nommé
+\emolearn{}, combinant trois briques complémentaires. La couche de
+\textbf{perception} estime l'état d'engagement à partir de signaux visage et
+voix, en s'appuyant sur les corpus \textsc{DAiSEE} et \textsc{IEMOCAP} et sur
+des modèles \emph{fine-tunés} vers la taxonomie des quatre états
+d'engagement~: un Vision Transformer (ViT) pour le visage et un modèle
+wav2vec2 pour la voix, combinés par un moteur de fusion multimodale. La couche
+de \textbf{décision} formalise un modèle
+\emph{engagement\,$\rightarrow$\,adaptation} reliant chaque état à un type de
+contenu et à un patron de génération. Enfin, la couche de \textbf{génération}
+produit un contenu pédagogique adaptatif au moyen d'un grand modèle de langue,
+guidé par une bibliothèque de vingt patrons structurés et ancré par un module
+RAG sur une base documentaire pédagogique. Ainsi, \emolearn{} vise à passer
+d'un contenu figé à une adaptation réellement conditionnée par l'état
+d'engagement détecté.
+
+En résumé, le module de perception anticipe l'état émotionnel de l'apprenant,
+tandis que les modules de décision et de génération exploitent cette estimation
+pour produire une intervention pédagogique ciblée, traçable et reproductible.
+
+Les principales contributions de ce travail sont les suivantes :
+
+\begin{enumerate}
+  \item Proposition d'une architecture multimodale de bout en bout reliant
+  perception, décision et génération au sein d'une même chaîne.
+
+  \item Formalisation d'un modèle \emph{engagement\,$\rightarrow$\,adaptation}
+  assorti d'une bibliothèque de vingt patrons de génération structurés.
+
+  \item Développement d'un module RAG pédagogique ancrant la génération sur
+  une base documentaire vectorisée.
+
+  \item Fine-tuning supervisé des modèles de perception (ViT pour le visage et
+  wav2vec2 pour la voix) vers les quatre états d'engagement \textsc{DAiSEE}.
+
+  \item Évaluation honnête et instrumentée de la fusion multimodale, incluant
+  l'analyse des compromis entre exactitude globale et sensibilité aux états
+  critiques.
+
+  \item Prototype logiciel complet et reproductible, accompagné d'un protocole
+  d'évaluation multi-niveaux.
+\end{enumerate}
+
+%==============================================================================
+\section*{Méthodologie générale}
+\label{sec:methodologie}
+
+La démarche adoptée relève de la \emph{recherche orientée conception}
+(\emph{design science research}), paradigme particulièrement adapté à la
+conception d'artefacts informatiques répondant à un problème identifié
+\cite{hevner2004design}. Elle articule l'analyse d'un problème réel (le
+décrochage lié à la baisse d'engagement dans les MOOC), la construction
+d'un artefact (le framework \emolearn{}) et son évaluation au regard
+d'objectifs explicites.
+
+Concrètement, le travail s'organise autour d'une chaîne de traitement en trois
+étages : un étage de \emph{perception} (FER, SER, fusion), un étage de
+\emph{décision} (règles temporelles et moteur pédagogique) et un étage de
+\emph{génération} (RAG et LLM).
+
+Le projet s'appuie sur deux corpus publics de référence. \textsc{DAiSEE}
+\cite{gupta2016daisee} constitue le socle engagement (taxonomie et scénarios),
+tandis qu'\textsc{IEMOCAP} \cite{busso2008iemocap} apporte la modalité vocale
+et, via un sous-corpus audiovisuel aligné, le support de validation de la
+fusion. Le prototype repose sur une architecture client-serveur, des modèles
+de perception fine-tunés (ViT et wav2vec2) vers les quatre états
+\textsc{DAiSEE}, un LLM accessible par API et un module RAG (ChromaDB).
+
+%==============================================================================
+\section*{Structure du mémoire}
+\label{sec:structure}
+
+Le présent mémoire s'ouvre par la présente \textbf{introduction générale},
+puis s'organise en six chapitres numérotés.
+
+Le \textbf{chapitre~1} pose les fondements conceptuels de l'apprentissage
+adaptatif et de l'engagement (MOOC, émotions, détection multimodale, IA
+générative).
+
+Le \textbf{chapitre~2} propose un état de l'art critique et positionne
+\emolearn{} par rapport aux travaux existants.
+
+Le \textbf{chapitre~3} est consacré à la modélisation et à la conception du
+framework : architecture globale, modèle
+\emph{engagement\,$\rightarrow$\,adaptation}, génération fondée sur des patrons
+et un module RAG, ainsi que conception du prototype.
+
+Le \textbf{chapitre~4} décrit l'implémentation technique de bout en bout.
+
+Le \textbf{chapitre~5} expose la validation et les résultats selon un protocole
+multi-niveaux.
+
+Le \textbf{chapitre~6}, enfin, synthétise les contributions, expose les limites
+et trace des perspectives.
+
+Le mémoire se termine par la bibliographie.

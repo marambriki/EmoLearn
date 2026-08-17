@@ -1,46 +1,45 @@
 ClipID,pattern,emotion,niveau,strategie,type_contenu
-4000182015.avi,stable,frustration,2,Encouragement + simplification,D+A
+4000182015.avi,critique,frustration,2,Encouragement + simplification,D+A
 3422270246.avi,stable,engagement,2,Renforcement positif,D
 3100772004.avi,stable,engagement,2,Renforcement positif,D
 33702101640.mp4,stable,boredom,1,Application pratique,B
 3100771055.avi,stable,engagement,2,Renforcement positif,D
 3100781074.avi,stable,engagement,3,Renforcement positif,D
-3100712014.avi,stable,frustration,2,Encouragement + simplification,D+A
-1100072061.avi,stable,boredom,2,Exercice avancé,C
-1100071075.avi,stable,boredom,2,Exercice avancé,C
+3100712014.avi,frustration,frustration,2,Encouragement + simplification,D+A
+1100072061.avi,ennui_eleve,boredom,2,Exercice avancé,C
+1100071075.avi,ennui_eleve,boredom,2,Exercice avancé,C
 2100521048.avi,stable,engagement,2,Renforcement positif,D
 2904280140.mp4,stable,boredom,1,Application pratique,B
 2026140147.mp4,stable,boredom,1,Application pratique,B
-2026140128.mp4,stable,confusion,2,Explication alternative,A
+2026140128.mp4,confusion,confusion,2,Explication alternative,A
 1100152032.avi,stable,boredom,1,Application pratique,B
 1100061077.avi,stable,engagement,2,Renforcement positif,D
-2100572021.avi,ennui_eleve,boredom,2,Exercice avancé,C
-4110211046.avi,ennui_eleve,confusion+frustration,3,Aide de déblocage immédiate,A+D
-1100151042.avi,ennui_eleve,boredom,2,Exercice avancé,C
+2100572021.avi,engagement_faible,boredom,2,Exercice avancé,C
+4110211046.avi,critique,confusion+frustration,3,Aide de déblocage immédiate,A+D
+1100151042.avi,stable,boredom,2,Exercice avancé,C
 2100572036.avi,ennui_eleve,boredom,2,Exercice avancé,C
-4110212036.avi,ennui_eleve,confusion,2,Explication alternative,A
-3503610158.avi,ennui_eleve,boredom,2,Exercice avancé,C
+4110212036.avi,confusion,confusion,2,Explication alternative,A
+3503610158.avi,engagement_faible,boredom,2,Exercice avancé,C
 3100692022.avi,ennui_eleve,boredom,2,Exercice avancé,C
 2100582002.avi,ennui_eleve,boredom,2,Exercice avancé,C
-1100062072.avi,ennui_eleve,frustration,2,Encouragement + simplification,D+A
+1100062072.avi,critique,frustration,2,Encouragement + simplification,D+A
 1100071045.avi,ennui_eleve,boredom,2,Exercice avancé,C
 2000481039.avi,frustration,frustration,2,Encouragement + simplification,D+A
-4000182067.avi,frustration,frustration,2,Encouragement + simplification,D+A
+4000182067.avi,critique,frustration,2,Encouragement + simplification,D+A
 3344630120.avi,frustration,frustration,3,Encouragement + simplification,D+A
-1100062072.avi,frustration,frustration,2,Encouragement + simplification,D+A
-2100612043.avi,frustration,frustration,2,Encouragement + simplification,D+A
-2100552035.avi,frustration,frustration,3,Encouragement + simplification,D+A
+2100612043.avi,stable,frustration,2,Encouragement + simplification,D+A
+2100552035.avi,critique,frustration,3,Encouragement + simplification,D+A
 3503610120.avi,frustration,frustration,2,Encouragement + simplification,D+A
-2100532022.avi,frustration,confusion+frustration,3,Aide de déblocage immédiate,A+D
-4110311012.avi,confusion,confusion,2,Explication alternative,A
-1110031021.avi,confusion,confusion,2,Explication alternative,A
-2100602011.avi,confusion,confusion,2,Explication alternative,A
+2100532022.avi,critique,confusion+frustration,3,Aide de déblocage immédiate,A+D
+4110311012.avi,critique,confusion,2,Explication alternative,A
+1110031021.avi,critique,confusion,2,Explication alternative,A
+2100602011.avi,critique,confusion,2,Explication alternative,A
 2100532052.avi,confusion,confusion,2,Explication alternative,A
-2100602056.avi,confusion,frustration,2,Encouragement + simplification,D+A
-3344630282.avi,confusion,frustration,3,Encouragement + simplification,D+A
+2100602056.avi,critique,frustration,2,Encouragement + simplification,D+A
+3344630282.avi,frustration,frustration,3,Encouragement + simplification,D+A
 2100512036.avi,confusion,confusion,2,Explication alternative,A
 1100171059.avi,engagement_faible,engagement,1,Exemple concret stimulant,B
-1100051016.avi,engagement_faible,confusion,2,Explication alternative,A
+1100051016.avi,confusion,confusion,2,Explication alternative,A
 3100821052.avi,engagement_faible,engagement,0,Réengagement urgent,B
 2100571023.avi,engagement_faible,boredom,2,Exercice avancé,C
 3100752037.avi,engagement_faible,boredom,2,Exercice avancé,C
@@ -49,3 +48,4 @@ ClipID,pattern,emotion,niveau,strategie,type_contenu
 2100551006.avi,critique,frustration,2,Encouragement + simplification,D+A
 4110211080.avi,critique,frustration,2,Encouragement + simplification,D+A
 1110032037.avi,critique,frustration,3,Encouragement + simplification,D+A
+1100012010.avi,confusion,confusion,3,Explication alternative,A

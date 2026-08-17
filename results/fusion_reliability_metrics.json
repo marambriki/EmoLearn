@@ -1,0 +1,62 @@
+{
+  "mode": "fusion_reliability_synthetic",
+  "methode": "ponderation_continue_incertitude",
+  "n_cas": 6,
+  "accuracy": 1.0,
+  "cas": [
+    {
+      "id": "voix_bruit_sous_ponderee",
+      "gt": "Engagement",
+      "etat": "Engagement",
+      "ok": true,
+      "strategie": "vote_pondere_incertitude"
+    },
+    {
+      "id": "visage_bruit_sous_pondere",
+      "gt": "Confusion",
+      "etat": "Confusion",
+      "ok": true,
+      "strategie": "vote_pondere_incertitude"
+    },
+    {
+      "id": "vote_engagement",
+      "gt": "Engagement",
+      "etat": "Engagement",
+      "ok": true,
+      "strategie": "vote_pondere_incertitude"
+    },
+    {
+      "id": "accord_frustration",
+      "gt": "Frustration",
+      "etat": "Frustration",
+      "ok": true,
+      "strategie": "vote_pondere_incertitude"
+    },
+    {
+      "id": "prior_visage_engagement",
+      "gt": "Engagement",
+      "etat": "Engagement",
+      "ok": true,
+      "strategie": "vote_pondere_incertitude"
+    },
+    {
+      "id": "incertitude_totale_fru",
+      "gt": "Frustration",
+      "etat": "Frustration",
+      "ok": true,
+      "strategie": "priorite_pedagogique_incertitude_totale"
+    }
+  ],
+  "baselines_modeles": {
+    "fer_full_f1_macro": 0.388,
+    "fer_full_accuracy": 0.39,
+    "ser_full_best_f1_macro": 0.537,
+    "ser_full_best_accuracy": 0.557,
+    "sources": [
+      "results/fer_finetune_full_metrics.json",
+      "results/ser_finetune_full_metrics.json"
+    ]
+  },
+  "timestamp": "2026-08-17T19:46:25.583699+00:00",
+  "note": "Pondération continue : w = prior × confiance, puis renormalisation. Repli priorité pédagogique seulement si les deux confiances sont nulles."
+}

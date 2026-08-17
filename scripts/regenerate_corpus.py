@@ -57,11 +57,12 @@ def _compute_decision(row_corpus, df_scenarios):
     fusion = fusionner_modalites(visage, voix)
     decision = preparer_decision(
         fusion=fusion,
-        boredom=int(scenario["Boredom"]),
-        confusion=int(scenario["Confusion"]),
-        engagement=int(scenario["Engagement"]),
-        frustration=int(scenario["Frustration"]),
-        pattern=pattern,
+        scores_bruts={
+            "boredom": int(scenario["Boredom"]),
+            "confusion": int(scenario["Confusion"]),
+            "engagement": int(scenario["Engagement"]),
+            "frustration": int(scenario["Frustration"]),
+        },
     )
 
     return {

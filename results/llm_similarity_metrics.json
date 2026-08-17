@@ -1,0 +1,183 @@
+{
+  "n": 189,
+  "timestamp": "2026-08-07T14:04:23.419426+00:00",
+  "note": "Mode AUTO : référence = contenu médian par template_id dans le corpus. Mesure la cohérence interne des générations, PAS une qualité vs expert. La pertinence pédagogique reste à la validation L2.",
+  "global": {
+    "bleu": {
+      "mean": 0.1388,
+      "std": 0.0643,
+      "min": 0.0345,
+      "max": 0.3275
+    },
+    "rouge1_f": {
+      "mean": 0.4486,
+      "std": 0.071,
+      "min": 0.2784,
+      "max": 0.6237
+    },
+    "rouge2_f": {
+      "mean": 0.1759,
+      "std": 0.0724,
+      "min": 0.0501,
+      "max": 0.3957
+    },
+    "rougeL_f": {
+      "mean": 0.2717,
+      "std": 0.0679,
+      "min": 0.134,
+      "max": 0.4839
+    }
+  },
+  "par_template": {
+    "A1": {
+      "bleu": 0.1036,
+      "rouge1_f": 0.4284,
+      "rouge2_f": 0.1344,
+      "rougeL_f": 0.2548
+    },
+    "A2": {
+      "bleu": 0.0836,
+      "rouge1_f": 0.374,
+      "rouge2_f": 0.1087,
+      "rougeL_f": 0.215
+    },
+    "A3": {
+      "bleu": 0.1344,
+      "rouge1_f": 0.423,
+      "rouge2_f": 0.15,
+      "rougeL_f": 0.257
+    },
+    "A4": {
+      "bleu": 0.174,
+      "rouge1_f": 0.4986,
+      "rouge2_f": 0.2219,
+      "rougeL_f": 0.2818
+    },
+    "A5": {
+      "bleu": 0.0756,
+      "rouge1_f": 0.4121,
+      "rouge2_f": 0.117,
+      "rougeL_f": 0.2089
+    },
+    "B1": {
+      "bleu": 0.1142,
+      "rouge1_f": 0.3994,
+      "rouge2_f": 0.143,
+      "rougeL_f": 0.2247
+    },
+    "B2": {
+      "bleu": 0.079,
+      "rouge1_f": 0.4003,
+      "rouge2_f": 0.1125,
+      "rougeL_f": 0.2069
+    },
+    "B3": {
+      "bleu": 0.1628,
+      "rouge1_f": 0.4562,
+      "rouge2_f": 0.2219,
+      "rougeL_f": 0.3134
+    },
+    "B4": {
+      "bleu": 0.1464,
+      "rouge1_f": 0.4696,
+      "rouge2_f": 0.1756,
+      "rougeL_f": 0.2536
+    },
+    "B5": {
+      "bleu": 0.0688,
+      "rouge1_f": 0.3889,
+      "rouge2_f": 0.099,
+      "rougeL_f": 0.2197
+    },
+    "C1": {
+      "bleu": 0.071,
+      "rouge1_f": 0.4028,
+      "rouge2_f": 0.1112,
+      "rougeL_f": 0.1967
+    },
+    "C2": {
+      "bleu": 0.0709,
+      "rouge1_f": 0.3922,
+      "rouge2_f": 0.1117,
+      "rougeL_f": 0.2083
+    },
+    "C3": {
+      "bleu": 0.0904,
+      "rouge1_f": 0.3662,
+      "rouge2_f": 0.1099,
+      "rougeL_f": 0.2254
+    },
+    "C4": {
+      "bleu": 0.1902,
+      "rouge1_f": 0.5353,
+      "rouge2_f": 0.2544,
+      "rougeL_f": 0.3563
+    },
+    "D1": {
+      "bleu": 0.2499,
+      "rouge1_f": 0.5577,
+      "rouge2_f": 0.2987,
+      "rougeL_f": 0.3908
+    },
+    "D2": {
+      "bleu": 0.1435,
+      "rouge1_f": 0.4418,
+      "rouge2_f": 0.178,
+      "rougeL_f": 0.2621
+    },
+    "D3": {
+      "bleu": 0.2006,
+      "rouge1_f": 0.5147,
+      "rouge2_f": 0.2451,
+      "rougeL_f": 0.3335
+    },
+    "D4": {
+      "bleu": 0.1394,
+      "rouge1_f": 0.461,
+      "rouge2_f": 0.1781,
+      "rougeL_f": 0.284
+    },
+    "D5": {
+      "bleu": 0.2209,
+      "rouge1_f": 0.5172,
+      "rouge2_f": 0.2574,
+      "rougeL_f": 0.3515
+    }
+  },
+  "par_type": {
+    "A": {
+      "bleu": 0.1186,
+      "rouge1_f": 0.4262,
+      "rouge2_f": 0.1463,
+      "rougeL_f": 0.248
+    },
+    "B": {
+      "bleu": 0.127,
+      "rouge1_f": 0.4321,
+      "rouge2_f": 0.1656,
+      "rougeL_f": 0.2537
+    },
+    "C": {
+      "bleu": 0.0993,
+      "rouge1_f": 0.4183,
+      "rouge2_f": 0.1404,
+      "rougeL_f": 0.2397
+    },
+    "D": {
+      "bleu": 0.1898,
+      "rouge1_f": 0.4976,
+      "rouge2_f": 0.2301,
+      "rougeL_f": 0.3237
+    }
+  },
+  "reference_kind": "auto_median_template",
+  "config": {
+    "mode": "auto",
+    "skip_bertscore": true,
+    "bert_model": null,
+    "corpus": "C:\\Users\\Lenovo\\EmoLearn\\data\\corpus_200.csv",
+    "references": "C:\\Users\\Lenovo\\EmoLearn\\data\\references_contenu_auto.csv",
+    "n_pairs": 189,
+    "n_templates_ref": 19
+  }
+}

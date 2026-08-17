@@ -1,0 +1,758 @@
+%%==============================================================================
+%%  EmoLearn — IEEE conference paper (IEEEtran), English, target 6--10 pages
+%%  Compile: pdflatex → bibtex → pdflatex → pdflatex
+%%==============================================================================
+\documentclass[conference]{IEEEtran}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{url}
+\usepackage{balance}
+\usepackage{enumitem}
+
+\setlist[itemize]{leftmargin=*,itemsep=1pt,topsep=2pt}
+\setlist[enumerate]{leftmargin=*,itemsep=1pt,topsep=2pt}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\begin{document}
+
+\title{EmoLearn: Adaptive Pedagogical Personalization\\
+via Multimodal Face--Voice Fusion and LLM Content Generation}
+
+\author{
+\IEEEauthorblockN{Firstname Lastname}
+\IEEEauthorblockA{
+\textit{University / Institution}\\
+Department of Computer Science\\
+City, Country\\
+email@example.com}
+\and
+\IEEEauthorblockN{Firstname Lastname (Supervisor)}
+\IEEEauthorblockA{
+\textit{University / Institution}\\
+Department of Computer Science\\
+City, Country\\
+supervisor@example.com}
+}
+
+\maketitle
+
+%------------------------------------------------------------------------------
+\begin{abstract}
+Online learning platforms struggle to detect when a learner disengages, becomes
+confused, or frustrated. This paper presents \textit{EmoLearn}, a research
+prototype that estimates engagement from \textbf{facial} and \textbf{vocal}
+signals, decides whether and how to intervene pedagogically, and generates
+adaptive learning content with a large language model (LLM) augmented by
+retrieval-augmented generation (RAG). The system is grounded in the
+\textsc{DAiSEE} engagement taxonomy and uses \textsc{IEMOCAP} for speech emotion
+recognition and for an aligned audiovisual fusion testbed. Component-wise
+evaluation shows that a learned FER-to-\textsc{DAiSEE} Random Forest improves
+accuracy from $0.193$ to $0.723$ over a heuristic mapping, and that a fine-tuned
+wav2vec2 speech model nearly doubles vocal accuracy relative to an acoustic
+heuristic. On an aligned audiovisual subset ($n{=}80$), weighted-vote fusion
+reaches $0.500$ accuracy---above either modality alone---while a pedagogical
+priority strategy maximizes recall of urgent states ($0.400$). We describe the
+end-to-end architecture, fusion trade-offs, sensitivity analyses, and the
+explicit limitations of the simulation prototype.
+\end{abstract}
+
+\begin{IEEEkeywords}
+adaptive learning, learner engagement, multimodal fusion, facial emotion
+recognition, speech emotion recognition, large language models,
+retrieval-augmented generation, DAiSEE, IEMOCAP, affective computing
+\end{IEEEkeywords}
+
+%==============================================================================
+\section{Introduction}
+%==============================================================================
+
+Massive Open Online Courses (MOOCs) and large-scale e-learning platforms have
+democratized access to education, yet they continue to exhibit high dropout
+rates~\cite{breslow2013studying,daniel2012making,onah2014dropout,jordan2015massive}.
+Among the many contributing factors---time constraints, insufficient
+prerequisites, limited institutional recognition---a central driver is the
+decline of \textbf{learner engagement}~\cite{kizilcec2013deconstructing,hew2016promoting}.
+Engagement encompasses cognitive, behavioral, and emotional investment in the
+learning task. In a physical classroom, an instructor continuously reads subtle
+cues---averted gaze, slumped posture, puzzled expression---and adapts in real
+time: rephrasing, slowing down, providing an example, or re-capturing attention.
+That regulatory loop largely disappears in mass online settings, where learners
+face static content that is identical for everyone and insensitive to their
+momentary state.
+
+Affective computing and educational psychology have established that emotions
+are not peripheral to cognition but integral to it~\cite{picard1997affective,pekrun2006control}.
+States such as boredom, confusion, and frustration influence depth of
+processing, persistence, and
+retention~\cite{dmello2012dynamics,baker2010better,dmello2015review}. Detecting
+these states and responding appropriately is therefore a promising path toward
+partially restoring pedagogical regulation in online environments.
+
+Two technological developments make this ambition increasingly credible. First,
+automatic engagement recognition from multimodal signals---facial expression,
+voice, posture, and physiological measures---has matured, supported by
+reference corpora such as \textsc{DAiSEE} for engagement~\cite{gupta2016daisee}
+and \textsc{IEMOCAP} for conversational emotion~\cite{busso2008iemocap}, as
+well as facial engagement work~\cite{whitehill2014faces}. Second, large language
+models (LLMs) can generate explanations, analogies, exercises, and
+encouragements on demand~\cite{brown2020language,kasneci2023chatgpt,touvron2023llama},
+especially when grounded by retrieval-augmented generation
+(RAG)~\cite{lewis2020retrieval}.
+
+\textbf{EmoLearn} sits at the intersection of these strands. It implements a
+full pipeline that (i)~perceives engagement from face and voice, (ii)~decides
+whether to intervene and which pedagogical content type to produce, and
+(iii)~generates adaptive text via an LLM with optional RAG. The system is
+explicitly framed as a \emph{simulation research prototype}: engagement signals
+come from annotated corpora rather than live classroom capture. This scoping
+choice enables controlled, reproducible evaluation of each pipeline stage.
+
+The main contributions of this work are:
+\begin{enumerate}
+\item An end-to-end architecture linking multimodal engagement perception,
+rule-based pedagogical decision-making, and LLM/RAG content generation.
+\item A shared fusion engine used both by a product pipeline (API~+~UI) and by
+an offline aligned audiovisual testbed for scientific validation.
+\item Learned unimodal components: a Random Forest mapping FER scores to
+\textsc{DAiSEE} states, and a wav2vec2~\cite{baevski2020wav2vec2} speech
+classifier fine-tuned for four engagement classes.
+\item Empirical evidence of fusion trade-offs between global accuracy
+(weighted vote) and pedagogical safety (urgent-state recall), plus sensitivity
+analyses on fusion weights and emotion-to-engagement mapping.
+\end{enumerate}
+
+The remainder of this paper is organized as follows. Section~\ref{sec:related}
+reviews related work. Section~\ref{sec:arch} presents the system architecture.
+Section~\ref{sec:methods} details methods. Section~\ref{sec:impl} summarizes
+implementation notes. Section~\ref{sec:exp} describes the experimental protocol.
+Section~\ref{sec:results} reports results. Section~\ref{sec:discussion}
+discusses limitations and implications. Section~\ref{sec:conclusion} concludes.
+
+%==============================================================================
+\section{Related Work}
+\label{sec:related}
+%==============================================================================
+
+\subsection{Engagement and Affect in Learning}
+Discrete affective states during technology-mediated learning have been
+meta-analyzed by D'Mello~\cite{dmello2015review}. The control--value theory of
+achievement emotions~\cite{pekrun2006control} and the dynamics of confusion and
+frustration~\cite{dmello2012dynamics,baker2010better} motivate treating boredom,
+confusion, engagement, and frustration as pedagogically actionable targets
+rather than generic emotion labels alone.
+
+\subsection{Automatic Engagement Recognition}
+Whitehill et al.~\cite{whitehill2014faces} demonstrated automatic recognition
+of student engagement from facial expressions. \textsc{DAiSEE}~\cite{gupta2016daisee}
+provides in-the-wild student videos annotated with four engagement-related
+states and intensity levels. Parallel advances in speech emotion recognition,
+including self-supervised representations such as
+wav2vec~2.0~\cite{baevski2020wav2vec2}, improve vocal affect estimation.
+\textsc{IEMOCAP}~\cite{busso2008iemocap} remains a standard audiovisual corpus
+with categorical and dimensional (valence--activation--dominance) annotations.
+
+\subsection{Adaptive Learning and Generative Tutors}
+Early adaptive systems relied on hand-authored content variants. LLMs change
+this economics by generating personalized explanations at
+scale~\cite{kasneci2023chatgpt}. RAG~\cite{lewis2020retrieval} reduces
+hallucination risk by grounding generation in a retrieved pedagogical knowledge
+base. Design-science perspectives~\cite{hevner2004design} emphasize building and
+evaluating artifacts that solve identified problems---the stance adopted here.
+
+\subsection{Multimodal Fusion Strategies}
+Late fusion (combine decisions or probability distributions after unimodal
+inference) remains attractive for education systems because modalities can fail
+independently---a face may be occluded while audio remains usable, or vice
+versa. Weighted averaging, confidence gating, and task-specific priority rules
+are common design choices. EmoLearn instantiates this design space explicitly:
+a default $60\%/40\%$ face/voice weighting, conflict categorization, and two
+operationally distinct resolvers (accuracy-oriented weighted vote versus
+safety-oriented pedagogical priority).
+
+\subsection{Positioning of EmoLearn}
+Prior work often studies recognition \emph{or} generation in isolation.
+EmoLearn's distinctive claim is architectural integration: a single chain from
+multimodal perception through pedagogical decision rules to templated LLM
+generation, with an explicit dual-pipeline design that separates product
+demonstration from aligned fusion validation. Methodologically, the project
+follows a design-science stance~\cite{hevner2004design}: the artifact is built
+to address a stated problem (missing affective regulation in online learning),
+and evaluation focuses on whether each component and trade-off is measurable
+and honest rather than on maximizing a single leaderboard score.
+
+%==============================================================================
+\section{System Architecture}
+\label{sec:arch}
+%==============================================================================
+
+Figure~\ref{fig:pipeline} summarizes the processing flow. A scenario---a video
+clip plus a pedagogical context---feeds emotional perception. Face and voice
+estimates are fused, a decision module selects intervention timing and content
+type, an LLM generates text (optionally with RAG), and results are delivered
+through a React interface with PDF export and a SQLite decision journal.
+
+\begin{figure}[!t]
+\centering
+\fbox{\parbox{0.92\columnwidth}{\centering\small
+\textbf{Scenario} (video clip + pedagogical context)\\[3pt]
+$\Big\downarrow$\\[3pt]
+\textbf{Perception:} FER (face) + SER (voice)\\
+$\rightarrow$ weighted fusion $60\%/40\%$ + conflict handling\\[3pt]
+$\Big\downarrow$\\[3pt]
+\textbf{Decision:} trigger? content type A/B/C/D + template A1--D5\\
++ temporal rules over clip sequences\\[3pt]
+$\Big\downarrow$\\[3pt]
+\textbf{Generation:} LLM (Llama~3.1 via Groq) + RAG (ChromaDB)\\[3pt]
+$\Big\downarrow$\\[3pt]
+\textbf{Delivery:} React UI / PDF export / SQLite journal
+}}
+\caption{End-to-end EmoLearn pipeline. Both the product path and the offline
+testbed share the same fusion engine.}
+\label{fig:pipeline}
+\end{figure}
+
+\subsection{Two Pipelines, One Fusion Engine}
+EmoLearn maintains two pipelines that must not be conflated:
+
+\begin{itemize}
+\item \textbf{Product pipeline.} Serves interactive adaptation: FastAPI backend,
+React frontend, content generation for a pedagogical scenario. Face signals may
+originate from \textsc{DAiSEE}-style engagement clips; voice may be paired by
+engagement state from \textsc{IEMOCAP}.
+\item \textbf{Testbed pipeline.} Offline validation of multimodal fusion on
+\textsc{IEMOCAP} segments where face and voice belong to the \emph{same speaker}
+and are temporally aligned. This path is not required for the live UI demo; it
+exists to evaluate the fusion module under scientifically defensible pairing.
+\end{itemize}
+
+Both pipelines call the same fusion implementation. What is measured on the
+testbed is therefore the same decision logic used in the product path.
+
+\subsection{Role of Corpora}
+\textsc{DAiSEE} is the project's conceptual backbone: all pedagogical decisions
+are expressed in its four-state space (Boredom, Confusion, Engagement,
+Frustration) with intensity levels $0$--$3$. \textsc{IEMOCAP} supplies the
+vocal modality and the aligned audiovisual validation subset. Mapping from
+IEMOCAP emotion categories to \textsc{DAiSEE} states is a documented theoretical
+hypothesis (e.g., anger\,$\rightarrow$\,Frustration), not an empirically settled
+equivalence---a point revisited in the sensitivity analysis.
+
+\subsection{Technology Stack}
+The backend uses Python~3.11, FastAPI, and SQLite. Machine-learning components
+rely on OpenCV, librosa, scikit-learn~\cite{pedregosa2011scikit}, PyTorch, and
+Hugging Face Transformers (Vision Transformer for FER; wav2vec2 for SER). The
+vector store is ChromaDB with multilingual sentence embeddings. The frontend is
+React. Automated tests (pytest) cover API endpoints, fusion, SER, temporal
+rules, and RAG wiring.
+
+%==============================================================================
+\section{Methods}
+\label{sec:methods}
+%==============================================================================
+
+\subsection{Facial Emotion Recognition (FER)}
+\label{sec:fer}
+
+For each video clip, faces are detected with MediaPipe BlazeFace (short-range,
+full-range, then mirrored fallback). Five frames are sampled across the clip duration. Each frame is
+classified by a pretrained Vision Transformer
+(\texttt{dima806/facial\_emotions\_image\_detection}) into seven emotion classes
+(angry, disgust, fear, happy, neutral, sad, surprise). Frame-level probability
+vectors are aggregated by multi-frame voting (mean over valid detections).
+
+Mapping seven FER scores to four \textsc{DAiSEE} states is non-trivial. We
+compare:
+\begin{itemize}
+\item \textbf{Heuristic mapping:} a fixed correspondence table from emotion
+masses to engagement states;
+\item \textbf{Learned mapping:} a Random Forest trained on FER score vectors
+labeled with \textsc{DAiSEE} states, with hyperparameters
+(\texttt{n\_estimators}, \texttt{max\_depth}) selected by GridSearchCV and
+stratified cross-validation.
+\end{itemize}
+The learned classifier is retained for production based on the evaluation in
+Section~\ref{sec:results}.
+
+\subsection{Speech Emotion Recognition (SER)}
+\label{sec:ser}
+
+Two SER methods are implemented.
+
+\paragraph{Heuristic acoustic baseline.}
+Librosa extracts RMS energy, zero-crossing rate, spectral centroid, and pitch
+(\texttt{pyin}). Threshold rules estimate valence--activation--dominance (VAD)
+dimensions, which are then projected to \textsc{DAiSEE} states.
+
+\paragraph{Learned wav2vec2 model (default).}
+We fine-tune \texttt{superb/wav2vec2-base-superb-er}~\cite{baevski2020wav2vec2}:
+the backbone is frozen and only the classification head (optionally the top
+layers) is trained for four \textsc{DAiSEE} classes. Training uses a custom
+PyTorch \texttt{DataLoader} with oversampling of rare classes---especially
+Confusion, which is absent from the original emotion head. Real IEMOCAP
+waveforms provide $100\%$ audio coverage for this modality.
+
+\subsection{Multimodal Fusion}
+\label{sec:fusion}
+
+Let $p_f$ and $p_v$ denote face and voice probability distributions over the
+four \textsc{DAiSEE} states, and let $w_f{+}w_v{=}1$ be fusion weights. The
+default linear combination is
+\begin{equation}
+p = w_f\, p_f + w_v\, p_v,
+\qquad w_f{=}0.6,\; w_v{=}0.4.
+\label{eq:fusion}
+\end{equation}
+Predicted state is $\hat{y}=\arg\max p$ for the weighted-vote variant.
+
+Conflict detection compares unimodal predicted states and confidence levels,
+assigning agreement categories from perfect/partial agreement to
+minor/moderate/major conflict. Two configurable resolution strategies are
+available:
+\begin{itemize}
+\item \textbf{Pedagogical priority:} select the more urgent state according to
+Frustration $>$ Confusion $>$ Boredom $>$ Engagement;
+\item \textbf{Max confidence:} select the modality with higher confidence;
+\item \textbf{Weighted vote:} use~\eqref{eq:fusion} over full distributions
+(generally best for global accuracy).
+\end{itemize}
+
+\subsection{Temporal Triggering Rules}
+Adaptation is not fired on every clip. A rule engine inspects consecutive-clip
+history and triggers:
+\begin{itemize}
+\item \textbf{Immediate} intervention on a single critical clip;
+\item \textbf{Fast} intervention after $2$--$3$ consecutive degraded states;
+\item \textbf{Deferred} intervention when a stable non-critical pattern
+persists over $4$--$5$ clips.
+\end{itemize}
+This temporal smoothing reduces pedagogical noise from isolated false alarms
+while remaining responsive to sustained distress.
+
+\subsection{Pedagogical Decision Engine}
+Given the fused state scores and intensity pattern, the engine selects a
+content \emph{type} and then one of $20$ prompt templates:
+\begin{itemize}
+\item \textbf{A} --- explanation (templates A1--A5);
+\item \textbf{B} --- worked example (B1--B5);
+\item \textbf{C} --- practice exercise (C1--C5);
+\item \textbf{D} --- encouragement / motivational support (D1--D5).
+\end{itemize}
+Combinations are allowed when mixed signals suggest both cognitive and
+affective support. Template choice depends on intensity and detected pattern
+(e.g., rising frustration vs.\ prolonged boredom).
+
+\subsection{LLM Generation with RAG}
+The selected template is filled with pedagogical context, emotional state
+summary, and form constraints (length, tone, structure). Optional RAG retrieves
+passages from a vectorized pedagogical knowledge base (ChromaDB, HNSW index,
+cosine similarity) using
+\texttt{paraphrase-multilingual-MiniLM-L12-v2} embeddings. Generation uses
+Llama~3.1~8B Instant via the Groq API (temperature $0.3$) with retry/backoff on
+rate-limit errors~\cite{touvron2023llama,lewis2020retrieval}.
+
+Figure~\ref{fig:steps} summarizes the online decision path as an ordered
+procedure used by the product API.
+
+\begin{figure}[!t]
+\centering
+\fbox{\parbox{0.92\columnwidth}{\raggedright\small
+\textbf{Online adaptation step}\\[4pt]
+1.\ Input clip $c$, pedagogical context $K$, history $H$.\\
+2.\ $p_f \leftarrow$ FER($c$) --- multi-frame ViT + Random Forest map.\\
+3.\ $p_v \leftarrow$ SER($c$) --- wav2vec2 (default) or heuristic.\\
+4.\ $p \leftarrow$ Fuse($p_f,p_v$) with $w_f{=}0.6$.\\
+5.\ $s \leftarrow$ ResolveConflicts($p_f,p_v,p$).\\
+6.\ If ShouldTrigger($s,H$): select type/template $(T,\tau)$;\\
+\phantom{6.\ }optional RAG retrieve $R$; generate $y=$ LLM$(\tau,K,s,R)$;\\
+\phantom{6.\ }log decision to SQLite; return $y$.\\
+7.\ Else: update $H$; return no intervention.
+}}
+\caption{Online adaptation control flow shared by the product pipeline.}
+\label{fig:steps}
+\end{figure}
+
+\subsection{Illustrative Scenario}
+Consider a short lesson segment on a difficult concept. Clip~1 yields mild
+Confusion from face and near-neutral voice; fusion remains below the immediate
+trigger. Clip~2 shows rising Confusion facially and low activation vocally; the
+temporal engine enters the ``fast'' regime. Clip~3 confirms Frustration at
+higher intensity. The decision module selects content type~A (explanation) with
+a template emphasizing stepwise reformulation, retrieves a relevant definition
+snippet via RAG, and asks the LLM for a short, calm re-explanation plus a
+checkpoint question. The React UI displays the generated text; the journal
+stores modalities, fused state, template id, and latency for later audit.
+
+This walkthrough highlights three design intents: (i)~avoid intervening on
+every noisy frame; (ii)~escalate support as urgency accumulates; (iii)~keep
+human-inspectable traces of why a particular adaptation was produced.
+
+%==============================================================================
+\section{Implementation Notes}
+\label{sec:impl}
+%==============================================================================
+
+The research prototype is organized as a modular Python backend and a React
+frontend. Perception modules expose probability distributions rather than hard
+labels whenever possible, so that fusion can operate on calibrated masses
+instead of brittle one-hot decisions. Configuration files control fusion
+weights, conflict strategy, SER backend (heuristic vs.\ learned), and whether
+RAG is enabled---facilitating ablation without code changes.
+
+Persistence uses SQLite tables for sessions, per-clip predictions, fusion
+outcomes, selected templates, and generation metadata. This journal is essential
+both for debugging and for the thesis evaluation narrative: every reported
+number can be traced to a logged decision path. Automated tests (pytest) cover
+API contracts, fusion determinism for fixed inputs, temporal-rule edge cases,
+and RAG retrieval wiring.
+
+From a systems perspective, LLM calls are the dominant latency and failure
+source. Temperature is kept low ($0.3$) to stabilize pedagogical tone; retries
+with exponential backoff absorb transient rate limits. Because the prototype is
+simulation-oriented, throughput is secondary to reproducibility: seeds and
+corpus indices are fixed for the reported testbed experiments.
+
+%==============================================================================
+\section{Experimental Protocol}
+\label{sec:exp}
+%==============================================================================
+
+\subsection{Datasets}
+\paragraph{DAiSEE.}
+Student engagement videos with four states and levels $0$--$3$. Used to train
+and test the FER\,$\rightarrow$\,\textsc{DAiSEE} classifier and as the
+engagement ontology for decisions.
+
+\paragraph{IEMOCAP.}
+Conversational emotional speech (and video) with categorical and VAD labels.
+Used for SER training/evaluation and for building an aligned audiovisual
+subset in which face and voice come from the same speaker.
+
+\paragraph{Mapping hypothesis.}
+IEMOCAP categories are projected to \textsc{DAiSEE} states via a fixed table
+(e.g., anger\,$\rightarrow$\,Frustration, sadness\,$\rightarrow$\,Boredom by
+default). Because this mapping is theoretical, we quantify sensitivity to
+plausible alternative interpretations on all $10{,}039$ IEMOCAP utterances.
+
+\subsection{Evaluation Settings}
+\begin{itemize}
+\item \textbf{FER\,$\rightarrow$\,DAiSEE:} $1{,}200$ real \textsc{DAiSEE}
+samples; held-out test $n{=}300$. Metrics: accuracy and macro-F1 (critical
+under class imbalance; Engagement $\approx 75\%$).
+\item \textbf{SER fine-tuning:} $600$ IEMOCAP segments balanced across four
+states ($\sim\!150$ each); internal validation $n{=}120$; few epochs on CPU.
+In-deployment SER quality is primarily judged on the fusion testbed.
+\item \textbf{Fusion testbed:} $n{=}80$ aligned segments ($20$ per
+\textsc{DAiSEE} state). Metrics: accuracy and \textbf{urgent-state recall}
+(Confusion~+~Frustration), reflecting pedagogical safety.
+\item \textbf{Fusion weight sweep:} face weight from $0.5$ to $0.9$ on the
+same $n{=}80$ set.
+\end{itemize}
+
+\subsection{Baselines and Variants}
+Unimodal baselines include single-frame FER, multi-frame FER voting, heuristic
+SER, and learned SER. Fusion variants include pedagogical priority and weighted
+vote. The heuristic FER mapping serves as a weak baseline for the Random Forest.
+
+\subsection{Why These Metrics}
+Engagement datasets are often imbalanced; accuracy can look strong while minority
+critical states are ignored. Macro-F1 therefore accompanies accuracy for FER
+mapping. For fusion, we additionally report \emph{urgent-state recall} because a
+tutor that misses Confusion/Frustration is pedagogically riskier than one that
+occasionally over-helps an already engaged learner. This metric choice is a
+normative stance made explicit for reviewers: educational cost asymmetry should
+shape evaluation.
+
+\subsection{Threats to Validity}
+Internal validity is supported by aligned speaker-synchronous testbed clips and
+fixed splits. External validity is limited: corpus affect is not identical to
+live classroom affect, and IEMOCAP conversational emotion differs from silent
+video-watching engagement in \textsc{DAiSEE}. Construct validity of the
+emotion-to-engagement map is the largest conceptual threat; we therefore
+quantify sensitivity rather than claiming the map is unique or optimal.
+
+%==============================================================================
+\section{Results}
+\label{sec:results}
+%==============================================================================
+
+\subsection{FER to DAiSEE Mapping}
+Table~\ref{tab:fer} shows that the learned Random Forest dramatically
+outperforms the heuristic mapping ($+0.530$ accuracy, $+0.123$ macro-F1).
+Macro-F1 remains modest, consistent with strong class imbalance: accuracy alone
+could reward majority-class prediction, so both metrics are reported. The
+learned model is selected for production.
+
+\begin{table}[!t]
+\caption{FER\,$\rightarrow$\,\textsc{DAiSEE} classifier (test $n{=}300$).}
+\label{tab:fer}
+\centering
+\begin{tabular}{@{}lcc@{}}
+\toprule
+\textbf{Approach} & \textbf{Accuracy} & \textbf{Macro-F1} \\
+\midrule
+Heuristic mapping (baseline) & $0.193$ & $0.141$ \\
+Random Forest (GridSearchCV) & $\mathbf{0.723}$ & $\mathbf{0.264}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{SER Fine-Tuning Trajectory}
+Table~\ref{tab:ser} reports early training progress under constrained compute.
+Accuracy and macro-F1 improve from epoch~1 to epoch~2. These figures characterize
+optimization progress; absolute SER performance in the fused setting appears in
+Table~\ref{tab:fusion}.
+
+\begin{table}[!t]
+\caption{wav2vec2 classification-head fine-tuning (validation $n{=}120$).}
+\label{tab:ser}
+\centering
+\begin{tabular}{@{}ccc@{}}
+\toprule
+\textbf{Epoch} & \textbf{Accuracy} & \textbf{Macro-F1} \\
+\midrule
+1 & $0.275$ & $0.279$ \\
+2 & $0.300$ & $\mathbf{0.309}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Aligned Audiovisual Fusion}
+Table~\ref{tab:fusion} compares modalities and fusion strategies on the
+aligned testbed. Multi-frame FER improves over single-frame FER ($0.412$ vs.\
+$0.375$). Learned SER reaches $0.487$ accuracy---nearly double the heuristic
+SER ($0.263$, gain $+0.224$). Weighted-vote fusion achieves the best global
+accuracy ($0.500$), exceeding both unimodal systems. Pedagogical priority yields
+lower accuracy ($0.338$) but the highest urgent-state recall ($0.400$),
+illustrating a deliberate accuracy--safety trade-off.
+
+\begin{table}[!t]
+\caption{Aligned audiovisual fusion testbed ($n{=}80$; $20$ segments per state).}
+\label{tab:fusion}
+\centering
+\begin{tabular}{@{}lcc@{}}
+\toprule
+\textbf{Modality / approach} & \textbf{Acc.} & \textbf{Urgent recall} \\
+\midrule
+Face --- FER 1 frame & $0.375$ & $0.250$ \\
+Face --- FER multi-frame vote & $0.412$ & $0.275$ \\
+Voice --- SER heuristic & $0.263$ & $0.225$ \\
+Voice --- SER wav2vec2 (learned) & $0.487$ & $0.200$ \\
+Fusion --- pedagogical priority & $0.338$ & $\mathbf{0.400}$ \\
+Fusion --- weighted vote & $\mathbf{0.500}$ & $0.125$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Sensitivity to Fusion Weights}
+Table~\ref{tab:weights} varies the face weight. Accuracy peaks at
+$0.7/0.3$ ($0.338$ under the configuration used for this sweep), while urgent
+recall peaks at the default $0.6/0.4$ ($0.425$). We retain $0.6/0.4$ because
+urgent-state detection is the pedagogical priority of the system.
+
+\begin{table}[!t]
+\caption{Fusion weight sensitivity (aligned set, $n{=}80$).}
+\label{tab:weights}
+\centering
+\begin{tabular}{@{}lcc@{}}
+\toprule
+\textbf{Face / voice weights} & \textbf{Acc.} & \textbf{Urgent recall} \\
+\midrule
+$0.5$ / $0.5$ & $0.287$ & $0.375$ \\
+$\mathbf{0.6}$ / $\mathbf{0.4}$ (default) & $0.300$ & $\mathbf{0.425}$ \\
+$0.7$ / $0.3$ & $\mathbf{0.338}$ & $0.400$ \\
+$0.8$ / $0.2$ & $0.325$ & $0.350$ \\
+$0.9$ / $0.1$ & $0.325$ & $0.350$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Sensitivity of IEMOCAP\,$\rightarrow$\,DAiSEE Mapping}
+Table~\ref{tab:mapping} measures how alternative plausible remappings change
+labels across the full IEMOCAP corpus. Reinterpreting neutral as Engagement
+instead of Boredom alters $17.0\%$ of states; remapping sadness to Frustration
+instead of Boredom alters $10.8\%$. Surprise and disgust reinterpretations have
+minor or null impact. These results localize where expert validation of the
+mapping would matter most.
+
+\begin{table}[!t]
+\caption{Mapping sensitivity on full IEMOCAP ($10{,}039$ utterances).}
+\label{tab:mapping}
+\centering
+\begin{tabular}{@{}lc@{}}
+\toprule
+\textbf{Alternative mapping} & \textbf{\% states changed} \\
+\midrule
+neutral $\rightarrow$ Engagement (vs.\ Boredom) & $17.0\%$ \\
+sadness $\rightarrow$ Frustration (vs.\ Boredom) & $10.8\%$ \\
+surprise $\rightarrow$ Engagement (vs.\ Confusion) & $1.1\%$ \\
+disgust $\rightarrow$ Boredom (vs.\ Frustration) & $0.0\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Summary of Empirical Findings}
+\begin{enumerate}
+\item Learned unimodal components substantially beat heuristics for both face
+mapping and speech classification.
+\item Multimodal weighted vote can outperform the best single modality on
+aligned data.
+\item Pedagogical priority and weighted vote optimize different objectives;
+deployment should choose based on whether false misses of confusion/frustration
+are more costly than overall accuracy.
+\item Mapping assumptions are consequential and should be treated as first-class
+uncertainty, not as invisible preprocessing.
+\end{enumerate}
+
+%==============================================================================
+\section{Discussion and Limitations}
+\label{sec:discussion}
+%==============================================================================
+
+EmoLearn deliberately exposes tensions that shorter ``demo papers'' often hide.
+
+\paragraph{Fusion versus unimodal performance.}
+On the aligned testbed, weighted vote improves accuracy over unimodal baselines,
+resolving the question of whether fusion helps---at least under synchronized
+pairing. The gain is real but modest in absolute terms ($0.500$), consistent
+with a constrained $n{=}80$ evaluation set and the difficulty of four-way
+engagement classification.
+
+\paragraph{Emotion-to-engagement mapping.}
+Projecting conversational emotions onto learning engagement remains a
+hypothesis. The sensitivity study shows that neutral and sadness interpretations
+can shift a large fraction of labels. Expert pedagogical review should
+prioritize these two categories.
+
+\paragraph{Adaptive system versus simulation.}
+The prototype does not perform live webcam/microphone capture in a real MOOC.
+Claims are therefore about pipeline feasibility and component quality under
+corpus conditions, not about field efficacy.
+
+\paragraph{Heterogeneous pairing in the product path.}
+When the product pipeline pairs a \textsc{DAiSEE} face clip with an
+\textsc{IEMOCAP} voice sample by state rather than by speaker identity, modality
+synchrony is weaker. The aligned testbed mitigates this for fusion science; the
+limitation remains for the interactive demo.
+
+\paragraph{Templates and LLM content quality.}
+The twenty templates are an argued design proposal with an evaluation protocol
+ready for expert review, but they are not yet validated by instructional
+designers. LLM output quality can be measured for form (structure, length,
+tone); substantive pedagogical correctness still requires human validation.
+
+\paragraph{Breadth versus depth.}
+The central contribution is an honest end-to-end architecture with measured
+trade-offs, rather than a single state-of-the-art unimodal score. Depth was
+invested in fusion evaluation and sensitivity analyses; live deployment and
+learning-outcome studies are left to future work.
+
+Table~\ref{tab:limits} consolidates these points.
+
+\begin{table}[!t]
+\caption{Assumed tensions and current status.}
+\label{tab:limits}
+\centering
+\begin{tabular}{@{}p{0.28\columnwidth}p{0.62\columnwidth}@{}}
+\toprule
+\textbf{Tension} & \textbf{Status} \\
+\midrule
+Fusion vs.\ unimodal & Measured compromise (acc.\ vs.\ urgent recall) \\
+Emotion-to-engagement map & Hypothesis + sensitivity analysis \\
+Adaptive vs.\ simulation & Scoped as prototype (no live capture) \\
+Heterogeneous face/voice pairing & Documented; mitigated via aligned subset \\
+20 templates & Argued design; expert protocol pending \\
+LLM content quality & Form measurable; substance needs humans \\
+Breadth vs.\ depth & End-to-end architecture + honest evaluation \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Ethical and Practical Considerations}
+Affective sensing in education raises privacy and consent issues. Even as a
+corpus-based prototype, EmoLearn is designed so that decision logs remain
+inspectable (SQLite journal), supporting auditability. Any future live
+deployment would require explicit consent, data minimization, on-device
+processing where feasible, and the option for learners to disable sensing while
+retaining non-affective tutoring. Transparency also matters: learners and
+instructors should be able to understand, at least at a high level, why an
+adaptation was triggered (state, modality agreement, template family).
+
+\subsection{Implications for Adaptive Learning Systems}
+The results suggest that multimodal fusion should be configured for the
+\emph{loss function of teaching}, not only for classification accuracy. A tutor
+that slightly over-triggers on confusion may be preferable to one that
+optimizes accuracy while missing frustration. Separating product demonstration
+from aligned scientific validation is also a methodological recommendation for
+similar multimodal education systems.
+
+More broadly, generative tutors without perception risk producing unsolicited
+or poorly timed help; perception modules without generation risk stopping at
+dashboards that instructors never have time to act upon. EmoLearn argues for
+closing the loop, while keeping humans responsible for validating pedagogical
+substance.
+
+\subsection{Reproducibility}
+Reported fusion numbers correspond to a fixed aligned subset construction
+procedure and shared fusion code path. Unimodal training recipes (GridSearchCV
+for the Random Forest; frozen-backbone wav2vec2 head training with
+oversampling) are documented in the project repository accompanying the thesis.
+Because \textsc{DAiSEE} and \textsc{IEMOCAP} require academic agreements, raw
+media are not redistributed; scripts assume the standard corpus layouts under a
+local \texttt{data/} directory.
+
+%==============================================================================
+\section{Conclusion and Future Work}
+\label{sec:conclusion}
+%==============================================================================
+
+This paper introduced EmoLearn, a research prototype for adaptive pedagogical
+personalization driven by multimodal face--voice engagement estimation and
+LLM/RAG content generation. The system combines a product-facing pipeline with
+an offline aligned audiovisual testbed that share one fusion engine, enabling
+both demonstration and controlled measurement.
+
+On component benchmarks, learned FER and SER models substantially outperform
+heuristics: FER-to-\textsc{DAiSEE} accuracy rises from $0.193$ to $0.723$, and
+learned SER nearly doubles vocal accuracy relative to an acoustic baseline. On
+the aligned testbed ($n{=}80$), weighted-vote fusion reaches $0.500$
+accuracy---above either modality alone---while pedagogical priority maximizes
+urgent-state recall ($0.400$). Weight and mapping sensitivity analyses show
+that default parameters are not arbitrary: $0.6/0.4$ favors urgent recall, and
+neutral/sadness remappings can alter up to $17\%$ of projected states.
+
+Future work includes: (i)~expert validation of the twenty pedagogical
+templates; (ii)~synchronized live multimodal capture in authentic learning
+settings with informed consent; (iii)~rubric-based human evaluation of
+generated content substance; (iv)~controlled studies linking adaptation to
+learning outcomes (comprehension, persistence, dropout proxies), beyond
+classification metrics; (v)~stronger calibration and uncertainty-aware
+triggering to further reduce harmful false negatives on critical states; and
+(vi)~fairness analyses across demographic and recording-condition subgroups
+once live data collection is ethically approved.
+
+In summary, EmoLearn demonstrates a practical path toward affect-aware
+generative tutoring, provided that architectural integration is paired with
+explicit trade-offs, inspectable decisions, and an honest account of what a
+simulation prototype can---and cannot---claim.
+
+\section*{Acknowledgment}
+The authors thank the thesis supervisor and the providers of the \textsc{DAiSEE}
+and \textsc{IEMOCAP} corpora under academic agreements.
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+\balance
+
+\end{document}

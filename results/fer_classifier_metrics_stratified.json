@@ -1,0 +1,207 @@
+{
+  "mode": "fer_daisee_classifier",
+  "classifier": "rf",
+  "grid_search": true,
+  "best_params": {
+    "clf__max_depth": 4,
+    "clf__min_samples_leaf": 1,
+    "clf__n_estimators": 200
+  },
+  "cv_best_score": 0.312728841155903,
+  "n_samples": 1200,
+  "distribution_gt": {
+    "Boredom": 300,
+    "Confusion": 300,
+    "Engagement": 300,
+    "Frustration": 300
+  },
+  "oversample": {
+    "enabled": true,
+    "avant": {
+      "Engagement": 225,
+      "Confusion": 225,
+      "Frustration": 225,
+      "Boredom": 225
+    },
+    "ajoutes": {
+      "Engagement": 0,
+      "Confusion": 0,
+      "Frustration": 0,
+      "Boredom": 0
+    },
+    "apres": {
+      "Engagement": 225,
+      "Frustration": 225,
+      "Confusion": 225,
+      "Boredom": 225
+    },
+    "n_train_avant": 900,
+    "n_train_apres": 900
+  },
+  "baseline_heuristique_test": {
+    "accuracy": 0.2767,
+    "f1_macro": 0.2149,
+    "confusion_matrix": {
+      "labels": [
+        "Boredom",
+        "Confusion",
+        "Engagement",
+        "Frustration"
+      ],
+      "counts": [
+        [
+          59,
+          5,
+          8,
+          3
+        ],
+        [
+          54,
+          10,
+          7,
+          4
+        ],
+        [
+          61,
+          2,
+          11,
+          1
+        ],
+        [
+          58,
+          10,
+          4,
+          3
+        ]
+      ]
+    },
+    "report": {
+      "Boredom": {
+        "precision": 0.2543103448275862,
+        "recall": 0.7866666666666666,
+        "f1-score": 0.38436482084690554,
+        "support": 75.0
+      },
+      "Confusion": {
+        "precision": 0.37037037037037035,
+        "recall": 0.13333333333333333,
+        "f1-score": 0.19607843137254902,
+        "support": 75.0
+      },
+      "Engagement": {
+        "precision": 0.36666666666666664,
+        "recall": 0.14666666666666667,
+        "f1-score": 0.20952380952380953,
+        "support": 75.0
+      },
+      "Frustration": {
+        "precision": 0.2727272727272727,
+        "recall": 0.04,
+        "f1-score": 0.06976744186046512,
+        "support": 75.0
+      },
+      "accuracy": 0.27666666666666667,
+      "macro avg": {
+        "precision": 0.316018663647974,
+        "recall": 0.27666666666666667,
+        "f1-score": 0.21493362590093232,
+        "support": 300.0
+      },
+      "weighted avg": {
+        "precision": 0.316018663647974,
+        "recall": 0.27666666666666667,
+        "f1-score": 0.21493362590093232,
+        "support": 300.0
+      }
+    }
+  },
+  "learned_test": {
+    "accuracy": 0.28,
+    "f1_macro": 0.2748,
+    "confusion_matrix": {
+      "labels": [
+        "Boredom",
+        "Confusion",
+        "Engagement",
+        "Frustration"
+      ],
+      "counts": [
+        [
+          15,
+          23,
+          24,
+          13
+        ],
+        [
+          13,
+          31,
+          10,
+          21
+        ],
+        [
+          24,
+          16,
+          23,
+          12
+        ],
+        [
+          13,
+          36,
+          11,
+          15
+        ]
+      ]
+    },
+    "report": {
+      "Boredom": {
+        "precision": 0.23076923076923078,
+        "recall": 0.2,
+        "f1-score": 0.21428571428571427,
+        "support": 75.0
+      },
+      "Confusion": {
+        "precision": 0.29245283018867924,
+        "recall": 0.41333333333333333,
+        "f1-score": 0.3425414364640884,
+        "support": 75.0
+      },
+      "Engagement": {
+        "precision": 0.3382352941176471,
+        "recall": 0.30666666666666664,
+        "f1-score": 0.32167832167832167,
+        "support": 75.0
+      },
+      "Frustration": {
+        "precision": 0.2459016393442623,
+        "recall": 0.2,
+        "f1-score": 0.22058823529411764,
+        "support": 75.0
+      },
+      "accuracy": 0.28,
+      "macro avg": {
+        "precision": 0.27683974860495486,
+        "recall": 0.27999999999999997,
+        "f1-score": 0.2747734269305605,
+        "support": 300.0
+      },
+      "weighted avg": {
+        "precision": 0.27683974860495486,
+        "recall": 0.28,
+        "f1-score": 0.2747734269305605,
+        "support": 300.0
+      }
+    }
+  },
+  "gain_accuracy": 0.0033,
+  "gain_f1_macro": 0.0599,
+  "beats_baseline": true,
+  "recommandation": "learned",
+  "model_path": "models/fer_daisee_clf_stratified.joblib",
+  "timestamp": "2026-08-06T14:45:56.661091+00:00",
+  "note": "Algo = Random Forest (ou logreg). GridSearchCV sélectionne les hyperparamètres sur le train (CV stratifiée). Le backbone FER n'est pas fine-tuné. Options --stratified / --oversample réduisent le biais Engagement. beats_baseline exige un gain sur l'accuracy ET le f1_macro.",
+  "grid_scoring": "f1_macro",
+  "sample_arg": 1200,
+  "labels_split": "all",
+  "stratified": true,
+  "oversample_flag": true
+}

@@ -1,0 +1,105 @@
+<mxfile host="app.diagrams.net" modified="2026-08-08T21:00:00.000Z" agent="EmoLearn" version="22.1.0" type="device">
+  <diagram id="emolearn-arch" name="Architecture EmoLearn">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- Title -->
+        <mxCell id="title" value="EmoLearn — Architecture de bout en bout" style="text;html=1;align=center;verticalAlign=middle;fontSize=18;fontStyle=1;fontColor=#1a365d;" vertex="1" parent="1">
+          <mxGeometry x="260" y="20" width="520" height="30" as="geometry"/>
+        </mxCell>
+
+        <!-- INPUT -->
+        <mxCell id="input" value="Entrée&#xa;Clip vidéo (DAiSEE) + segment audio (IEMOCAP)&#xa;+ contexte pédagogique" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f7fafc;strokeColor=#4a5568;strokeWidth=2;fontSize=12;fontStyle=0;align=center;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="320" y="70" width="400" height="70" as="geometry"/>
+        </mxCell>
+
+        <!-- Layer Perception -->
+        <mxCell id="layer_perc" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ebf8ff;strokeColor=#2b6cb0;strokeWidth=1.5;opacity=40;container=0;" vertex="1" parent="1">
+          <mxGeometry x="80" y="170" width="880" height="200" as="geometry"/>
+        </mxCell>
+        <mxCell id="label_perc" value="PERCEPTION" style="text;html=1;align=left;verticalAlign=middle;fontSize=13;fontStyle=1;fontColor=#2b6cb0;rotation=-90;" vertex="1" parent="1">
+          <mxGeometry x="40" y="240" width="100" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="fer" value="Module FER&#xa;(visage)&#xa;ViT fine-tuné DAiSEE&#xa;Vote multi-frames&#xa;4 états" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2b6cb0;strokeWidth=2;fontSize=11;align=center;" vertex="1" parent="1">
+          <mxGeometry x="160" y="200" width="200" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="ser" value="Module SER&#xa;(voix)&#xa;wav2vec2 fine-tuné&#xa;DAiSEE (IEMOCAP)&#xa;4 états" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2b6cb0;strokeWidth=2;fontSize=11;align=center;" vertex="1" parent="1">
+          <mxGeometry x="680" y="200" width="200" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="fusion" value="Fusion multimodale&#xa;Soft : vote pondéré (60 % visage / 40 % voix)&#xa;Legacy : priorité pédagogique  ·  Gate de confiance" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#bee3f8;strokeColor=#2c5282;strokeWidth=2;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="330" y="310" width="380" height="70" as="geometry"/>
+        </mxCell>
+
+        <!-- Layer Décision -->
+        <mxCell id="layer_dec" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e6fffa;strokeColor=#2c7a7b;strokeWidth=1.5;opacity=40;" vertex="1" parent="1">
+          <mxGeometry x="80" y="400" width="880" height="130" as="geometry"/>
+        </mxCell>
+        <mxCell id="label_dec" value="DÉCISION" style="text;html=1;align=left;verticalAlign=middle;fontSize=13;fontStyle=1;fontColor=#2c7a7b;rotation=-90;" vertex="1" parent="1">
+          <mxGeometry x="40" y="450" width="100" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="temp" value="Règles temporelles&#xa;(déclenchement)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2c7a7b;strokeWidth=2;fontSize=11;align=center;" vertex="1" parent="1">
+          <mxGeometry x="220" y="430" width="200" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="decision" value="Moteur de décision&#xa;État → type de contenu&#xa;+ template (×20)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b2f5ea;strokeColor=#234e52;strokeWidth=2;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="520" y="430" width="220" height="70" as="geometry"/>
+        </mxCell>
+
+        <!-- Layer Génération -->
+        <mxCell id="layer_gen" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fffff0;strokeColor=#b7791f;strokeWidth=1.5;opacity=40;" vertex="1" parent="1">
+          <mxGeometry x="80" y="560" width="880" height="130" as="geometry"/>
+        </mxCell>
+        <mxCell id="label_gen" value="GÉNÉRATION" style="text;html=1;align=left;verticalAlign=middle;fontSize=13;fontStyle=1;fontColor=#b7791f;rotation=-90;" vertex="1" parent="1">
+          <mxGeometry x="30" y="610" width="120" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="rag" value="Module RAG&#xa;ChromaDB + embeddings&#xa;ancrage documentaire" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b7791f;strokeWidth=2;fontSize=11;align=center;" vertex="1" parent="1">
+          <mxGeometry x="220" y="590" width="220" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="llm" value="LLM (Groq / Llama)&#xa;Prompt structuré&#xa;+ contexte RAG" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fefcbf;strokeColor=#975a16;strokeWidth=2;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="520" y="590" width="220" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- OUTPUT -->
+        <mxCell id="output" value="Sortie&#xa;Contenu pédagogique adaptatif + journal de décision (traçabilité)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f7fafc;strokeColor=#4a5568;strokeWidth=2;fontSize=12;align=center;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="730" width="480" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- Edges -->
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#4a5568;endArrow=block;endFill=1;" edge="1" parent="1" source="input" target="fer">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#4a5568;endArrow=block;endFill=1;" edge="1" parent="1" source="input" target="ser">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#2b6cb0;endArrow=block;endFill=1;" edge="1" parent="1" source="fer" target="fusion">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#2b6cb0;endArrow=block;endFill=1;" edge="1" parent="1" source="ser" target="fusion">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#2c7a7b;endArrow=block;endFill=1;" edge="1" parent="1" source="fusion" target="temp">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#2c7a7b;endArrow=block;endFill=1;" edge="1" parent="1" source="fusion" target="decision">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#2c7a7b;endArrow=block;endFill=1;" edge="1" parent="1" source="temp" target="decision">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#b7791f;endArrow=block;endFill=1;" edge="1" parent="1" source="decision" target="llm">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#b7791f;endArrow=block;endFill=1;" edge="1" parent="1" source="rag" target="llm">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#4a5568;endArrow=block;endFill=1;" edge="1" parent="1" source="llm" target="output">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

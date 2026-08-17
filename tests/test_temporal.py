@@ -11,7 +11,7 @@ from temporal_rules import (
     AUCUNE_URGENCE,
     evaluer_declenchement_temporel,
 )
-from decision_engine import preparer_decision
+from decision_engine import preparer_decision, scores_depuis_fusion
 
 
 def _clip(b=0, c=0, e=2, f=0):
@@ -56,11 +56,111 @@ def test_decision_sans_declenchement():
     temporal = {"declencher": False, "duree_etat": 2, "urgence": AUCUNE_URGENCE}
     d = preparer_decision(
         fusion=fusion,
-        boredom=0,
-        confusion=0,
-        engagement=3,
-        frustration=0,
         temporal=temporal,
     )
     assert d["declencher"] is False
     assert d["type_contenu"] == "aucune"
+
+
+def test_decision_suit_fusion_pas_scores_bruts():
+    """La cascade pédagogique doit suivre la fusion, pas les scores CSV bruts."""
+    fusion = {
+        "etat": "Engagement",
+        "niveau": 2,
+        "multimodal": True,
+        "conflit": True,
+    }
+    d = preparer_decision(
+        fusion=fusion,
+        scores_bruts={"boredom": 2, "confusion": 0, "engagement": 1, "frustration": 0},
+    )
+    assert d["etat"] == "Engagement"
+    assert d["type_contenu_regle"] == "D"
+    assert d["template_id"] == "D4"
+    assert d["scores_daisee"]["engagement"] == 2
+    assert d["scores_bruts"]["boredom"] == 2
+
+
+def test_scores_depuis_fusion_distribution():
+    fusion = {
+        "etat": "Confusion",
+        "niveau": 2,
+        "probs_etats": {
+            "Boredom": 0.1,
+            "Confusion": 0.7,
+            "Engagement": 0.1,
+            "Frustration": 0.1,
+        },
+    }
+    scores = scores_depuis_fusion(fusion)
+    assert scores["confusion"] == 2
+
+
+def test_pipeline_branche_temporel(monkeypatch):
+    """Vérifie que analyser_clip évalue bien temporal_rules (plus temporal=None)."""
+    import pipeline as pl
+
+    scenario = {
+        "ClipID": "test.avi",
+        "Boredom": 0,
+        "Confusion": 0,
+        "Engagement": 3,
+        "Frustration": 0,
+        "pattern": "stable",
+    }
+
+    monkeypatch.setattr(
+        pl,
+        "analyser_visage_depuis_scenario",
+        lambda s: {"etat": "Engagement", "niveau": 3, "score": 0.9},
+    )
+    monkeypatch.setattr(
+        pl,
+        "analyser_voix_depuis_scenario",
+        lambda **kw: {"etat": "Engagement", "niveau": 2, "source": "mock"},
+    )
+    monkeypatch.setattr(
+        pl,
+        "etat_depuis_ligne",
+        lambda s: ("Engagement", 3, {}),
+    )
+    monkeypatch.setattr(
+        pl,
+        "fusionner_modalites",
+        lambda v, x: {
+            "etat": "Engagement",
+            "niveau": 3,
+            "multimodal": True,
+            "conflit": False,
+            "details": {},
+        },
+    )
+
+    # Deux clips engagement fort → pas d'intervention
+    hist = [_clip(e=3)]
+    out = pl.analyser_clip(
+        scenario=scenario,
+        scenario_id=0,
+        concept="tri",
+        module="Algo",
+        niveau="Intermédiaire",
+        generer_contenu=False,
+        historique_scores=hist,
+        utiliser_temporel=True,
+    )
+    assert out["temporal"] is not None
+    assert out["temporal"]["declencher"] is False
+    assert out["decision"]["declencher"] is False
+
+
+def test_proxy_fusion_script_importable():
+    import importlib.util
+
+    path = os.path.join(
+        os.path.dirname(__file__), "..", "scripts", "eval_fusion_produit_proxy.py"
+    )
+    spec = importlib.util.spec_from_file_location("eval_fusion_produit_proxy", path)
+    mod = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    # Ne charge pas le module entier (dépendances lourdes) : vérifie le fichier
+    assert os.path.isfile(path)

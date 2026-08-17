@@ -1,0 +1,48 @@
+{
+  "n": 80,
+  "note": "Fusion produit : le poids n'affecte que le NIVEAU, pas l'ÉTAT (insensible). Ce balayage évalue une variante VOTE PONDÉRÉ où le poids influence l'état.",
+  "grille": [
+    {
+      "poids_visage": 0.5,
+      "poids_voix": 0.5,
+      "accuracy": 0.287,
+      "rappel_urgents": 0.375
+    },
+    {
+      "poids_visage": 0.6,
+      "poids_voix": 0.4,
+      "accuracy": 0.3,
+      "rappel_urgents": 0.425
+    },
+    {
+      "poids_visage": 0.7,
+      "poids_voix": 0.3,
+      "accuracy": 0.338,
+      "rappel_urgents": 0.4
+    },
+    {
+      "poids_visage": 0.8,
+      "poids_voix": 0.2,
+      "accuracy": 0.325,
+      "rappel_urgents": 0.35
+    },
+    {
+      "poids_visage": 0.9,
+      "poids_voix": 0.1,
+      "accuracy": 0.325,
+      "rappel_urgents": 0.35
+    }
+  ],
+  "meilleur_accuracy": {
+    "poids_visage": 0.7,
+    "poids_voix": 0.3,
+    "accuracy": 0.338,
+    "rappel_urgents": 0.4
+  },
+  "meilleur_rappel_urgents": {
+    "poids_visage": 0.6,
+    "poids_voix": 0.4,
+    "accuracy": 0.3,
+    "rappel_urgents": 0.425
+  }
+}

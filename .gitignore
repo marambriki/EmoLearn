@@ -2,8 +2,59 @@
 venv/
 __pycache__/
 *.pyc
+*.pyo
+.pytest_cache/
+.ipynb_checkpoints/
 logs/
+*.log
+
+# Builds / caches frontend
+frontend/build/
+frontend/node_modules/
 
 # Datasets volumineux (à télécharger séparément — voir docs/)
 data/DAiSEE/DataSet/
 data/IEMOCAP_full_release/
+data/archive/
+data/*_backup.csv
+
+# Modèles entraînés localement (poids lourds)
+models/ser_wav2vec2_daisee/
+models/**/*.bin
+models/**/*.safetensors
+models/**/*.pt
+
+# Base SQLite locale
+backend/emolearn.db
+*.db
+
+# Artefacts LaTeX (garder .tex / .bib / figures / PDF final)
+rapport/**/*.aux
+rapport/**/*.log
+rapport/**/*.out
+rapport/**/*.toc
+rapport/**/*.lof
+rapport/**/*.lot
+rapport/**/*.bbl
+rapport/**/*.blg
+rapport/**/*.bcf
+rapport/**/*.run.xml
+rapport/**/*.synctex.gz
+rapport/**/*.maf
+rapport/**/*.mtc*
+rapport/overleaf_*.tex
+rapport/overleaf_*.pdf
+
+# Archives / livrables générés
+*.zip
+Livrable/
+livrable_encadrante/
+.gitignore.save
+
+models/fer_vit_daisee/
+results/fer_faces_cache/
+results/fer_faces_cache_large/
+results/fer_features_cache*.csv
+models/mediapipe/*.tflite
+models/mediapipe/*.task
+_pdf_extract/

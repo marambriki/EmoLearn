@@ -3,8 +3,72 @@
 # Source unique : fusion multimodale + règles DAiSEE → stratégie + template
 # ============================================
 
-from adaptation import selectionner_strategie, get_description_strategie
+from daisee_utils import pattern_depuis_scores
 from prompts.templates import get_meta_template
+
+ETAT_VERS_CLE = {
+    "Boredom": "boredom",
+    "Confusion": "confusion",
+    "Engagement": "engagement",
+    "Frustration": "frustration",
+}
+
+
+def scores_depuis_fusion(fusion):
+    """
+    Dérive les 4 scores DAiSEE à partir de l'état fusionné.
+
+    Si la fusion expose une distribution ``probs_etats`` (vote pondéré),
+    chaque probabilité est projetée sur l'échelle 0–3. Sinon, l'état retenu
+    reçoit le niveau fusionné et les autres dimensions valent 0.
+    """
+    probs = fusion.get("probs_etats")
+    if probs:
+        return {
+            "boredom": int(round(float(probs.get("Boredom", 0)) * 3)),
+            "confusion": int(round(float(probs.get("Confusion", 0)) * 3)),
+            "engagement": int(round(float(probs.get("Engagement", 0)) * 3)),
+            "frustration": int(round(float(probs.get("Frustration", 0)) * 3)),
+        }
+
+    etat = fusion["etat"]
+    niveau = int(fusion["niveau"])
+    scores = {cle: 0 for cle in ETAT_VERS_CLE.values()}
+    scores[ETAT_VERS_CLE[etat]] = niveau
+    return scores
+
+
+def selectionner_strategie(boredom, confusion, engagement, frustration):
+    if confusion >= 3 and frustration >= 2:
+        return ("confusion+frustration", 3, "Aide de déblocage immédiate", "A+D")
+    if engagement == 0:
+        return ("engagement", 0, "Réengagement urgent", "B")
+    if frustration >= 2:
+        return ("frustration", frustration, "Encouragement + simplification", "D+A")
+    if confusion >= 2:
+        return ("confusion", confusion, "Explication alternative", "A")
+    if boredom >= 2:
+        return ("boredom", boredom, "Exercice avancé", "C")
+    if engagement <= 1:
+        return ("engagement", engagement, "Exemple concret stimulant", "B")
+    if boredom == 1:
+        return ("boredom", boredom, "Application pratique", "B")
+    if engagement >= 2:
+        return ("engagement", engagement, "Renforcement positif", "D")
+    return ("neutre", 0, "Continuation normale", "aucune")
+
+
+def get_description_strategie(type_contenu):
+    descriptions = {
+        "A": "Explication alternative — Reformulation du concept",
+        "B": "Exemple concret — Cas pratique et application réelle",
+        "C": "Exercice progressif — Challenge adapté au niveau",
+        "D": "Encouragement motivationnel — Support émotionnel",
+        "A+D": "Aide de déblocage — Explication + Encouragement",
+        "D+A": "Soutien guidé — Encouragement + Simplification",
+        "aucune": "Pas d'adaptation nécessaire",
+    }
+    return descriptions.get(type_contenu, "Type inconnu")
 
 
 DESCRIPTIONS_TEMPLATE = {
@@ -79,22 +143,25 @@ def selectionner_template_id(
 
 def preparer_decision(
     fusion,
-    boredom,
-    confusion,
-    engagement,
-    frustration,
-    pattern="stable",
     duree_etat=2,
     temporal=None,
+    scores_bruts=None,
 ):
     """
-    Construit la décision pédagogique complète à partir de la fusion et des scores DAiSEE.
+    Construit la décision pédagogique à partir de l'état fusionné.
 
-    Returns:
-        dict avec etat, niveau, strategie, type_contenu, template_id, objectif, description, meta
+    La cascade A/B/C/D et le choix de template s'appuient sur les scores
+    dérivés de la fusion (aligné chapitre 4 du mémoire), pas sur les
+    annotations DAiSEE brutes du scénario.
     """
     etat = fusion["etat"]
     niveau = int(fusion["niveau"])
+    scores = scores_depuis_fusion(fusion)
+    boredom = scores["boredom"]
+    confusion = scores["confusion"]
+    engagement = scores["engagement"]
+    frustration = scores["frustration"]
+    pattern = pattern_depuis_scores(boredom, confusion, engagement, frustration)
 
     declencher = True
     if temporal is not None:
@@ -125,12 +192,9 @@ def preparer_decision(
             "duree_etat": duree_etat,
             "declencher": False,
             "temporal": temporal,
-            "scores_daisee": {
-                "boredom": boredom,
-                "confusion": confusion,
-                "engagement": engagement,
-                "frustration": frustration,
-            },
+            "scores_daisee": scores,
+            "scores_bruts": scores_bruts,
+            "pattern": pattern,
             "fusion": {
                 "multimodal": fusion.get("multimodal", False),
                 "conflit": fusion.get("conflit", False),
@@ -171,12 +235,9 @@ def preparer_decision(
         "duree_etat": duree_etat,
         "declencher": declencher,
         "temporal": temporal,
-        "scores_daisee": {
-            "boredom": boredom,
-            "confusion": confusion,
-            "engagement": engagement,
-            "frustration": frustration,
-        },
+        "scores_daisee": scores,
+        "scores_bruts": scores_bruts,
+        "pattern": pattern,
         "fusion": {
             "multimodal": fusion.get("multimodal", False),
             "conflit": fusion.get("conflit", False),

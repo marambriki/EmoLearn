@@ -29,7 +29,7 @@ BACKEND = os.path.join(ROOT, "backend")
 sys.path.insert(0, BACKEND)
 
 from daisee_utils import charger_labels_daisee, etat_depuis_ligne, normaliser_clip_id
-from fer_mapping import mapping_fer_daisee
+from fer_classifier import mapping_fer_daisee
 
 RESULTS_DIR = os.path.join(ROOT, "results")
 ETATS = ["Boredom", "Confusion", "Engagement", "Frustration"]
@@ -143,7 +143,7 @@ def _trouver_frame(frames_root: str, clip_id: str) -> str | None:
 
 def cmd_fer_evaluation(frames_root: str, sample: int, seed: int, labels_split: str):
     """Compare prédictions FER+mapping vs état dominant DAiSEE."""
-    from fer_module import analyser_visage
+    from fer_offline import analyser_visage
 
     if not os.path.isdir(frames_root):
         raise FileNotFoundError(f"Dossier introuvable: {frames_root}")
@@ -207,7 +207,7 @@ def cmd_fer_evaluation(frames_root: str, sample: int, seed: int, labels_split: s
 def cmd_scenarios_benchmark():
     """Évalue la cohérence décision sur les 50 scénarios (fusion + templates)."""
     from fusion_module import fusionner_modalites
-    from fer_module import analyser_visage_depuis_scenario  # noqa: F401 — charge FER lazy
+    from fer_module import analyser_visage_depuis_scenario
     from ser_module import analyser_voix_depuis_scenario
     from decision_engine import preparer_decision
 
@@ -220,14 +220,7 @@ def cmd_scenarios_benchmark():
         visage = analyser_visage_depuis_scenario(scenario)
         voix = analyser_voix_depuis_scenario(scenario_id=i)
         fusion = fusionner_modalites(visage, voix)
-        decision = preparer_decision(
-            fusion=fusion,
-            boredom=int(scenario["Boredom"]),
-            confusion=int(scenario["Confusion"]),
-            engagement=int(scenario["Engagement"]),
-            frustration=int(scenario["Frustration"]),
-            pattern=str(scenario.get("pattern", "stable")),
-        )
+        decision = preparer_decision(fusion=fusion)
         rows_out.append(
             {
                 "scenario_id": i,

@@ -1,0 +1,94 @@
+{
+  "mode": "fer_vit_finetune",
+  "base_model": "dima806/facial_emotions_image_detection",
+  "unfreeze_layers": 2,
+  "epochs": 3,
+  "sample": 800,
+  "n_train": 600,
+  "n_test": 200,
+  "distribution_train": {
+    "Engagement": 150,
+    "Frustration": 150,
+    "Confusion": 150,
+    "Boredom": 150
+  },
+  "distribution_test": {
+    "Engagement": 50,
+    "Confusion": 50,
+    "Frustration": 50,
+    "Boredom": 50
+  },
+  "trainable_params": 14180356,
+  "total_params": 85801732,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 1.3595,
+      "loss": 1.3715,
+      "accuracy": 0.29,
+      "f1_macro": 0.2778
+    },
+    {
+      "epoch": 2,
+      "train_loss": 1.3081,
+      "loss": 1.3606,
+      "accuracy": 0.32,
+      "f1_macro": 0.3202
+    },
+    {
+      "epoch": 3,
+      "train_loss": 1.2555,
+      "loss": 1.3522,
+      "accuracy": 0.36,
+      "f1_macro": 0.3605
+    }
+  ],
+  "best_val_f1_macro": 0.3605,
+  "final_test": {
+    "loss": 1.3522,
+    "accuracy": 0.36,
+    "f1_macro": 0.3605,
+    "report": {
+      "Boredom": {
+        "precision": 0.40476190476190477,
+        "recall": 0.34,
+        "f1-score": 0.3695652173913043,
+        "support": 50.0
+      },
+      "Confusion": {
+        "precision": 0.32142857142857145,
+        "recall": 0.36,
+        "f1-score": 0.33962264150943394,
+        "support": 50.0
+      },
+      "Engagement": {
+        "precision": 0.34615384615384615,
+        "recall": 0.36,
+        "f1-score": 0.35294117647058826,
+        "support": 50.0
+      },
+      "Frustration": {
+        "precision": 0.38,
+        "recall": 0.38,
+        "f1-score": 0.38,
+        "support": 50.0
+      },
+      "accuracy": 0.36,
+      "macro avg": {
+        "precision": 0.3630860805860806,
+        "recall": 0.36,
+        "f1-score": 0.3605322588428317,
+        "support": 200.0
+      },
+      "weighted avg": {
+        "precision": 0.3630860805860806,
+        "recall": 0.36,
+        "f1-score": 0.36053225884283163,
+        "support": 200.0
+      }
+    }
+  },
+  "model_path": "C:\\Users\\Lenovo\\EmoLearn\\models\\fer_vit_daisee",
+  "timestamp": "2026-08-06T15:30:39.178444+00:00",
+  "note": "Fine-tune ViT : nouvelle tête 4 classes DAiSEE + 2 dernières couches backbone. WeightedRandomSampler + class weights."
+}

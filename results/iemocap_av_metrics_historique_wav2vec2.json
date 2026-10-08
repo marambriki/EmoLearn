@@ -1,0 +1,60 @@
+{
+  "n_total": 80,
+  "n_valide": 80,
+  "n_skip": 0,
+  "taux_visage_detecte": 1.0,
+  "accuracy_vs_annotation": {
+    "visage_fer_1frame": 0.375,
+    "visage_fer_multiframes": 0.412,
+    "voix_ser_heuristique": 0.263,
+    "voix_ser_appris_wav2vec2": 0.487,
+    "fusion_historique": 0.338,
+    "fusion_vote_pondere": 0.5
+  },
+  "rappel_etats_urgents": {
+    "visage_fer_1frame": 0.25,
+    "visage_fer_multiframes": 0.275,
+    "voix_ser_heuristique": 0.225,
+    "voix_ser_appris_wav2vec2": 0.2,
+    "fusion_historique": 0.4,
+    "fusion_vote_pondere": 0.125
+  },
+  "gains": {
+    "ser_appris_vs_heuristique": 0.224,
+    "fer_multi_vs_1frame": 0.037,
+    "fusion_vote_vs_historique": 0.162,
+    "fusion_vote_vs_meilleure_unimodale": 0.013
+  },
+  "distribution_gt": {
+    "Boredom": 20,
+    "Confusion": 20,
+    "Engagement": 20,
+    "Frustration": 20
+  },
+  "confusion_fusion_vote": {
+    "Boredom": {
+      "Boredom": 19,
+      "Confusion": 0,
+      "Engagement": 1,
+      "Frustration": 0
+    },
+    "Confusion": {
+      "Boredom": 14,
+      "Confusion": 0,
+      "Engagement": 6,
+      "Frustration": 0
+    },
+    "Engagement": {
+      "Boredom": 3,
+      "Confusion": 0,
+      "Engagement": 17,
+      "Frustration": 0
+    },
+    "Frustration": {
+      "Boredom": 11,
+      "Confusion": 1,
+      "Engagement": 4,
+      "Frustration": 4
+    }
+  }
+}

@@ -26,10 +26,46 @@
 \usepackage{array}
 \usepackage{tabularx}
 \usepackage{longtable}
+\usepackage{xltabular}
+\usepackage{caption}
+\captionsetup{
+  format=plain,
+  labelfont=bf,
+  font=small,
+  justification=centering,
+  singlelinecheck=true,
+  skip=8pt,
+  position=bottom
+}
+\captionsetup[figure]{position=bottom}
+\captionsetup[table]{position=bottom}
+% xltabular (longtable + caption) incrémente déjà le compteur table :
+% \captionof après \end{xltabular} le ferait une seconde fois (3.2, 3.4…).
+\newcommand{\xlcaption}[1]{%
+  \par\nopagebreak
+  \addtocounter{table}{-1}%
+  \captionof{table}{#1}%
+}
 \usepackage{multirow}
 \usepackage{float}
+% Tableaux : pleine largeur, bordures fermées, césure de page (évite
+% les demi-pages vides dues à [H] quand le tableau ne tient pas).
+\keepXColumns
+\renewcommand{\tabularxcolumn}[1]{>{\raggedright\arraybackslash}p{#1}}
+\setlength{\LTleft}{0pt}
+\setlength{\LTright}{0pt}
+\setlength{\LTcapwidth}{\textwidth}
+\renewcommand{\arraystretch}{1.18}
 \usepackage{xcolor}
 \usepackage{colortbl}
+% Filets au défaut LaTeX (0,4 pt). \endfoot sans \hline : chaque
+% ligne a déjà son filet, un second filet ferait un bas gras.
+\setlength{\arrayrulewidth}{0.4pt}
+\arrayrulecolor{black}
+\setlength{\extrarowheight}{1.2pt}
+\usepackage{needspace}
+\usepackage{etoolbox}
+\BeforeBeginEnvironment{xltabular}{\Needspace{10\baselineskip}}
 \usepackage{enumitem}
 
 %------------------------- Maths ---------------------------------------------
@@ -98,12 +134,51 @@
   linkcolor=black,
   citecolor=blue!50!black,
   urlcolor=blue!50!black,
-  pdftitle={EmoLearn — Mémoire de Master},
+  pdftitle={Vers une approche de personnalisation pédagogique adaptative basée sur la détection multimodale d'états émotionnels et l'IA générative},
   pdfauthor={BRIKI Maram}
 }
 
+% Pas de pointillés dans les sommaires (TOC, mini-sommaires, figures, tableaux).
+\makeatletter
+\renewcommand{\@dotsep}{10000}
+\makeatother
+
 %------------------------- Bibliographie (biblatex + biber) -------------------
-\usepackage[backend=biber,style=numeric-comp,sorting=nyt,maxbibnames=99]{biblatex}
+\usepackage[
+  backend=biber,
+  style=authoryear-comp,
+  sorting=nyt,
+  maxbibnames=99,
+  maxcitenames=2,
+  mincitenames=1,
+  giveninits=true,
+  uniquename=false,
+  uniquelist=false,
+  dashed=false
+]{biblatex}
+\renewcommand*{\nameyeardelim}{\addcomma\space}
+\DeclareDelimFormat{nameyeardelim}{\addcomma\space}
+\let\cite\parencite
+% Étiquette [Auteur et al., année], puis notice complète (Auteur, I. (année). Titre.).
+\renewbibmacro*{begentry}{%
+  \printtext{%
+    \mkbibbrackets{%
+      \begingroup
+      \defcounter{maxnames}{2}%
+      \defcounter{minnames}{1}%
+      \ifnameundef{labelname}
+        {\printfield[citetitle]{labeltitle}}
+        {\printnames{labelname}}%
+      \endgroup
+      \setunit{\addcomma\space}%
+      \printlabeldateextra}}%
+  \addspace
+}
+\DeclareFieldFormat[article,inproceedings,incollection]{title}{#1\isdot}
+\renewbibmacro{in:}{%
+  \ifentrytype{article}
+    {}
+    {\printtext{\bibstring{in}\intitlepunct}}}
 \addbibresource{references.bib}
 
 %------------------------- Raccourcis ----------------------------------------
@@ -135,17 +210,17 @@
 
 \cleardoublepage
 \phantomsection
-\addcontentsline{toc}{chapter}{Table des figures}
-\mtcaddchapter % entrée TOC sans \chapter numéroté : resync minitoc
-\renewcommand{\listfigurename}{\textbf{Table des figures}}
+\renewcommand{\listfigurename}{\textbf{Liste des figures}}
 \listoffigures
 
 \cleardoublepage
 \phantomsection
-\addcontentsline{toc}{chapter}{Liste des tableaux}
-\mtcaddchapter % entrée TOC sans \chapter numéroté : resync minitoc
 \renewcommand{\listtablename}{\textbf{Liste des tableaux}}
 \listoftables
+
+\cleardoublepage
+\phantomsection
+\input{pages/acronymes}
 
 %--------------------------- CORPS DU MÉMOIRE ---------------------------------
 \cleardoublepage

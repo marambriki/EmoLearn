@@ -141,8 +141,12 @@ def evaluer_depuis_decisions(decisions_csv: str, scenarios_csv: str):
     sc.columns = [c.strip() for c in sc.columns]
     sc["clip_id"] = sc["ClipID"].astype(str)
     dec["clip_id"] = dec["clip_id"].astype(str)
-    etats_cols = ["Boredom", "Engagement", "Confusion", "Frustration"]
-    sc["gt_etat_dominant"] = sc[etats_cols].astype(float).idxmax(axis=1)
+    sc["gt_etat_dominant"] = sc.apply(
+        lambda r: etat_dominant_depuis_scores(
+            r["Boredom"], r["Confusion"], r["Engagement"], r["Frustration"]
+        )[0],
+        axis=1,
+    )
     m = dec.merge(sc[["clip_id", "gt_etat_dominant"]], on="clip_id", how="inner")
     y_gt = m["gt_etat_dominant"].tolist()
     y_fus = m["etat_fusion"].tolist()

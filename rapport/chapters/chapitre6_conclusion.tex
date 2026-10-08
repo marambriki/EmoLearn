@@ -1,145 +1,203 @@
 %==============================================================================
-%  CHAPITRE 6 — CONCLUSION ET PERSPECTIVES
+%  CONCLUSION GÉNÉRALE — non numérotée (comme l'introduction générale)
 %==============================================================================
-\titreduchapitre{Conclusion et Perspectives}{chap:conclusion}
+\chapter*{\textbf{Conclusion générale}}
+\addcontentsline{toc}{chapter}{Conclusion générale}
+\mtcaddchapter % aligne le compteur minitoc (pas de Sommaire)
+\label{chap:conclusion}
+\markboth{Conclusion générale}{Conclusion générale}
+\thispagestyle{plain}
+\setcounter{chapter}{6}% numérotation des tableaux de cette partie (hors « Chapitre 6 »)
+\setcounter{table}{0}
 
-%==============================================================================
-\section{Synthèse des contributions}
-\label{sec:concl-contributions}
+Le mémoire a conçu, implémenté et évalué le prototype \emolearn{} :
+une chaîne unique qui relie la perception multimodale de l'engagement,
+une décision pédagogique explicite et une génération de contenu ancrée
+dans des sources documentaires. La validation a été conduite en
+simulation sur corpus (\textsc{DAiSEE}, \textsc{IEMOCAP}). Elle ne
+mesure pas une réduction du décrochage sur une plateforme réelle, elle
+documente ce que la chaîne fait, et où elle échoue
+(chapitre~\ref{chap:validation}).
 
-Ce mémoire a conçu, implémenté et évalué partiellement \emolearn{}, un prototype
-de recherche qui relie la \textbf{perception multimodale} de l'engagement, une
-\textbf{décision pédagogique explicite} et la \textbf{génération adaptative} de
-contenu par LLM, complétée par un module \textbf{RAG} d'ancrage documentaire.
+Les résultats se lisent sur trois plans. En perception, le juge FER+AU
+atteint un F1 macro de $0{,}37$ (contre $0{,}19$ pour le mapping
+heuristique), la tête de classification WavLM se situe à $0{,}434$.
+Sur le banc audiovisuel aligné, le vote à incertitude obtient $0{,}487$
+d'accuracy et $0{,}350$ de rappel des états urgents : la fusion
+améliore ce rappel par rapport à une modalité seule, sans établir une
+exactitude élevée. En décision, la cascade
+engagement\,$\rightarrow$\,adaptation est exécutable et journalisée, 
+sur le référentiel ($n=50$), la famille de contenu suit l'état de
+vérité à $98\,\%$, tandis que l'état fusionné ne concorde qu'à
+$46\,\%$. En génération, environ 220 textes passent l'audit de forme à
+$97{,}7\,\%$, le fond pédagogique n'est étayé que par la grille L2
+($n=3$ enseignants, 8 extraits).
 
-Les contributions concrètes sont les suivantes :
+Ces constats bornent la réponse aux questions de recherche. Une telle
+chaîne est réalisable et évaluable. Les scores de perception restent
+modestes. Les validations enseignantes et usagers sont encore
+incomplètes. La contribution retenue n'est donc pas un gain de
+performance isolé, mais une architecture dont chaque maillon laisse une
+trace inspectable.
 
-\begin{enumerate}[leftmargin=1.4em]
-  \item Une architecture client--serveur reproductible (FastAPI, React, SQLite)
-  partageant un unique moteur de fusion et de décision entre le pipeline produit
-  et le banc d'essai.
+\section*{Synthèse des contributions}
 
-  \item Un modèle engagement\,$\rightarrow$\,adaptation formalisé (20 patrons
-  A1--D5, règles temporelles, journal de traçabilité).
-
-  \item Un apprentissage léger des correspondances modalité\,$\rightarrow$\,état
-  (Random Forest sur FER ; fine-tuning de tête wav2vec2 pour le SER).
-
-  \item Un module RAG (ChromaDB, embeddings multilingues, neuf fiches
-  pédagogiques, top-3 avec seuil de similarité) réduisant le risque
-  d'hallucinations \cite{lewis2020retrieval,gao2023retrieval,asai2024selfrag}.
-
-  \item Une évaluation instrumentée et transparente : gains mesurés sur FER
-  (+0{,}53 accuracy), SER (+0{,}224), fusion (0{,}500 accuracy en vote
-  pondéré), sensibilité du mapping IEMOCAP, audit automatique du corpus
-  (97{,}7\,\% OK).
-
-  \item Un protocole d'évaluation multi-niveaux (experts, contenu, utilisateurs)
-  prêt à être exécuté.
-\end{enumerate}
-
-%==============================================================================
-\section{Réponses aux questions de recherche}
-\label{sec:concl-qr}
-
-\paragraph{QR1 — Perception.} La fusion multimodale améliore l'exactitude dans
-le cadre aligné ($n=80$) lorsque l'on retient le vote pondéré (0{,}500), au prix
-d'un rappel faible sur les états urgents. L'apprentissage supervisé améliore
-nettement chaque modalité par rapport aux mappings heuristiques. Le compromis
-accuracy/rappel urgent est quantifié et documenté.
-
-\paragraph{QR2 — Décision.} Le modèle engagement\,$\rightarrow$\,adaptation est
-implémenté, testé sur cinquante scénarios stratifiés et exposé de manière
-interprétable dans l'interface. La validation experte Delphi est préparée mais
-non finalisée.
-
-\paragraph{QR3 — Génération.} Le pipeline LLM + RAG + patrons produit un corpus
-de 220 contenus dont 97{,}7\,\% passent l'audit automatique de forme. La
-pertinence pédagogique profonde reste à confirmer par évaluation humaine.
-
-\paragraph{QR4 — Validation.} Un protocole multi-niveaux a été appliqué aux
-composants techniques ; les niveaux expert et utilisateur sont instrumentés pour
-une exécution ultérieure.
-
-%==============================================================================
-\section{Limites de l'étude}
-\label{sec:concl-limites}
-
-\begin{enumerate}[leftmargin=1.4em]
-  \item \textbf{Prototype de simulation} : pas de déploiement live sur MOOC réels ;
-  les états proviennent de corpus annotés a posteriori.
-
-  \item \textbf{Appariement visage--voix} : hétérogène en production
-  (\textsc{DAiSEE} + \textsc{IEMOCAP}) ; aligné uniquement pour le banc d'essai.
-
-  \item \textbf{Mapping émotion\,$\rightarrow$\,engagement} : hypothèse de
-  construit, sensible jusqu'à 17\,\% des utterances selon la variante.
-
-  \item \textbf{Déséquilibre \textsc{DAiSEE}} : F1 macro modeste malgré une
-  accuracy élevée sur le classifieur FER.
-
-  \item \textbf{Évaluations humaines} : protocoles prêts, exécution incomplète
-  (experts, $n=30$ utilisateurs).
-
-  \item \textbf{RAG} : base documentaire réduite (neuf fiches) ; généralisation
-  à d'autres disciplines non démontrée.
-\end{enumerate}
-
-%==============================================================================
-\section{Perspectives de recherche}
-\label{sec:concl-perspectives}
+La chaîne, conçue au chapitre~\ref{chap:conception} et implémentée au
+chapitre~\ref{chap:implementation}, relie un juge FER+AU, un SER WavLM
+hybride, une fusion $60/40$ à incertitude, vingt patrons et un LLM ancré
+par RAG. Deux pipelines partagent ce moteur (produit et banc d'essai).
+Les livrables se déclinent en cinq axes (C1--C5).
 
 \begin{itemize}[leftmargin=1.4em]
-  \item \textbf{Captation live} : intégrer webcam/micro en temps réel avec
-  consentement et anonymisation.
+  \item \textbf{C1 --- Architecture de bout en bout.}
+  Le prototype relie une API FastAPI et une interface React (modes clip,
+  séquence, tuteur et RAG). La décision pédagogique est produite par le
+  runtime, et non par un script hors ligne.
 
-  \item \textbf{Enrichissement RAG} : indexer les ressources MOOC complètes,
-  évaluer l'impact du RAG sur les erreurs factuelles (critère Q6).
+  \item \textbf{C2 --- Modèle engagement\,$\rightarrow$\,adaptation.}
+  L'adaptation combine une cascade A/B/C/D, vingt patrons, des règles
+  temporelles et la possibilité d'une non-intervention lorsque
+  l'intervention n'est pas justifiée. Les familles A à D sont toutes
+  représentées sur le référentiel (D1, C1, D2/D4, A1 et B1 étant les
+  plus fréquents). Le dispositif ne constitue pas un tuteur intelligent
+  complet.
 
-  \item \textbf{Fusion end-to-end} : apprendre la fusion plutôt que des règles
-  fixes, tout en préservant l'interprétabilité pédagogique.
+  \item \textbf{C3 --- Perception apprise, avec ablations.}
+  Le juge FER+AU atteint un F1 macro de $0{,}37$, contre $0{,}19$ pour
+  le mapping heuristique, le ViT fine-tuné (F1 $0{,}39$) sert de
+  filtre. La tête WavLM obtient un F1 de $0{,}434$, supérieur à celui
+  du backbone complet ($0{,}396$). L'index acoustique améliore le score
+  de $\Delta +0{,}020$ : $80\,\%$ des voix sont substituées, avec un
+  alignement d'état de $100\,\%$.
 
-  \item \textbf{Validation experte et utilisateur} : exécuter les protocoles
-  documentés ; analyser statistiquement les Likert et verbatims.
+  \item \textbf{C4 --- Génération guidée et ancrée.}
+  Environ 220 contenus passent l'audit de forme à $97{,}7\,\%$
+  (208 textes retenus pour les métriques). La forme est stable
+  (222 mots en moyenne, indice de Kandel--Moles $95{,}0$). Les scores
+  BLEU et ROUGE mesurent une cohérence interne, en l'absence d'une
+  référence rédigée par des enseignants. Le RAG s'appuie sur vingt
+  fiches, une hallucination résiduelle, encore mesurable, est
+  illustrée sur l'extrait D2.
 
-  \item \textbf{Fine-tuning LLM} : adapter un modèle open-weight
-  \cite{dubey2024llama3,ouyang2022training} à la pédagogie française sous
-  contrainte des patrons, en tenant compte des recommandations éthiques
-  \cite{unesco2023guidance,yan2024practical,holmes2022state}.
+  \item \textbf{C5 --- Évaluation instrumentée, avec limites explicites.}
+  L'évaluation comprend quatre niveaux. Sur les correspondances
+  ($n=50$), la famille suit la vérité terrain à $98\,\%$, l'état
+  fusionné à $46\,\%$ et le type admissible à $56\,\%$. Le niveau L1
+  n'est pas scoré, L2 porte sur huit extraits notés par trois
+  enseignants, L4 est une enquête d'idée ($n=15$), le pilote C1/C2
+  n'ayant pas été administré. Sur le banc aligné rejoué (FER+AU,
+  WavLM), l'accuracy vaut $0{,}487$ et le rappel des états urgents
+  $0{,}350$. L'accuracy $0{,}72$ du premier classifieur facial,
+  obtenue sur un corpus déséquilibré, n'est pas le résultat retenu.
 \end{itemize}
 
-%==============================================================================
-\section{Implications pratiques pour les MOOC}
-\label{sec:concl-mooc}
+\section*{Limites de l'étude}
 
-\emolearn{} suggère qu'une régulation pédagogique automatique — détecter un état
-dégradé, choisir une stratégie explicite, générer une réponse ancrée — est
-techniquement réalisable comme couche \emph{additionnelle} aux plateformes
-existantes. Le journal de décision faciliterait l'audit pédagogique et
-l'amélioration itérative des règles. Le RAG offre une piste concrète pour
-limiter les erreurs de contenu généré, à condition d'investir dans une base
-documentaire curatée.
+Ces limites conditionnent la lecture des contributions
+(chapitre~\ref{chap:validation}).
 
-%==============================================================================
-\section{Recommandations}
-\label{sec:concl-recommandations}
+\begin{itemize}[leftmargin=1.4em]
+  \item \textbf{Cadre.} L'étude ne porte ni sur un apprenant réel, ni
+  sur une captation en conditions vives, ni sur une mesure
+  d'apprentissage. Toute extrapolation vers un tuteur MOOC en
+  production serait abusive.
 
-Pour un passage au-delà du prototype de recherche, nous recommandons :
+  \item \textbf{Données.} En production, l'appariement visage--voix
+  reste hétérogène. Le mapping
+  \textsc{IEMOCAP}\,$\rightarrow$\,\textsc{DAiSEE} est sensible
+  jusqu'à $17\,\%$ des énoncés. Le corpus \textsc{DAiSEE} est
+  déséquilibré.
 
-\begin{enumerate}[leftmargin=1.4em]
-  \item Prioriser le \textbf{rappel des états urgents} dans le choix de la
-  stratégie de fusion, même au détriment de l'accuracy globale.
+  \item \textbf{Modèles.} Les unités d'action faciale sont des
+  descripteurs proxy, le SER est hybride et empirique, le LLM n'est
+  pas fine-tuné, le RAG se limite à vingt fiches.
 
-  \item Conduire la \textbf{validation experte} du mapping et des patrons avant
-  tout déploiement.
+  \item \textbf{Évaluation.} Aucune vérité terrain multimodale n'a été
+  produite. Le niveau L1 n'a pas été exécuté. L2 se limite à trois
+  enseignants et huit extraits, et non aux 58 fiches. Le pilote C1/C2
+  ($n=30$ visé) n'a pas été administré, l'enquête d'idée ($n=15$)
+  fournit un score SUS de $61$, obtenu sur un usage hypothétique.
+  BLEU et ROUGE sont calculés sans référence enseignante sur
+  l'ensemble du corpus.
 
-  \item Étendre la \textbf{base RAG} et mesurer son effet sur la factualité.
+  \item \textbf{Éthique.} Les questions de consentement, de biais et de
+  profilage affectif demeurent. L'absence de captation en conditions
+  vives réduit une partie du risque, mais ôte aussi la validité
+  écologique.
+\end{itemize}
 
-  \item Documenter et publier les \textbf{artefacts reproductibles} (code, jeux
-  de scénarios, métriques) pour permettre la comparaison avec l'état de l'art.
-\end{enumerate}
+En particulier, le prototype n'établit pas qu'une fusion multimodale
+en production surpasse une modalité unique sous une vérité terrain
+conjointe. Il n'établit pas davantage que le contenu généré améliore
+l'apprentissage, ni qu'il réduise le décrochage dans un MOOC, ni qu'un
+alignement visage--voix sur la même personne vaille hors du banc
+d'essai.
 
-En conclusion, ce travail démontre la faisabilité d'une chaîne perception --
-décision -- génération (LLM + RAG) pour l'adaptation émotionnelle en contexte
-MOOC, tout en assumant et en mesurant ses limites — condition, à notre sens,
-d'une recherche crédible en informatique affective appliquée à l'éducation.
+\section*{Perspectives de recherche}
+
+Les perspectives sont ordonnées par le gain de preuve, et non par
+l'attrait technologique. Aucune ne devrait précéder la collecte L1/L2 :
+un meilleur F1 facial, obtenu sur un mapping non validé par des
+enseignants, n'améliorerait que la cohérence interne du prototype.
+
+\begin{itemize}[leftmargin=1.4em]
+  \item \textbf{À court terme.} Une validation par experts pédagogiques
+  (L1) reste prioritaire : Delphi simplifié, deux tours, trois experts
+  (sciences de l'éducation, ingénierie pédagogique, e-learning). Le
+  matériel comprend la matrice engagement--adaptation, vingt fiches de
+  patrons et quinze cas tests stratifiés, avec des items Likert 1--5
+  (C1 à C4, instruments : annexe Niveau~1). Il convient ensuite de
+  compléter L2 sur les 58 fiches et de recaler le seuil d'intervention
+  du pipeline produit (rappel urgent $1{,}00$ au proxy).
+
+  \item \textbf{À moyen terme.} Un réentraînement de FER et de SER
+  n'est justifié que si le F1 des classes rares progresse sans que les
+  prédictions ne se concentrent à nouveau sur la classe majoritaire
+  (Engagement). Une fusion apprise n'est recevable qu'à condition de
+  préserver le journal. Un corpus audiovisuel d'apprentissage aligné
+  et un RAG étendu au matériau d'un vrai cours constitueraient ensuite
+  des gains de validité.
+
+  \item \textbf{À plus long terme.} Un pilote utilisateurs C1/C2
+  (intra-sujet, $n=30$ visé) comparerait un contenu statique (C1) au
+  contenu \emolearn{} (C2), avec des items Likert 1--7 puis un SUS
+  après usage réel (seuil visé~$68$). Une captation en conditions
+  vives ne serait envisageable que dans un cadre éthique strict, 
+  un fine-tuning d'un modèle open-weight francophone, sous contrainte
+  de patrons, resterait optionnel.
+\end{itemize}
+
+Sur le plan pratique, l'usage réaliste d'\emolearn{} est une couche
+additionnelle pendant une vidéo : estimer un état, décider d'intervenir
+ou non, proposer un contenu court ancré dans le cours. Les approches
+fondées sur les forums restent complémentaires. Le journal (état,
+patron, sources RAG) rend la décision relisible. Un usage responsable
+suppose un consentement granulaire, une non-intervention fréquente, et
+un RAG dont les sources coïncident avec les documents du cours.
+
+\begin{itemize}[leftmargin=1.4em]
+  \item \textbf{Poursuite du prototype.} Les niveaux L1 et L2 doivent
+  précéder tout nouvel entraînement. La séparation des deux pipelines
+  doit être conservée dans toute publication. Le RAG doit être étendu
+  au cours cible avant d'élargir les disciplines.
+
+  \item \textbf{Recherche en EIAH et informatique affective.} Les
+  publications devraient documenter la chaîne complète, et non les
+  seuls scores F1. Les mappings doivent être présentés comme des
+  hypothèses de construit, et non comme des équivalences
+  psychologiques. Le contenu généré doit être évalué avec des grilles
+  enseignantes. Le mot «~multimodal~» ne devrait désigner que les
+  protocoles qui précisent si les modalités sont alignées ou
+  appariées.
+
+  \item \textbf{Praticiens de la formation en ligne.} Il n'est pas
+  raisonnable d'attendre un détecteur parfait. Toute captation
+  affective doit être traitée comme une donnée sensible. L'IA
+  générative peut rédiger sous contrainte, elle ne doit pas décider
+  seule de l'intervention pédagogique.
+\end{itemize}
+
+Ce travail a construit une chaîne perception--décision--génération pour
+l'adaptation à l'engagement, dans un cadre simulé. Les scores de
+perception sont modestes, les validations expertes restent à collecter.
+Chaque maillon de la chaîne est exécutable, journalisé et critiquable.

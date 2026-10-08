@@ -1,8 +1,8 @@
 %==============================================================================
-%  PAGE DE GARDE — modèle ESCT / UMA (comme la figure)
-%  Logos : logo_esct.png | logo_isamm.png | logo_uma.png
+%  PAGE DE GARDE — ESCT à gauche, ISAMM à droite
+%  Logos : logo_esct.png | logo_isamm.png
 %==============================================================================
-\definecolor{titrebleu}{RGB}{0,0,180}
+\definecolor{titrebleu}{RGB}{0,0,90}
 
 \begin{titlepage}
 \thispagestyle{empty}
@@ -12,31 +12,31 @@
 \renewcommand{\rmdefault}{lmr}%
 \normalfont\rmfamily
 
-%------------------------- En-tête : logos | texte | logo --------------------
-% Comme la figure : ESCT+ISAMM côte à côte | texte centre | UMA à droite
+%------------------------- En-tête : ESCT | texte | ISAMM --------------------
 \noindent
-\begin{minipage}[c]{0.28\textwidth}
+\begin{minipage}[c]{0.23\textwidth}
 \centering
-\begin{tabular}{@{}c@{\hspace{0.12cm}}c@{}}
-\includegraphics[width=1.5cm,height=1.3cm,keepaspectratio]{logos/logo_esct.png} &
-\includegraphics[width=1.5cm,height=1.3cm,keepaspectratio]{logos/logo_isamm.png}
-\end{tabular}
+\includegraphics[width=2.35cm,keepaspectratio]{logos/logo_esct.png}%
 \end{minipage}%
 \hfill
-\begin{minipage}[c]{0.44\textwidth}
+\begin{minipage}[c]{0.52\textwidth}
 \centering
-{\normalsize République Tunisienne\par}
+{\normalsize \textbf{République Tunisienne}\par}
 \vspace{1pt}
-{\footnotesize Ministère de l'Enseignement Supérieur et de la Recherche Scientifique\par}
-\vspace{4pt}
-{\normalsize Université de La Manouba\par}
+{\footnotesize \textbf{Ministère de l'Enseignement Supérieur\\
+et de la Recherche Scientifique}\par}
+\vspace{3pt}
+{\normalsize \textbf{Université de La Manouba}\par}
 \vspace{1pt}
-{\normalsize Ecole Supérieure de Commerce de Tunis\par}
+{\normalsize \textbf{École Supérieure de Commerce de Tunis}\par}
+\vspace{1pt}
+{\footnotesize \textbf{Institut Supérieur des Arts Multimédia\\
+de la Manouba}\par}
 \end{minipage}%
 \hfill
-\begin{minipage}[c]{0.22\textwidth}
+\begin{minipage}[c]{0.23\textwidth}
 \centering
-\includegraphics[height=2.1cm]{logos/logo_uma.png}%
+\includegraphics[width=2.35cm,keepaspectratio]{logos/logo_isamm.png}%
 \end{minipage}
 
 \vspace{1.8cm}
@@ -44,9 +44,9 @@
 %------------------------- Type de diplôme -----------------------------------
 {\Large MÉMOIRE DE MASTER DE RECHERCHE\par}
 \vspace{0.55cm}
-{\normalsize \textbf{ Présenté en vue de l'obtention de la}\par}
+{\normalsize \textbf{Présenté en vue de l'obtention du}\par}
 \vspace{0.28cm}
-{\normalsize MÉMOIRE DE MASTER DE RECHERCHE EN INFORMATIQUE\\[2pt]
+{\normalsize MASTER DE RECHERCHE EN INFORMATIQUE\\[2pt]
 DÉCISIONNELLE ET INTELLIGENTE APPLIQUÉE À LA GESTION\par}
 \vspace{0.4cm}
 {\normalsize \textbf{Parcours :} Aide à la Décision\par}
@@ -54,11 +54,11 @@ DÉCISIONNELLE ET INTELLIGENTE APPLIQUÉE À LA GESTION\par}
 \vspace{1.3cm}
 
 %------------------------- Titre (bleu, entre filets) ------------------------
-\rule{\textwidth}{1.5pt}\\[0.55cm]
+\rule{\textwidth}{1.7pt}\\[0.55cm]
 {\large\bfseries\color{titrebleu}%
-EmoLearn : personnalisation pédagogique adaptative\\[0.25cm]
-multimodale fondée sur la détection de l'engagement\\[0.25cm]
-émotionnel et la génération de contenu par IA générative\par}
+Vers une approche de personnalisation pédagogique adaptative\\[0.25cm]
+basée sur la détection multimodale d'états émotionnels\\[0.25cm]
+et l'IA générative\par}
 \vspace{0.5cm}
 \rule{\textwidth}{1.5pt}
 
@@ -72,7 +72,7 @@ multimodale fondée sur la détection de l'engagement\\[0.25cm]
 \vspace{1.15cm}
 
 %------------------------- Encadrante ----------------------------------------
-{\normalsize \textbf{Encadrante académique :} Dr. REZGUI Kalthom, \textit{ESCT}\par}
+{\normalsize \textbf{Encadrante académique :} Dr. REZGUI Kalthoum, \textit{ISAMM}\par}
 
 \vfill
 

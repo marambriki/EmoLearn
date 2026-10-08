@@ -14,56 +14,73 @@ from ser_module import (
     selectionner_utterance_iemocap,
     charger_iemocap,
 )
+from iemocap_appariement import selectionner_par_similarite, invalider_cache_index
 
 
 def test_statistiques_iemocap():
     stats = get_statistiques_iemocap()
     assert stats["total"] > 9000
     assert "distribution" in stats
-    # Couverture .wav attendue = 100% (corpus complet présent localement)
     assert stats["wav_disponibles"] == stats["total"]
     assert stats["wav_manquants"] == 0
 
 
 def test_voix_audio_toujours_actif():
-    """L'audio réel est désormais la SEULE voie : plus de mode CSV/annotations."""
     result = analyser_voix_depuis_scenario(
         scenario_id=10,
-        etat_dominant="Engagement",
+        scores_daisee={
+            "boredom": 0,
+            "confusion": 0,
+            "engagement": 3,
+            "frustration": 0,
+        },
         methode="heuristique",
     )
     assert result["erreur"] is None
     assert "audio" in result["source"].lower()
     assert result["utterance_id"]
     assert result.get("wav_path")
-    assert result["appariement"]["methode"].startswith("emotion_dominante")
-    assert result["appariement"]["etat_cible"] == "Engagement"
+    assert result["appariement"]["methode"].find("similarite_profil") >= 0
+    assert "similarite" in result["appariement"]
 
 
-def test_appariement_emotion_dominante():
-    """Scénario Frustration → utterance IEMOCAP appariée sur l'état Frustration."""
-    result = analyser_voix_depuis_scenario(
-        scenario_id=30,
-        etat_dominant="Frustration",
-        methode="heuristique",
+def test_appariement_similarite_reproductible():
+    df = charger_iemocap()
+    invalider_cache_index()
+    _, meta1 = selectionner_par_similarite(
+        df, 5, boredom=1, confusion=0, engagement=2, frustration=0
     )
-    assert result["appariement"]["methode"].startswith("emotion_dominante")
-    assert result["appariement"]["etat_cible"] == "Frustration"
-    assert result["appariement"]["etat_iemocap"] == "Frustration"
+    invalider_cache_index()
+    _, meta2 = selectionner_par_similarite(
+        df, 5, boredom=1, confusion=0, engagement=2, frustration=0
+    )
+    assert meta1["index_pool"] == meta2["index_pool"]
+    assert meta1["similarite"] == meta2["similarite"]
 
 
 def test_selectionner_utterance_reproductible():
     df = charger_iemocap()
-    _, meta1 = selectionner_utterance_iemocap(df, scenario_id=5, etat_dominant="Boredom")
-    _, meta2 = selectionner_utterance_iemocap(df, scenario_id=5, etat_dominant="Boredom")
+    invalider_cache_index()
+    _, meta1 = selectionner_utterance_iemocap(
+        df,
+        scenario_id=5,
+        scores_daisee={"boredom": 2, "confusion": 0, "engagement": 0, "frustration": 0},
+    )
+    invalider_cache_index()
+    _, meta2 = selectionner_utterance_iemocap(
+        df,
+        scenario_id=5,
+        scores_daisee={"boredom": 2, "confusion": 0, "engagement": 0, "frustration": 0},
+    )
     assert meta1["index_pool"] == meta2["index_pool"]
-    assert meta1["methode"] == "emotion_dominante"
+    assert "similarite_profil" in meta1["methode"]
 
 
 def test_voix_audio_mode_heuristique():
-    # Forcer heuristique pour rester déterministe sans charger le fine-tuné
     result = analyser_voix_depuis_scenario(
-        scenario_id=42, methode="heuristique"
+        scenario_id=42,
+        scores_daisee={"boredom": 0, "confusion": 1, "engagement": 1, "frustration": 0},
+        methode="heuristique",
     )
     assert result["erreur"] is None
     assert result["source"] == "IEMOCAP audio (SER acoustique)"
@@ -73,7 +90,6 @@ def test_voix_audio_mode_heuristique():
 
 
 def test_fusion_ser_corrige_hap_vs_confusion():
-    """SUPERB confiant Engagement doit battre un FT qui dit Confusion (cas hap)."""
     p_ft = {
         "Boredom": 0.10,
         "Confusion": 0.55,
@@ -89,7 +105,26 @@ def test_fusion_ser_corrige_hap_vs_confusion():
     etat, score, probs, meta = fusionner_probs_ser(p_ft, p_superb)
     assert etat == "Engagement"
     assert probs["Engagement"] > probs["Confusion"]
-    assert meta["mode"] == "superb_prioritaire_vs_confusion"
+    assert meta["mode"].startswith("anchor_vs_confusion")
+
+
+def test_fusion_ser_engagement_vs_frustration_ft():
+    """FT dit Engagement (rire), ancre sur-interprète en Frustration (ang)."""
+    p_ft = {
+        "Boredom": 0.05,
+        "Confusion": 0.15,
+        "Engagement": 0.43,
+        "Frustration": 0.37,
+    }
+    p_anchor = {
+        "Boredom": 0.05,
+        "Confusion": 0.0,
+        "Engagement": 0.12,
+        "Frustration": 0.83,
+    }
+    etat, score, probs, meta = fusionner_probs_ser(p_ft, p_anchor)
+    assert etat == "Engagement"
+    assert meta["mode"] == "ft_vs_anchor_ang_sur_rire"
 
 
 def test_fusion_ser_ft_seul_sans_superb():

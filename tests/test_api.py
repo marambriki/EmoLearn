@@ -28,6 +28,7 @@ def test_accueil_simulation_clip():
     assert data["unite"] == "clip"
     assert "simulation" in data["modes"]
     assert "sequence" in data["modes"]
+    assert "evaluation" in data["modes"]
     assert data.get("temporel") is True
 
 
@@ -65,12 +66,33 @@ def test_scenario_audio_meta():
     assert "emotion_iemocap" in data
 
 
+def test_scenario_ser_preview():
+    r = client.get("/scenarios/0/ser-preview")
+    assert r.status_code == 200
+    data = r.json()
+    assert data.get("preview") is True
+    assert data.get("etat") in (
+        "Boredom",
+        "Confusion",
+        "Engagement",
+        "Frustration",
+        None,
+    )
+    if not data.get("erreur"):
+        assert data.get("score") is not None
+
+
 def test_sequences_list():
     r = client.get("/sequences")
     assert r.status_code == 200
     data = r.json()
     assert data["total"] >= 1
     assert "scenario_ids" in data["sequences"][0]
+    seq0 = data["sequences"][0]
+    assert seq0.get("meme_apprenant") is True
+    assert seq0.get("sujet")
+    prefixes = {str(c).replace(".avi", "").replace(".mp4", "")[:6] for c in seq0["clip_ids"]}
+    assert len(prefixes) == 1
 
 
 def test_analyser_fer_removed():
@@ -161,3 +183,61 @@ def test_analyser_sequence_sans_llm():
     assert data.get("n_clips", 0) >= 2
     assert len(data.get("etapes", [])) == data["n_clips"]
     assert data["etapes"][0].get("temporal") is not None
+
+
+def test_evaluation_pages():
+    assert client.get("/evaluation").status_code == 200
+    assert "L1" in client.get("/evaluation").text
+    assert client.get("/evaluation/l1").status_code == 200
+    assert client.get("/evaluation/l2").status_code == 200
+    assert client.get("/evaluation/l4").status_code == 200
+
+
+def test_evaluation_l1_post(tmp_path, monkeypatch):
+    import shutil
+    from pathlib import Path
+
+    src = Path(__file__).resolve().parents[1] / "results" / "forms"
+    dst = tmp_path / "forms"
+    dst.mkdir()
+    shutil.copy(src / "l1_mapping_reponses.csv", dst / "l1_mapping_reponses.csv")
+    monkeypatch.setenv("EMOLEARN_FORMS_DIR", str(dst))
+
+    item = {
+        "fiche_id": 1,
+        "C1_coherence": 4,
+        "C2_pertinence": 5,
+        "C3_template": 3,
+        "C4_urgence": 4,
+        "commentaire_expert": "ok",
+    }
+    r = client.post("/evaluation/l1", json={"expert_id": "Etest", "reponses": [item]})
+    assert r.status_code == 200, r.text
+    assert r.json()["n"] == 1
+    assert r.json()["expert_id"] == "Etest"
+
+
+def test_evaluation_l4_post(tmp_path, monkeypatch):
+    import shutil
+    from pathlib import Path
+
+    src = Path(__file__).resolve().parents[1] / "results" / "forms"
+    dst = tmp_path / "forms"
+    dst.mkdir()
+    shutil.copy(src / "l4_pilote_reponses.csv", dst / "l4_pilote_reponses.csv")
+    monkeypatch.setenv("EMOLEARN_FORMS_DIR", str(dst))
+
+    payload = {
+        "participant_id": 1,
+        "niveau": "L3",
+        "familiarite_mooc_1_5": 3,
+        "condition": "C2",
+        "utilite_1_7": 5,
+        "adequation_emotionnelle_1_7": 4,
+        "satisfaction_contenu_1_7": 5,
+        **{f"sus_{i}": 3 for i in range(1, 11)},
+        "q_ouvert_aide": "clair",
+    }
+    r = client.post("/evaluation/l4", json=payload)
+    assert r.status_code == 200, r.text
+    assert r.json()["sus_score"] == 50.0

@@ -1,6 +1,8 @@
 # Article IEEE — EmoLearn
 
-IEEE **conference** paper (`IEEEtran`), in **English**, targeting **6--10 pages**.
+IEEE **conference** paper (`IEEEtran`), in **English**, aligned with the
+current project state (FER+AU, WavLM, GPT-OSS 20B, acoustic pairing, tutor `/chat`).
+Target length **6--10 pages**.
 
 ## Fichiers
 

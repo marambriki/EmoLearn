@@ -1,0 +1,107 @@
+{
+  "n": 50,
+  "taux": {
+    "concordance_famille_gt_vs_runtime": 0.98,
+    "concordance_template_gt_vs_runtime": 0.82,
+    "concordance_etat_gt_vs_fusion": 0.46,
+    "famille_canonique_vs_fusion": 0.44,
+    "famille_admissible_vs_fusion": 0.56,
+    "famille_si_etat_fusion_onehot_vs_journal": 0.22
+  },
+  "cramers_v": {
+    "etat_fusion_x_famille": 0.412,
+    "famille_gt_x_famille_obs": 0.965,
+    "etat_gt_x_etat_fusion": 0.437
+  },
+  "contingence_etat_fusion_famille": {
+    "A": {
+      "Boredom": 5,
+      "Confusion": 4,
+      "Engagement": 0,
+      "Frustration": 1
+    },
+    "B": {
+      "Boredom": 2,
+      "Confusion": 0,
+      "Engagement": 3,
+      "Frustration": 3
+    },
+    "C": {
+      "Boredom": 2,
+      "Confusion": 0,
+      "Engagement": 0,
+      "Frustration": 9
+    },
+    "D": {
+      "Boredom": 3,
+      "Confusion": 2,
+      "Engagement": 6,
+      "Frustration": 10
+    }
+  },
+  "contingence_famille_gt_vs_obs": {
+    "A": {
+      "A": 10,
+      "B": 0,
+      "C": 0,
+      "D": 0
+    },
+    "B": {
+      "A": 1,
+      "B": 7,
+      "C": 0,
+      "D": 0
+    },
+    "C": {
+      "A": 0,
+      "B": 0,
+      "C": 11,
+      "D": 0
+    },
+    "D": {
+      "A": 0,
+      "B": 0,
+      "C": 0,
+      "D": 21
+    }
+  },
+  "templates_observes": {
+    "A1": 4,
+    "A2": 2,
+    "A3": 2,
+    "A5": 2,
+    "B1": 4,
+    "B2": 4,
+    "C1": 9,
+    "C2": 2,
+    "D1": 11,
+    "D2": 5,
+    "D4": 5
+  },
+  "n_patrons_distincts": 11,
+  "patrons_non_declenches": [
+    "A4",
+    "B3",
+    "B4",
+    "B5",
+    "C3",
+    "C4",
+    "C5",
+    "D3",
+    "D5"
+  ],
+  "distribution_etat_fusion": {
+    "Frustration": 23,
+    "Boredom": 12,
+    "Engagement": 9,
+    "Confusion": 6
+  },
+  "distribution_famille_observee": {
+    "D": 21,
+    "C": 11,
+    "A": 10,
+    "B": 8
+  },
+  "timestamp": "2026-09-27T20:42:57.673814+00:00",
+  "note": "Si la famille GT (cascade sur labels DAiSEE) coincide avec la famille journalisee, le referentiel de 50 scenarios documente le moteur de decision sur les scores annotes, pas la cascade appliquee a l'etat fusionne. La concordance admissible et le contre-factuel one-hot mesurent alors l'ecart entre etat detecte et type effectivement servi."
+}

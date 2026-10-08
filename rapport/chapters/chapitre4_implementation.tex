@@ -12,80 +12,79 @@
 %    \usepackage[backend=biber,style=numeric-comp,sorting=nyt,maxbibnames=99]{biblatex}
 %  Références citées dans ce chapitre (présentes dans references.bib) :
 %    hevner2004design, gupta2016daisee, busso2008iemocap, touvron2023llama,
-%    lewis2020retrieval, baevski2020wav2vec2, pedregosa2011scikit.
+%    lewis2020retrieval, chen2022wavlm, dosovitskiy2021vit,
+%    baker2010better, pedregosa2011scikit.
 %==============================================================================
 \titreduchapitre{Implémentation du prototype}{chap:implementation}
 
-\par Le chapitre précédent a défini \emph{ce que} le système doit faire : percevoir
-un état d'engagement à partir du visage et de la voix, décider s'il faut
-intervenir, puis générer un contenu pédagogique adapté. Ce chapitre expose
-\emph{comment} ces choix de conception ont été réalisés, sous les contraintes
-concrètes d'un travail de master. Nous présentons d'abord l'infrastructure
-technique et les principes d'architecture qui structurent le code
-(section~\ref{sec:infrastructure}), puis le traitement des données
-(section~\ref{sec:impl-donnees}), l'implémentation du modèle d'adaptation
-(section~\ref{sec:impl-modele}) et celle du module de génération
-(section~\ref{sec:impl-generation}). Nous décrivons enfin le prototype de
-simulation qui rend le dispositif observable (section~\ref{sec:impl-prototype}) et
-la génération du corpus de contenu adaptatif qui en constitue le livrable
-(section~\ref{sec:impl-corpus}). Conformément à la démarche de recherche orientée
-conception \cite{hevner2004design}, l'artefact logiciel n'est pas ici un simple
-support de démonstration : il est l'objet même dont les propriétés seront évaluées
-au chapitre~\ref{chap:validation}.
+%==============================================================================
+\section{Introduction}
+\label{sec:ch4-intro}
+
+Le chapitre précédent a spécifié les fonctions du système : percevoir
+un état d'engagement à partir du visage et de la voix, décider d'une
+éventuelle intervention, puis générer un contenu pédagogique adapté.
+Le présent chapitre en décrit la réalisation logicielle.
+
+Après l'infrastructure et la préparation des données
+(\textsc{DAiSEE}, \textsc{IEMOCAP}, cinquante scénarios, dix
+séquences), les trois couches --- perception, décision, génération ---
+sont implémentées et reliées par l'algorithme~\ref{alg:pipeline-global}.
+L'interface de simulation rend cette chaîne observable. Un corpus de
+220 contenus, audité et documenté, clôt le chapitre.
+Conformément à la recherche orientée conception \cite{hevner2004design},
+l'artefact logiciel constitue l'objet d'étude.
+
+
 
 %==============================================================================
 \section{Infrastructure technique}
 \label{sec:infrastructure}
 
-Quatre contraintes ont orienté les choix techniques exposés dans cette section. Le
-système a été développé et exécuté sur une machine de travail ordinaire,
-\textbf{sans accélérateur graphique dédié} : toute inférence s'effectue sur
-processeur, ce qui exclut l'entraînement de réseaux profonds de bout en bout. Le
-prototype devait fonctionner \textbf{sans budget d'infrastructure}, d'où le recours
-à des bibliothèques libres exécutées localement et à l'offre gratuite d'un service
-de génération distant. Les résultats du chapitre~\ref{chap:validation} devant être
-\textbf{reproductibles}, les modèles entraînés, corpus dérivés et métriques sont
-des fichiers déposés à des emplacements fixes et tout tirage aléatoire est
-initialisé par une graine explicite. Enfin, l'exigence de \textbf{transparence}
-posée au chapitre~\ref{chap:conception} impose que chaque étape laisse une trace
-lisible plutôt qu'un simple résultat final.
+Cette section décrit la pile logicielle et l'organisation du prototype.
 
 \subsection{Stack technologique}
 \label{subsec:stack}
 
-Le prototype n'emploie que deux langages. \textsc{Python}~3.11 couvre
-l'intégralité du serveur applicatif \emph{et} des scripts hors ligne (entraînement,
-évaluation, construction de corpus) : ce choix garantit que les modules de
-perception, de fusion et de décision utilisés par l'interface sont littéralement
-les mêmes objets que ceux exécutés par les scripts de validation, et non des
-réimplémentations. \textsc{JavaScript} (\textsc{React}) couvre l'interface cliente.
-Le tableau~\ref{tab:stack-outils} récapitule la pile retenue, couche par couche.
+Le serveur et les scripts hors ligne (entraînement, évaluation,
+construction de corpus) sont écrits en \textsc{Python}~3.11.
+L'interface et la validation appellent les mêmes modules de
+perception, de fusion et de décision. L'interface cliente est en
+\textsc{JavaScript} (\textsc{React}).
+Le tableau~\ref{tab:stack-outils} présente la pile retenue, couche par couche.
 
-\begin{table}[H]
-\centering
-\small
-\renewcommand{\arraystretch}{1.15}
-\begin{tabular}{|>{\bfseries}l|>{\raggedright\arraybackslash}p{4.3cm}|>{\raggedright\arraybackslash}p{6.1cm}|}
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\bfseries}l|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
 \hline
 \rowcolor{gray!20}
 Couche & Technologies & Rôle dans le prototype \\
 \hline
+\endfirsthead
+\hline
+\rowcolor{gray!20}
+Couche & Technologies & Rôle dans le prototype \\
+\hline
+\endhead
+\endfoot
+\endlastfoot
 Exécution & Python 3.11 &
 Langage unique du serveur et des scripts hors ligne. \\
 \hline
 Service web & FastAPI, Uvicorn, Pydantic &
 Exposition de l'API REST/JSON et validation des requêtes. \\
 \hline
-Vision & OpenCV, Transformers, PyTorch &
-Décodage des clips, détection du visage, classification des expressions. \\
+Vision & OpenCV, MediaPipe, Transformers, PyTorch &
+Décodage des clips, détection BlazeFace, FER (ViT) et Action Units. \\
 \hline
-Audio & librosa, soundfile, Transformers &
-Lecture du signal, extraction du segment annoté, reconnaissance vocale. \\
+Audio & librosa, soundfile, Transformers (WavLM) &
+Lecture du signal, index acoustique, reconnaissance vocale. \\
 \hline
-Apprentissage & scikit-learn \cite{pedregosa2011scikit}, joblib &
-Mapping appris visage $\rightarrow$ engagement et sérialisation des modèles. \\
+Apprentissage & scikit-learn \cite{pedregosa2011scikit}, joblib, PyTorch &
+Classifieur FER+AU, fine-tuning WavLM et sérialisation des modèles. \\
 \hline
-Génération & SDK Groq, \textsc{LLaMA}~3.1 \cite{touvron2023llama,dubey2024llama3} &
+Génération & SDK Groq, \textsc{GPT-OSS}~20B &
 Production du contenu pédagogique adaptatif. \\
 \hline
 Récupération & ChromaDB, sentence-transformers (\textsc{MiniLM}) \cite{wang2020minilm} &
@@ -96,181 +95,291 @@ Persistance & SQLite, fichiers JSONL et CSV &
 Sessions, journal des décisions, référentiels de scénarios. \\
 \hline
 Client et tests & React~19, jsPDF, pytest, React Testing Library &
-Interface de simulation, export du contenu, tests unitaires et d'API. \\
+Interface clip / séquence, lecteurs multimédias, export PDF, tests. \\
 \hline
-\end{tabular}
-\caption{Pile technologique du prototype \emolearn{}, par couche fonctionnelle.}
+\end{xltabular}
+\xlcaption{Pile technologique du prototype.}
 \label{tab:stack-outils}
-\end{table}
+}
 
-\paragraph{Réutilisation de modèles pré-entraînés.} La contrainte matérielle a une
-conséquence directe sur la perception : aucun réseau profond n'est entraîné depuis
-l'initialisation. Des modèles publics sont mobilisés tels quels et seule la
-\emph{dernière articulation} est apprise localement — celle qui relie leurs sorties
-à la taxonomie d'engagement de \textsc{DAiSEE} \cite{gupta2016daisee}. Le visage
-est traité par une cascade de détection OpenCV puis par un classifieur
-d'expressions \textsc{Hugging Face} \cite{wolf2020transformers} à sept émotions, tous deux \textbf{gelés}, dont
-le vecteur de scores alimente le mapping appris (section~\ref{sec:impl-modele}) ;
-la voix repose sur un modèle \emph{wav2vec2} spécialisé en émotions
-\cite{baevski2020wav2vec2} dont l'encodeur est gelé et la seule tête de
-classification \textbf{ré-entraînée} vers les quatre états \textsc{DAiSEE} à partir
-d'\textsc{IEMOCAP} \cite{busso2008iemocap} ; le RAG vectorise ses documents avec un
-encodeur multilingue de phrases ; la génération est confiée à un modèle de langue
-distant, sans réglage fin, avec une température basse et un budget de sortie borné.
 
-\paragraph{Conséquences de l'exécution sur processeur.} Travailler sans
-accélérateur impose des arbitrages explicites. L'analyse faciale d'un clip
-n'examine pas toutes ses images mais un \textbf{échantillon de cinq images}
-réparties sur sa durée : en deçà, l'estimation devient sensible à une image mal
-cadrée ; au-delà, le coût croît linéairement sans gain observé. La génération de
-texte est déportée vers un service distant, ce qui évite d'héberger localement un
-modèle de plusieurs milliards de paramètres, et les modèles lourds ne sont chargés
-qu'à leur première sollicitation effective. Les dépendances sont figées dans un
-fichier de spécification unique, l'unique secret — la clé d'accès au service de
-génération — est lu depuis un fichier d'environnement non versionné, et les
-emplacements sont normalisés : \texttt{data/} (corpus et référentiels),
-\texttt{models/} (modèles entraînés), \texttt{results/} (métriques),
-\texttt{logs/} (journaux).
+Les modèles de perception sont publics, seule la dernière
+articulation, qui relie leurs sorties à la taxonomie \textsc{DAiSEE},
+est apprise localement. L'analyse faciale d'un clip porte sur cinq
+images réparties sur sa durée, compromis de coût sur processeur.
+La voix s'appuie sur un encodeur WavLM dont la tête est fine-tunée
+vers les quatre états. La génération est confiée à un modèle distant,
+chargé à la première sollicitation, à température basse et budget de
+sortie borné.
+
+Les dépendances sont figées dans un fichier de spécification unique.
+La clé d'accès au service de génération est lue depuis un fichier
+d'environnement non versionné. 
 
 \subsection{Choix d'architecture}
 \label{subsec:choix-archi}
 
-L'architecture fonctionnelle en trois couches a été posée au
-chapitre~\ref{chap:conception}. Il s'agit ici de la traduire en une organisation
-logicielle, c'est-à-dire de répondre à des questions d'un autre ordre : quels
-processus s'exécutent, comment le code est découpé, où sont stockés les artefacts,
-et que se passe-t-il lorsqu'un composant est indisponible
-(figure~\ref{fig:archi-technique}).
+L'architecture fonctionnelle du chapitre~\ref{chap:conception} se
+réalise ici en un processus d'exécution, un découpage de modules et
+des modes dégradés.
+La figure~\ref{fig:archi-technique} présente l'architecture technique
+du prototype.
 
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-  font=\footnotesize,
-  box/.style={rectangle, rounded corners, draw=black, thick, align=center,
-              text width=3.9cm, minimum height=1.0cm, fill=white},
-  ext/.style={rectangle, rounded corners, draw=black, thick, align=center,
-              text width=3.0cm, minimum height=1.0cm, fill=black!8},
-  store/.style={rectangle, draw=black!60, dashed, align=center,
-                text width=10.6cm, minimum height=0.9cm},
-  arr/.style={-{Stealth[length=2.6mm]}, thick},
-  barr/.style={{Stealth[length=2.6mm]}-{Stealth[length=2.6mm]}, thick}
+  font=\footnotesize\bfseries,
+  inner sep=3pt,
+  io/.style={rectangle, rounded corners, draw=black!55, dashed, thick,
+             align=center, text width=4.3cm, minimum height=0.92cm,
+             fill=black!3},
+  mid/.style={rectangle, rounded corners, draw=black!70, thick,
+              align=center, text width=4.3cm, minimum height=0.92cm,
+              fill=white},
+  perc/.style={rectangle, rounded corners, draw=blue!55, thick,
+               align=center, text width=3.45cm, minimum height=1.15cm,
+               fill=blue!10},
+  dec/.style={rectangle, rounded corners, draw=green!50!blue!70, thick,
+              align=center, text width=3.45cm, minimum height=1.15cm,
+              fill=green!8!cyan!12},
+  gen/.style={rectangle, rounded corners, draw=orange!70, thick,
+              align=center, text width=3.45cm, minimum height=1.15cm,
+              fill=yellow!18},
+  ext/.style={rectangle, rounded corners, draw=black!55, thick,
+              align=center, text width=2.25cm, minimum height=1.15cm,
+              fill=black!6},
+  store/.style={rectangle, draw=black!50, dashed, thick, align=center,
+                text width=12.6cm, minimum height=0.70cm, fill=black!3},
+  arr/.style={-{Stealth[length=2.4mm, width=1.9mm]}, line width=0.9pt,
+              draw=black!62, shorten >=1.2pt, shorten <=0.6pt},
+  barr/.style={{Stealth[length=2.4mm, width=1.9mm]}-{Stealth[length=2.4mm, width=1.9mm]},
+               line width=0.9pt, draw=black!62, shorten >=1.2pt, shorten <=1.2pt}
 ]
-\node[box] (ui) {Navigateur\\interface React};
-\node[box, below=1.0cm of ui] (api)
-  {Serveur Uvicorn\\API FastAPI (JSON)};
-\node[box, below=0.9cm of api] (pipe)
-  {Orchestrateur \texttt{pipeline}\\(analyse d'un clip)};
-\node[box, below=0.95cm of pipe, xshift=-5.0cm] (perc)
-  {Perception\\FER · SER · fusion};
-\node[box, right=0.5cm of perc] (gen)
-  {Décision\\et génération};
-\node[ext, right=1.2cm of gen] (groq) {Service LLM\\distant (Groq)};
-\node[store, below=3.0cm of pipe] (art)
-  {Artefacts locaux : \texttt{data/} (corpus, scénarios) ·
-   \texttt{models/} (FER, SER) · \texttt{data/rag\_db/} (base vectorielle) ·
-   \texttt{emolearn.db} (sessions) · \texttt{logs/decisions.jsonl} (journal)};
+\node[io] (ui) at (0,5.85) {Navigateur\\interface React};
+\node[mid] (api) at (0,4.35) {API FastAPI\\clip et séquence};
+\node[mid] (pipe) at (0,2.85) {Orchestrateur};
+\node[perc] (perc) at (-3.90,0.55) {Perception\\FER+AU · WavLM\\fusion};
+\node[dec] (dec) at (0,0.55) {Décision\\type · patron\\urgence};
+\node[gen] (gen) at (3.90,0.55) {Génération\\prompt · RAG};
+\node[ext] (groq) at (7.05,0.55) {LLM distant\\Groq};
+\node[store] (art) at (0,-1.15)
+  {Artefacts : corpus, modèles, base vectorielle, sessions, journal};
 
-\draw[barr] (ui) -- node[right, xshift=1mm] {HTTP / JSON} (api);
+\draw[barr] (ui) -- node[right, font=\scriptsize\bfseries, xshift=2pt]
+  {HTTP / JSON} (api);
 \draw[arr] (api) -- (pipe);
-\draw[arr] (pipe) -- (perc);
-\draw[arr] (pipe) -- (gen);
-\draw[barr] (gen) -- (groq);
-\draw[barr] (perc) -- (art);
-\draw[barr] (gen) -- (art);
+\draw[arr] (pipe.south) -- ++(0,-0.38) coordinate (split) -- (dec.north);
+\draw[arr, rounded corners=3pt] (split) -| (perc.north);
+\draw[arr, rounded corners=3pt] (split) -| (gen.north);
+\draw[arr] (gen) -- (groq);
+\draw[arr] (perc.south) -- (perc.south |- art.north);
+\draw[arr] (dec.south) -- (art.north);
+\draw[arr] (gen.south) -- (gen.south |- art.north);
 \end{tikzpicture}
-\caption{Vue technique du prototype : un client web, un processus serveur unique,
-un service de génération distant et des artefacts persistants locaux (en
-pointillés).}
+\caption{Architecture technique du prototype.}
 \label{fig:archi-technique}
 \end{figure}
 
-\paragraph{Client--serveur et découpage par responsabilité.} Le client et le
-serveur sont deux applications distinctes communiquant par des échanges JSON sur
-HTTP, et l'API ne conserve \textbf{aucune session en mémoire} : chaque requête
-porte son contexte complet (scénario, concept, module, niveau de l'apprenant,
-moment du cours) et l'historique nécessaire aux règles temporelles est relu depuis
-la couche de persistance. Le serveur peut ainsi être redémarré sans perdre les
-parcours simulés, et une analyse peut être rejouée depuis un script sans passer par
-l'interface. Le code lui-même n'est pas organisé par couche technique mais par
-\emph{responsabilité scientifique}, chaque module étant autonome, testable
-isolément et substituable : la perception réunit la résolution et le décodage des
-clips (\texttt{daisee\_video}), la chaîne faciale (\texttt{fer\_offline},
-\texttt{fer\_classifier}, \texttt{fer\_module}), la chaîne vocale
-(\texttt{iemocap\_parser}, \texttt{iemocap\_audio}, \texttt{ser\_module}) et la
-combinaison des modalités (\texttt{fusion\_module}) ; la décision repose sur
-\texttt{temporal\_rules} et \texttt{decision\_engine} ; la génération sur
-\texttt{prompts/templates}, \texttt{rag\_module}, \texttt{llm\_module} et
-\texttt{chat\_module} ; l'infrastructure sur \texttt{pipeline} (orchestration et
-journalisation), \texttt{database} (sessions) et \texttt{main} (points d'entrée de
-l'API).
+Le client et le serveur sont deux applications distinctes, reliées
+par des échanges JSON sur HTTP. L'API est sans état : chaque requête
+porte le contexte pédagogique (scénario, concept, module, niveau,
+moment du cours), et l'historique des règles temporelles est relu
+depuis la persistance. Un redémarrage conserve les parcours, un
+script rejoue une analyse sans passer par l'interface. Deux points
+d'entrée sont exposés : le clip isolé et la séquence.
 
-\paragraph{Un orchestrateur unique, partagé avec le banc d'essai.} La séquence
-complète d'analyse d'un clip est écrite \emph{une seule fois}, dans le module
-d'orchestration : l'API n'y ajoute que la validation de la requête et la mise en
-forme de la réponse. Les scripts hors ligne — évaluation de la perception faciale,
-construction du sous-corpus audiovisuel aligné, analyse de sensibilité — importent
-les \emph{mêmes} modules de perception et de fusion. Ce point conditionne la
-validité du chapitre~\ref{chap:validation} : aucun écart de code ne peut
-s'installer entre le système mesuré et le système utilisé.
+De cette séparation suit un découpage par responsabilité
+scientifique. Perception, fusion, décision, génération et
+orchestration occupent chacune un module.
+La chaîne d'un clip est écrite une seule fois dans l'orchestrateur, 
+l'API valide la requête et met en forme la réponse. Les scripts hors
+ligne (évaluation faciale, sous-corpus aligné, sensibilité)
+importent les mêmes modules : l'interface et le banc d'essai
+exécutent donc la même chaîne.
 
-\paragraph{Commutation des variantes par configuration.} Le
-chapitre~\ref{chap:conception} a conservé, pour chaque modalité, une référence
-explicable et une variante apprise, ainsi que deux stratégies de résolution de
-conflit. Pour que ces alternatives restent comparables, elles sont sélectionnables
-par variables d'environnement, sans modification du code :
-\texttt{EMOLEARN\_\allowbreak FER\_\allowbreak MAPPING} (\emph{auto} par défaut,
-\emph{learned} ou \emph{heuristique}, le mode \emph{auto} ne retenant le modèle
-appris que s'il dépasse la référence sur les deux métriques de contrôle),
-\texttt{EMOLEARN\_\allowbreak SER\_\allowbreak METHODE} (\emph{learned} ou
-\emph{heuristique}) et \texttt{EMOLEARN\_\allowbreak FUSION\_\allowbreak
-STRATEGIE} (\emph{priorité pédagogique} ou \emph{confiance}). Les conditions expérimentales du
-chapitre~\ref{chap:validation} sont donc des combinaisons de ces variables, et
-chaque mesure est rejouable par une commande explicite.
+Pour chaque modalité, une référence explicable et une variante
+apprise sont retenues. Ces alternatives
+restent comparables parce qu'elles sont sélectionnées par variables
+d'environnement. La fusion est unique : le vote pondéré par
+incertitude. La priorité pédagogique n'intervient que lorsque les
+deux confiances sont nulles.
+Le tableau~\ref{tab:config-variantes} présente la commutation des
+variantes de perception.
 
-\paragraph{Robustesse d'exécution.} Plusieurs ressources de la chaîne peuvent faire
-défaut au moment de l'exécution. Plutôt que d'interrompre le traitement,
-l'implémentation
-prévoit un repli à chaque point de fragilité : un modèle appris absent ramène au
-mapping heuristique de référence, un échec de la récupération documentaire laisse
-la génération se poursuivre sans ancrage, une limite de débit du service distant
-déclenche des tentatives espacées et l'absence de modalité vocale conduit à une
-décision unimodale. Le principe commun est qu'une dégradation
-n'est jamais silencieuse : elle est déclarée dans la réponse et dans le journal,
-faute de quoi une performance mesurée pourrait être attribuée à une configuration
-qui n'était pas celle réellement exécutée.
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|c|}
+\hline
+\rowcolor{gray!20}
+\textbf{Réglage} & \textbf{Valeurs} & \textbf{Défaut} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{gray!20}
+\textbf{Réglage} & \textbf{Valeurs} & \textbf{Défaut} \\
+\hline
+\endhead
+\endfoot
+\endlastfoot
+Mapping facial & auto, appris, heuristique & auto \\
+\hline
+Mode facial & fine-tuné, pré-entraîné, auto & fine-tuné \\
+\hline
+Méthode vocale & apprise, heuristique & apprise \\
+\hline
+Hybride vocal & actif (WavLM DAiSEE + ancre IEMOCAP), inactif & actif \\
+\hline
+\end{xltabular}
+\xlcaption{Commutation des variantes de perception.}
+\label{tab:config-variantes}
+} 
 
-\paragraph{Traçabilité, apprentissage hors ligne et périmètre assumé.} La
-persistance distingue deux besoins : un \textbf{journal de décision}, en ajout
-seul, enregistre pour chaque clip l'état fusionné, le type de conflit, le patron
-retenu et les indicateurs de génération — c'est la matière première des analyses du
-chapitre~\ref{chap:validation} — tandis qu'une \textbf{base de sessions} conserve le
-déroulé pédagogique consultable dans l'interface. L'entraînement, lui, reste
-\textbf{hors du serveur} : les scripts d'apprentissage produisent des artefacts sur
-disque que les modules de perception se contentent de charger, si bien qu'un modèle
-ne peut pas changer silencieusement entre deux exécutions. Cette infrastructure
-demeure toutefois celle d'un \textbf{prototype de simulation} : base mono-fichier
-adaptée à un utilisateur unique, absence d'authentification et de cloisonnement des
-accès, aucune conteneurisation. Ces limites correspondent au périmètre de recherche
-défini au chapitre~\ref{chap:introduction} et sont discutées au
-chapitre~\ref{chap:conclusion} ; ce qui devait être solide ici n'est pas
-l'exploitabilité industrielle, mais la reproductibilité et la traçabilité de la
+Lorsqu'une ressource manque, le traitement se poursuit en mode
+dégradé : mapping heuristique si le modèle appris est absent,
+génération sans ancrage si le RAG échoue, tentatives espacées si le
+service distant est limité, décision unimodale si la voix manque.
+Chaque dégradation est déclarée dans la réponse et le journal, afin
+que la configuration mesurée soit celle réellement exécutée.
+
+Deux stocks persistent. Le journal de décision, en ajout seul,
+conserve pour chaque clip l'état fusionné, le type de conflit, le
+patron et les indicateurs de génération : c'est la matière du
+chapitre~\ref{chap:validation}. La base de sessions conserve le
+déroulé pédagogique de l'interface. Les modèles sont produits hors
+serveur par des scripts d'apprentissage, puis chargés depuis le
+disque.
+
+Cette organisation reste celle d'un prototype de simulation, au
+périmètre fixé au chapitre~\ref{chap:introduction} : utilisateur
+unique, persistance mono-fichier, service de génération distant.
+L'exigence retenue est la reproductibilité et la traçabilité de la
 chaîne scientifique.
 
 %==============================================================================
 \section{Traitement et préparation des données}
 \label{sec:impl-donnees}
 
-Le chapitre~\ref{chap:conception} a justifié le recours à deux corpus
-complémentaires : \textsc{DAiSEE} \cite{gupta2016daisee} fournit le signal facial
-annoté en états d'engagement, \textsc{IEMOCAP} \cite{busso2008iemocap} fournit le
-signal vocal annoté en émotions. Aucun des deux n'est utilisable en l'état par le
-système : le premier est distribué comme une arborescence de clips vidéo
-accompagnée de fichiers d'annotation, le second comme une collection de dialogues
-continus dont les segments pertinents doivent être localisés. Cette section décrit
-les traitements qui transforment ces deux ressources brutes en artefacts
-exploitables — un référentiel de scénarios, un index d'énoncés vocaux et des jeux de
-données d'entraînement — ainsi que le découpage temporel retenu pour la simulation
-(figure~\ref{fig:pipeline-donnees}).
+Cette section décrit la préparation des deux corpus : leur
+caractérisation, l'extraction, le référentiel de scénarios, l'index
+d'énoncés et le découpage temporel.
+
+\subsection{Caractérisation de \textsc{DAiSEE}}
+\label{subsec:daisee-eda}
+
+L'analyse des annotations révèle un
+déséquilibre de classes marqué, caractéristique documentée de
+\textsc{DAiSEE}. L'engagement est largement dominant (niveaux 2 ou 3),
+tandis que la confusion et la frustration intenses sont rares. Deux conséquences en découlent : les
+états critiques, pourtant les plus importants pédagogiquement, sont
+sous-représentés, maximiser l'exactitude globale tendrait à
+privilégier la classe majoritaire.
+La figure~\ref{fig:distribution} présente la distribution des états \textsc{DAiSEE} sur les 8\,571 clips annotés.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/daisee_distribution.png}
+\caption{Distribution des états \textsc{DAiSEE}.}
+\label{fig:distribution}
+\end{figure}
+
+L'engagement varie en sens inverse de l'ennui : un clip très engagé
+est rarement très ennuyé. Confusion et frustration tendent à
+coexister : un blocage s'accompagne souvent d'une désorientation.
+Cette co-occurrence motive les types composites A+D et D+A.
+L'état dominant classe ensuite les extraits.
+
+Un sous-ensemble de scénarios (clip isolé) et de parcours (plusieurs
+clips) couvre les situations fréquentes et les situations rares mais
+critiques. Il alimente le prototype.
+
+Un pattern qualifie la situation globale d'un clip ou d'une séquence
+et oriente le patron de génération.
+Le tableau~\ref{tab:patterns} présente les patterns pédagogiques
+\textsc{DAiSEE}.
+
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\bfseries}l|X|}
+\hline
+\rowcolor{gray!20}
+Pattern & Condition (scores DAiSEE) \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{gray!20}
+Pattern & Condition (scores DAiSEE) \\
+\hline
+\endhead
+\endfoot
+\endlastfoot
+critique          & Au moins trois états simultanément $\geq 2$ (situation cumulée). \\
+\hline
+engagement\_faible & Engagement $\leq 1$, sans confusion ni frustration marquées. \\
+\hline
+confusion         & État dominant = Confusion. \\
+\hline
+ennui\_eleve       & État dominant = Ennui. \\
+\hline
+frustration       & État dominant = Frustration. \\
+\hline
+stable            & Engagement dominant, situation acceptable. \\
+\hline
+\end{xltabular}
+\xlcaption{Patterns pédagogiques \textsc{DAiSEE}.}
+\label{tab:patterns}
+}
+
+\subsection{Caractérisation de \textsc{IEMOCAP}}
+\label{subsec:iemocap-dist}
+\label{subsec:iemocap-eda}
+
+Le corpus parsé comprend 10\,039 énoncés, répartis en 151
+dialogues (4\,784 improvisés, 5\,255 scriptés), chacun associé à un
+fichier audio. La durée moyenne d'un énoncé est de $4{,}46$~s
+(médiane $3{,}52$~s, maximum $34$~s), plus courte et plus variable
+que les clips \textsc{DAiSEE}, calibrés à dix secondes.
+
+L'étiquette la plus fréquente est la classe indéterminée
+\texttt{xxx} (2\,507 énoncés, un quart du corpus). Suivent la
+frustration (\texttt{fru}, 1\,849) et le neutre (\texttt{neu},
+1\,708). Colère, tristesse et excitation occupent chacune environ
+1\,100 énoncés, la joie en compte 595. Surprise, peur, dégoût et
+résidu \texttt{oth} sont marginaux (\texttt{dis} : deux
+occurrences). Les classes rares (\texttt{sur}, \texttt{fea}) sont
+trop peu nombreuses pour porter seules un état pédagogique, la
+masse de \texttt{xxx} oriente le défaut de la table de projection.
+
+La figure~\ref{fig:iemocap-distribution} présente la distribution des
+émotions \textsc{IEMOCAP}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/iemocap_distribution.png}
+\caption{Distribution des émotions \textsc{IEMOCAP}.}
+\label{fig:iemocap-distribution}
+\end{figure}
+
+Les cinq sessions sont comparables en volume (1\,811 à 2\,170
+énoncés), de même que les tours féminins et masculins
+(4\,800 / 5\,239). Les énoncés relèvent d'une parole de
+laboratoire, filmée en dyade.
+
+Les moyennes VAD valent $2{,}78$ (valence), $3{,}09$ (activation)
+et $3{,}19$ (dominance). L'activation distingue trois régimes :
+faible stimulation (\texttt{neu}, \texttt{xxx}, \texttt{sad} :
+$2{,}84$ une fois regroupées), joie ou excitation ($3{,}41$),
+colère ou frustration ($3{,}35$). L'appariement vocal retient donc
+l'étiquette discrète et ce profil dimensionnel.
+
+Le vocabulaire natif ignore l'ennui, dégoût, surprise et peur y
+restent marginaux. La projection déjà posée relie ces étiquettes
+aux quatre états \textsc{DAiSEE}.
+
+Ces observations orientent les traitements qui suivent.
+La figure~\ref{fig:pipeline-donnees} présente la chaîne de
+préparation des données.
 
 \begin{figure}[H]
 \centering
@@ -288,13 +397,13 @@ données d'entraînement — ainsi que le découpage temporel retenu pour la sim
 \node[src, below=0.6cm of dlab] (dvid) {\textsc{DAiSEE}\\clips vidéo};
 \node[src, below=0.95cm of dvid] (iemo) {\textsc{IEMOCAP}\\dialogues};
 
-\node[op, right=1.0cm of dlab] (split) {Rééchantillonnage\\70 / 15 / 15};
+\node[op, right=1.0cm of dlab] (split) {Partage\\70 / 15 / 15};
 \node[op, right=1.0cm of dvid] (faces) {Détection du visage\\5 images par clip};
 \node[op, right=1.0cm of iemo] (parse) {Analyse des fichiers\\d'annotation};
 
-\node[res, right=1.0cm of split] (scen) {\texttt{scenarios\_50.csv}\\50 séquences};
+\node[res, right=1.0cm of split] (scen) {Référentiel\\50 scénarios};
 \node[res, right=1.0cm of faces] (feat) {Cache de traits FER\\(entraînement)};
-\node[res, right=1.0cm of parse] (utt) {\texttt{iemocap\_parsed.csv}\\10\,039 énoncés};
+\node[res, right=1.0cm of parse] (utt) {Table d'énoncés\\+ index acoustique};
 
 \draw[arr] (dlab) -- (split);
 \draw[arr] (dvid) -- (faces);
@@ -303,213 +412,119 @@ données d'entraînement — ainsi que le découpage temporel retenu pour la sim
 \draw[arr] (faces) -- (feat);
 \draw[arr] (parse) -- (utt);
 \end{tikzpicture}
-\caption{Chaîne de préparation des données : les deux corpus sources (à gauche)
-sont transformés hors ligne en trois artefacts versionnés (à droite), qui
-alimentent ensuite l'entraînement et la simulation.}
+\caption{Chaîne de préparation des données.}
 \label{fig:pipeline-donnees}
 \end{figure}
 
 \subsection{Extraction et nettoyage du dataset DAiSEE}
 \label{subsec:impl-daisee}
 
-\paragraph{Reconstitution d'un référentiel unique.} Les annotations de
-\textsc{DAiSEE} sont fournies en trois fichiers correspondant au découpage
-d'origine des auteurs (5\,358 clips d'apprentissage, 1\,429 de validation et
-1\,784 de test, soit 8\,571 clips annotés). Chaque ligne associe un identifiant de
-clip à quatre entiers compris entre 0 et 3 pour l'ennui, l'engagement, la confusion
-et la frustration. Les trois fichiers ont été concaténés puis redécoupés en un
-partage \textbf{70 / 15 / 15} — 5\,999 clips de conception, 1\,285 de validation et
-1\,287 de test — après un mélange initialisé par la graine 42. Ce redécoupage
-répond à une exigence méthodologique : le sous-ensemble servant à concevoir les
-règles et à choisir les scénarios doit être disjoint de celui qui servira à mesurer
-les performances au chapitre~\ref{chap:validation}. Les noms de colonnes sont
-normalisés à la lecture, car les fichiers d'origine contiennent des espaces
-parasites qui font échouer un accès direct par nom.
+Cette sous-section décrit le partage des annotations et la résolution
+des clips vidéo.
 
-\paragraph{Résolution des clips vers les fichiers vidéo.} L'arborescence des vidéos
-suit une structure à trois niveaux (partition, sujet, clip) et mélange deux
-formats de conteneur. Plutôt que de reconstruire un chemin à chaque appel, le
-module de résolution construit \emph{une seule fois} un index en mémoire associant
-chaque nom de fichier à son chemin absolu, puis tolère l'absence d'extension dans
-l'identifiant en essayant successivement les deux formats connus. Cette
-indexation initiale rend le coût de résolution négligeable et, surtout, rend
-explicite le cas d'un clip annoté dont la vidéo est absente du disque : la
-situation est retournée comme un état d'erreur nommé plutôt que comme une
-exception.
+Les trois fichiers officiels (5\,358 / 1\,429 / 1\,784, soit
+8\,571 clips) sont concaténés, puis redécoupés selon un partage
+70 / 15 / 15: 5\,999 clips de conception, 1\,285 de
+validation et 1\,287 de test. Les noms de colonnes sont normalisés à
+la lecture.
 
-\paragraph{Extraction des régions de visage.} La perception faciale ne travaille
-pas sur l'image entière mais sur la région du visage, isolée par
-MediaPipe Face Detector (BlazeFace). L'implémentation enchaîne trois
-tentatives --- courte portée, puis longue portée, puis image miroir --- et
-retient la boîte de plus grande aire, la méthode effectivement employée
-étant conservée dans la trace. Ce dispositif répond à une caractéristique
-du corpus : les apprenants filmés en situation d'ennui ou de distraction
-détournent fréquemment la tête, et une détection frontale seule échouerait
-précisément sur les cas pédagogiquement les plus intéressants. Le
-tableau~\ref{tab:params-extraction} rassemble les paramètres retenus.
+L'arborescence vidéo (partition, sujet, clip) mélange deux formats de
+conteneur. Un index en mémoire associe chaque nom de fichier à son
+chemin absolu, l'identifiant sans extension est résolu en essayant
+les deux formats. Un clip annoté dont la vidéo est absente produit un
+code d'erreur nommé.
 
-\begin{table}[H]
-\centering
-\small
-\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{|>{\raggedright\arraybackslash}p{4.6cm}|>{\raggedright\arraybackslash}p{2.5cm}|>{\raggedright\arraybackslash}p{5.8cm}|}
-\hline
-\rowcolor{gray!20}
-\textbf{Opération} & \textbf{Valeur} & \textbf{Motif du réglage} \\
-\hline
-Images analysées par clip & 5 &
-Compromis entre robustesse et coût sur processeur
-(section~\ref{subsec:stack}). \\
-\hline
-Position des images & régulière, hors bords &
-Évite les premières et dernières images, souvent floues ou en transition. \\
-\hline
-Égalisation d'histogramme & non (MediaPipe) &
-BlazeFace opère sur l'image RGB ; l'égalisation Haar n'est plus requise. \\
-\hline
-Modèle court / long & BlazeFace &
-Court : webcam proche (DAiSEE) ; long : plan plus large (IEMOCAP). \\
-\hline
-Confiance minimale & 0{,}5 &
-Filtre les détections trop incertaines. \\
-\hline
-Taille minimale de visage & 40 $\times$ 40 pixels &
-Écarte les régions trop petites pour porter une expression exploitable. \\
-\hline
-Marge autour de la boîte & 30 \% &
-Conserve le front et le menton, informatifs pour l'ennui et la confusion. \\
-\hline
-\end{tabular}
-\caption{Paramètres de la chaîne d'extraction visuelle appliquée aux clips
-\textsc{DAiSEE}.}
-\label{tab:params-extraction}
-\end{table}
+L'extraction du visage, le cache FER et le classifieur FER+AU
+appartiennent à la couche de perception.
 
-\paragraph{Nettoyage et politique d'exclusion.} Le nettoyage retenu est
-\emph{déclaratif} plutôt que silencieux. Un clip est écarté du jeu d'entraînement
-dans quatre cas seulement : vidéo introuvable, vidéo illisible, vidéo sans image
-décodable, ou échec du classifieur d'expressions ; chacun de ces cas porte un code
-distinct. Aucune suppression de doublons ni filtrage sur la durée n'a été appliqué,
-les clips de \textsc{DAiSEE} étant tous calibrés à dix secondes. Aucun
-rééquilibrage artificiel des classes n'a été effectué non plus : le déséquilibre
-massif du corpus, déjà documenté au chapitre~\ref{chap:conception}
-(figure~\ref{fig:distribution}), est traité en aval par une pondération inverse des
-classes lors de l'apprentissage et par le choix d'une métrique moyennée par classe,
-ce qui préserve la distribution réelle du phénomène observé.
-
-\paragraph{Mise en cache des traits.} L'extraction des traits faciaux est
-l'opération la plus coûteuse de la chaîne : elle suppose de décoder la vidéo, de
-détecter le visage sur cinq images et d'appeler le réseau de classification. Pour
-que l'apprentissage du mapping puis les analyses de sensibilité puissent être
-relancés sans repayer ce coût, les vecteurs de sept probabilités sont écrits une
-fois pour toutes dans un fichier de cache accompagnant chaque clip de son état
-annoté. Le cache constitué compte 1\,200 clips ; il reproduit la distribution
-déséquilibrée du corpus (885 clips d'engagement contre 42 de frustration), ce qui
-en fait aussi un artefact de documentation du problème d'apprentissage traité.
+Un clip est écarté du jeu d'entraînement dans quatre cas, chacun
+portant un code distinct : vidéo introuvable, illisible, sans image
+décodable, ou échec du classifieur. Les clips étant calibrés à dix
+secondes, ni suppression de doublons ni filtrage sur la durée n'ont
+été appliqués. Le déséquilibre des classes, déjà observé, est traité
+en aval par une pondération inverse et une métrique moyennée par
+classe.
 
 \subsection{Extraction et alignement du corpus IEMOCAP}
 \label{subsec:impl-iemocap}
 
-\paragraph{Analyse des fichiers d'annotation.} \textsc{IEMOCAP} distribue ses
-annotations sous forme de fichiers textuels par dialogue, où chaque énoncé occupe
-une ligne mêlant bornes temporelles, identifiant, étiquette émotionnelle et
-coordonnées d'activation, de valence et de dominance. Une expression régulière
-unique extrait ces sept champs et alimente une table homogène. Le résultat,
-matérialisé dans un fichier unique de \textbf{10\,039 énoncés} couvrant les cinq
-sessions, remplace définitivement la lecture des fichiers d'origine : tous les
-traitements ultérieurs — projection vers la taxonomie d'engagement, analyse de
-sensibilité, entraînement de la tête vocale — partent de cette table. La
-projection des étiquettes vers les quatre états \textsc{DAiSEE} suit la
-correspondance de référence définie au chapitre~\ref{chap:conception}
-(tableau~\ref{tab:mapping-iemocap}) ; elle est implémentée comme un dictionnaire
-isolé, ce qui a permis l'analyse de sensibilité présentée en
-section~\ref{subsec:sensibilite-mapping} par simple substitution d'une entrée.
+Les fichiers d'annotation sont lus par une expression régulière qui
+retient, pour chaque énoncé, les bornes temporelles, l'identifiant,
+l'étiquette et les coordonnées VAD. Le résultat est une table unique
+de 10\,039 lignes. La projection vers les quatre états suit le
+tableau~\ref{tab:mapping-iemocap} : elle est isolée dans un
+dictionnaire, substituable pour l'analyse de sensibilité.
 
-\paragraph{Localisation du signal vocal.} Le corpus ne fournit pas un fichier
-audio par énoncé mais un fichier par dialogue. Le chemin du dialogue est reconstruit
-à partir de l'identifiant de l'énoncé, dont le suffixe de locuteur est retiré par
-expression régulière, puis le segment annoté est chargé à la position et pour la
-durée indiquées, en monophonie et à 16~kHz — la fréquence attendue par l'encodeur
-vocal pré-entraîné. Une étape d'enrichissement a ajouté à la table le chemin
-résolu et un indicateur d'existence pour chaque énoncé, ce qui permet de vérifier
-en une lecture que la couverture audio est complète avant tout entraînement.
+Le signal audio est stocké par dialogue. Le chemin du fichier est
+reconstruit à partir de l'identifiant de l'énoncé, après retrait du
+suffixe de locuteur, le segment annoté est ensuite chargé à la
+position et pour la durée indiquées, en monophonie et à 16~kHz,
+fréquence attendue par l'encodeur vocal. Une étape d'enrichissement
+ajoute à la table le chemin résolu et un indicateur d'existence.
+Cette couverture se vérifie en une lecture, avant tout entraînement.
 
-\paragraph{Appariement voix--scénario.} \textsc{DAiSEE} et \textsc{IEMOCAP} ne
-partageant aucun sujet, l'appariement ne peut être qu'une simulation, dont le
-principe a été posé au chapitre~\ref{chap:conception}
-(section~\ref{subsec:appariement}). Son implémentation est volontairement
-minimale et déterministe : les énoncés dont l'état projeté correspond à l'état
-dominant du scénario sont regroupés, puis l'énoncé retenu est désigné par le reste
-de la division de l'identifiant du scénario par la taille du groupe. Le même
-scénario reçoit donc toujours le même énoncé, propriété indispensable pour que
-deux exécutions du banc d'essai soient comparables, et l'appariement est signalé
-comme tel dans la réponse de l'API afin qu'il ne puisse jamais être confondu avec
-une captation réellement synchrone.
+L'appariement en production applique le filtre d'état, le profil à
+douze dimensions et la similarité cosinus. Les descripteurs
+acoustiques des 10\,039 énoncés sont précalculés, côté scénario, le
+profil est approximé à partir des scores, le clip n'ayant pas de
+piste audio. Les ex-æquo sont départagés par l'identifiant du
+scénario. La réponse expose la méthode, la similarité et la taille
+du pool.
 
-\paragraph{Sous-corpus audiovisuel réellement aligné.} Pour disposer malgré tout
-d'une mesure où visage et voix proviennent de la même personne au même instant,
-un second artefact a été construit à l'intérieur d'\textsc{IEMOCAP} lui-même
-(section~\ref{subsec:option-a}). Seule la première session dispose des
-enregistrements vidéo ; ceux-ci filment deux locuteurs côte à côte dans une image
-de 720 $\times$ 480 pixels, ce qui impose de déterminer quel côté correspond au
-locuteur de l'énoncé. Le genre du locuteur, lisible dans l'identifiant, est
-comparé au genre annoncé dans le nom du dialogue, et la moitié d'image
-correspondante est découpée avant application de la même chaîne de détection de
-visage que pour \textsc{DAiSEE}. Après filtrage des énoncés trop courts et des
-étiquettes indéterminées, un échantillon équilibré de vingt énoncés par état
-constitue un sous-corpus de \textbf{80 paires audiovisuelles} sur lequel les deux
-modalités et leurs fusions seront comparées au chapitre~\ref{chap:validation}.
+Un sous-corpus audiovisuel aligné est construit pour la validation :
+80 paires, même locuteur. Seule la session~1 fournit la vidéo, les
+deux locuteurs y apparaissent côte à côte en $720 \times 480$. Le
+côté retenu compare le genre de l'identifiant à celui du nom de
+dialogue. La détection de visage est la même que pour
+\textsc{DAiSEE}. Les énoncés trop courts et les étiquettes
+indéterminées sont écartés, vingt énoncés sont retenus par état.
+Les métriques correspondantes figurent au
+chapitre~\ref{chap:validation}.
 
-\paragraph{Constitution du jeu d'entraînement vocal.} La tête de classification
-vocale est apprise sur ce même référentiel, filtré selon trois critères explicites :
-exclusion des étiquettes indéterminées, durée minimale d'une seconde et présence
-effective du fichier audio. Un tirage par classe ramène ensuite les quatre états à
-des effectifs voisins, ce qui compense la rareté de la confusion dans le corpus.
-Les segments sont recadrés ou complétés à une longueur fixe de quatre secondes,
-l'encodeur est gelé et seul le classifieur final est optimisé, sur deux époques et
-avec un partage stratifié à 80 / 20. Tous les tirages dépendent d'une graine unique,
-consignée dans le fichier de métriques produit à côté du modèle.
+L'apprentissage de la tête WavLM et le mode hybride de production
+sont décrits avec la couche de perception.
 
 \subsection{Création de scénarios d'apprentissage}
 \label{subsec:impl-scenarios}
 
-\paragraph{Du clip annoté au scénario pédagogique.} Un clip de \textsc{DAiSEE} est
-un objet perceptif : dix secondes de vidéo et quatre scores. Un \emph{scénario
-d'apprentissage} est un objet pédagogique : un état d'engagement situé dans un
-contexte de cours, auquel le système doit répondre. Le passage de l'un à l'autre
-est opéré par deux fonctions volontairement séparées. La première détermine l'état
-dominant du clip, en levant les égalités par un ordre de priorité pédagogique qui
-place la frustration avant la confusion, puis l'ennui, puis l'engagement : à scores
-égaux, c'est le besoin le plus urgent qui est retenu, jamais l'état le plus
-favorable. La seconde attribue au clip un \emph{patron}, c'est-à-dire une des six
-configurations pédagogiques définies au chapitre~\ref{chap:conception}
-(tableau~\ref{tab:patterns}), en traitant d'abord les deux cas composites — la
-situation critique où au moins trois dimensions dépassent le seuil, et
-l'engagement faible — avant de retomber sur le patron associé à l'état dominant.
+Cette sous-section décrit la constitution du référentiel de
+cinquante scénarios.
 
-\paragraph{Sélection des cinquante scénarios.} Un échantillon de cinquante clips a
-été constitué à partir du seul sous-ensemble de conception, par tirages
-indépendants et reproductibles pour chaque patron
-(tableau~\ref{tab:composition-scenarios}). Les effectifs ne sont pas
-proportionnels à la fréquence des patrons dans le corpus : ils sont
-\emph{délibérément déséquilibrés en faveur des états problématiques}. Un tirage
-proportionnel aurait produit un échantillon composé presque exclusivement de clips
-engagés, sur lesquels le système n'a par construction rien à décider ; le
-sur-échantillonnage des situations de frustration, de confusion et d'état critique
-est ce qui rend l'échantillon informatif pour évaluer la chaîne de décision. Ce
-choix est aussi une limite d'interprétation, rappelée au
-chapitre~\ref{chap:validation} : les taux mesurés sur ces cinquante scénarios ne
-sont pas des taux attendus en population.
+Deux fonctions successives attribuent à chaque clip un état
+dominant, avec son départage, puis un pattern (cas composites
+d'abord, puis état dominant, tableau~\ref{tab:patterns}). Le clip
+devient un scénario lorsqu'un contexte de cours (concept, module,
+niveau) lui est joint.
 
-\begin{table}[H]
-\centering
-\small
-\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{|>{\raggedright\arraybackslash}p{3.4cm}|>{\raggedright\arraybackslash}p{5.4cm}|c|}
+Cinquante clips sont tirés du seul sous-ensemble de conception, par
+tirages indépendants et reproductibles pour chaque patron. Les
+effectifs privilégient les états problématiques : un tirage
+proportionnel à la fréquence du corpus aurait surtout retenu des
+clips engagés, peu informatifs pour la décision. Le
+sur-échantillonnage de la frustration, de la confusion et de l'état
+critique rend l'échantillon utile pour évaluer la chaîne. Les taux
+mesurés sur ces cinquante lignes caractérisent le référentiel
+construit.
+
+Le tableau~\ref{tab:composition-scenarios} présente la composition
+du référentiel de scénarios.
+
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|c|}
 \hline
 \rowcolor{gray!20}
 \textbf{Patron} & \textbf{Critère de tirage} & \textbf{Effectif} \\
 \hline
+\endfirsthead
+\hline
+\rowcolor{gray!20}
+\textbf{Patron} & \textbf{Critère de tirage} & \textbf{Effectif} \\
+\hline
+\endhead
+\endfoot
+\endlastfoot
 Stable & engagement $\geq 2$ & 15 \\
 \hline
 Ennui élevé & ennui $\geq 2$ & 10 \\
@@ -522,247 +537,468 @@ Engagement faible & engagement $\leq 1$ & 6 \\
 \hline
 État critique & confusion $\geq 2$ \emph{et} frustration $\geq 2$ & 4 \\
 \hline
-\textbf{Total} & & \textbf{50} \\
+\textbf{Total} & & 50 \\
 \hline
-\end{tabular}
-\caption{Composition du référentiel de scénarios : critère de tirage et effectif
-par patron pédagogique.}
+\end{xltabular}
+\xlcaption{Référentiel de scénarios.}
 \label{tab:composition-scenarios}
-\end{table}
+}
 
-\paragraph{Un référentiel recalculé plutôt que figé.} Le fichier de scénarios
-conserve, outre l'identifiant du clip et ses quatre scores, le patron obtenu au
-moment du tirage. Ce patron est néanmoins \textbf{recalculé au chargement} par le
-serveur à partir des scores. Cette redondance apparente est un garde-fou : elle
-garantit qu'une modification ultérieure des règles de catégorisation se propage
-immédiatement au référentiel, au lieu de laisser cohabiter des étiquettes
-héritées d'une version antérieure du code. Un jeu de tests dédié vérifie d'ailleurs
-que, pour chacune des cinquante lignes, le patron stocké reste cohérent avec l'état
-dominant. Un second fichier dérivé associe à chaque scénario la stratégie et le
-type de contenu retenus, servant de table de référence lisible pour la discussion
-des résultats.
+
+Le fichier conserve l'identifiant du clip, ses quatre scores et le
+patron obtenu au tirage. Ce patron est recalculé au chargement à
+partir des scores, afin qu'une révision des règles se propage au
+référentiel. Un jeu de tests vérifie, pour chacune des cinquante
+lignes, la cohérence entre le patron stocké et l'état dominant. Un
+second fichier dérivé associe à chaque scénario la stratégie et le
+type de contenu retenus : c'est une table de référence pour la
+discussion des résultats.
 
 \subsection{Segmentation des sessions}
 \label{subsec:impl-segmentation}
 
-\paragraph{Trois granularités emboîtées.} La simulation manipule trois niveaux de
-découpage temporel. Le \textbf{clip} de dix secondes est l'unité de perception et
-de décision : c'est le grain auquel l'API répond et auquel une adaptation est
-éventuellement produite. La \textbf{fenêtre glissante} est l'unité d'analyse
-dynamique : les règles de déclenchement examinent les deux ou quatre derniers clips
-selon la règle considérée (section~\ref{subsec:impl-transitions}). La
-\textbf{séquence} est l'unité de parcours : dix séquences de quatre à sept clips
-ont été assemblées hors ligne à partir du référentiel, chacune portant un titre et
-un patron dominant — engagement stable, ennui progressif, frustration montante,
-confusion avec blocage, état critique multi-états. Ces séquences ne sont pas
-tirées au hasard : elles sont construites pour exposer des \emph{trajectoires}
-plutôt que des états isolés, seule manière d'observer le comportement des règles
-temporelles.
 
-\paragraph{Persistance des sessions.} Chaque adaptation effectivement produite est
-enregistrée dans la base de sessions avec l'identifiant du scénario, l'état
-détecté, son intensité, la stratégie, le type de contenu, le texte généré et un
-horodatage. Le choix d'une table plate, sans identifiant de parcours, mérite d'être
-assumé explicitement : la reconstitution d'une trajectoire s'effectue par lecture
-ordonnée des enregistrements, ce qui suffit à un prototype mono-utilisateur mais ne
-permettrait pas de distinguer plusieurs apprenants simultanés. Le journal de
-décision, lui, conserve pour chaque clip analysé les éléments nécessaires à
-l'analyse scientifique — état fusionné, type de conflit entre modalités, patron
-retenu, indicateurs de génération — sous une forme en ajout seul qui interdit la
-réécriture rétrospective d'une décision.
+
+Le clip de dix secondes est l'unité de perception et de décision :
+c'est le grain du mode isolé. La fenêtre glissante est celle des
+règles d'urgence: un clip pour
+l'urgence immédiate, deux clips consécutifs pour l'urgence rapide,
+quatre clips pour l'urgence différée. La séquence est l'unité de
+parcours.
+
+Dix séquences de cinq clips ont été assemblées hors ligne, chacune
+portant sur un même sujet \textsc{DAiSEE}. Les patrons dominants
+couvrent les six situations: deux
+parcours stables, deux d'ennui, deux de frustration, deux de
+confusion, un critique et un d'engagement faible. Lorsque le
+référentiel de cinquante clips ne suffit pas à remplir une
+trajectoire, des extraits complémentaires du même sujet la
+complètent. Le référentiel de parcours est exposé par l'API et
+analysé d'un bloc.
+
+Chaque adaptation produite est enregistrée dans une table de
+sessions : identifiant du scénario, état, intensité, stratégie, type
+de contenu, texte et horodatage. Cette table est plate, sans
+identifiant de parcours : une trajectoire se relit par ordre
+chronologique, ce qui suffit au prototype. Le journal de décision
+ajoute, pour chaque clip, l'état fusionné, le type de conflit, le
+patron et les indicateurs de génération, en écriture seule.
 
 %==============================================================================
-\section{Implémentation du modèle d'adaptation}
+\section{Implémentation de la couche de perception}
+\label{sec:impl-perception}
+
+Cette section décrit la perception faciale, la perception vocale
+et leur fusion.
+
+\subsection{Perception faciale}
+\label{subsec:impl-fer}
+
+Cette sous-section décrit comment un clip \textsc{DAiSEE} devient un
+état facial : état, intensité et distribution sur les quatre classes.
+
+L'identifiant du clip est résolu vers le fichier vidéo. Cinq images
+sont lues à intervalles réguliers, hors bords. Sur chacune, MediaPipe
+Face Detector (BlazeFace) cherche le visage en trois passes, dans cet
+ordre. La courte portée correspond au plan webcam de \textsc{DAiSEE},
+où le visage occupe une grande part de l'image. La longue portée
+correspond au plan plus large, typique d'\textsc{IEMOCAP}, où deux
+locuteurs apparaissent côte à côte. L'image miroir reprend ensuite
+ces deux détecteurs sur le retournement horizontal, afin de rattraper
+une tête tournée. Au sein d'une passe, la boîte de plus grande aire,
+d'au moins $40 \times 40$ pixels, est retenue. La première passe qui
+réussit arrête la cascade. La méthode employée (courte, longue ou
+miroir) est écrite dans la trace. Une marge de 30\,\% conserve le front et le
+menton. Si aucune boîte n'est valide, l'image entière est transmise.
+La figure~\ref{fig:fer-pipeline} présente l'architecture de la
+perception faciale.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\textwidth]{figures/emolearn_fer_pipeline.png}
+\caption{Architecture de la perception faciale.}
+\label{fig:fer-pipeline}
+\end{figure}
+
+Le tableau~\ref{tab:params-extraction} présente les paramètres
+d'extraction visuelle.
+
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+\hline
+\rowcolor{gray!20}
+\textbf{Opération} & \textbf{Valeur} & \textbf{Motif du réglage} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{gray!20}
+\textbf{Opération} & \textbf{Valeur} & \textbf{Motif du réglage} \\
+\hline
+\endhead
+\endfoot
+\endlastfoot
+Images analysées par clip & 5 &
+Compromis entre robustesse et coût sur processeur. \\
+\hline
+Position des images & régulière, hors bords &
+Évite les premières et dernières images, souvent floues ou en transition. \\
+\hline
+Égalisation d'histogramme & non (MediaPipe) &
+BlazeFace opère sur l'image RGB. \\
+\hline
+Modèle court / long & BlazeFace &
+Court : webcam proche (DAiSEE), long : plan plus large (IEMOCAP). \\
+\hline
+Confiance minimale (détection) & 0{,}5 &
+Filtre les détections trop incertaines. \\
+\hline
+Confiance minimale (frame FER) & 0{,}35 &
+Rejette les images trop hésitantes avant moyenne des probabilités. \\
+\hline
+Taille minimale de visage & 40 $\times$ 40 pixels &
+Écarte les régions trop petites pour porter une expression exploitable. \\
+\hline
+Marge autour de la boîte & 30 \% &
+Conserve le front et le menton, informatifs pour l'ennui et la confusion. \\
+\hline
+\end{xltabular}
+\xlcaption{Paramètres d'extraction visuelle.}
+\label{tab:params-extraction}
+}
+
+Chaque visage recadré passe par un classifieur d'images pré-entraîné
+à sept émotions (colère, dégoût, peur, joie, neutre, tristesse,
+surprise). Une image dont la probabilité maximale reste sous $0{,}35$
+est écartée. Les distributions restantes sont moyennées, si toutes
+tombent sous le seuil, la moyenne est reprise sans filtre.
+
+En parallèle, MediaPipe Face Landmarker lit dix proxies d'Action Units
+(sourcils, paupières, nez, sourire, commissures, mâchoire), puis les
+moyenne sur les mêmes images retenues. Les sept scores et ces dix
+unités forment un vecteur de dix-sept composantes. Un Random Forest
+appris sur ce vecteur produit l'état \textsc{DAiSEE}, une distribution
+sur les quatre classes, et une intensité
+$\hat{n}_v=\mathrm{round}(3\,\max_e \hat{P}_v(e))$, bornée à
+$\{1,2,3\}$. C'est cet état qui est transmis à la fusion.
+
+Si le modèle FER+AU est absent, le tableau~\ref{tab:fer-mapping} projette
+l'émotion dominante vers un état et un niveau. Le ViT fine-tuné vers
+les quatre états reste une variante commutable, en production, il sert de
+référence de frames, sans choisir l'état fusionné.
+
+Les vecteurs FER, et le cas échéant les Action Units, sont mis en
+cache afin de relancer l'apprentissage sans redécoder les vidéos. Le
+cache FER compte 1\,200 clips, 300 par état, le cache FER+AU en
+compte 800, 200 par état. La réponse expose l'état, l'intensité, les
+sept scores, les Action Units, le nombre d'images retenues et le code
+de la méthode effectivement employée.
+
+\subsection{Perception vocale}
+\label{subsec:impl-ser}
+
+Cette sous-section décrit comment l'énoncé \textsc{IEMOCAP}
+apparié au scénario devient un état vocal : état, intensité et
+distribution sur les quatre classes.
+
+L'appariement de la section~\ref{subsec:impl-iemocap} retient un
+énoncé d'après le filtre d'état, le profil à douze dimensions et la
+similarité cosinus. Le fichier audio est celui du dialogue. Le
+segment annoté en est lu, en monophonie, à $16$~kHz, entre les bornes
+temporelles de l'énoncé. En l'absence de fichier, ou lorsque le
+signal est trop court, l'état renvoyé est l'ennui, d'intensité~$1$,
+accompagné d'un code d'erreur.
+La figure~\ref{fig:ser-pipeline} présente l'architecture de la
+perception vocale.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\textwidth]{figures/emolearn_ser_pipeline.png}
+\caption{Architecture de la perception vocale.}
+\label{fig:ser-pipeline}
+\end{figure}
+
+Le tableau~\ref{tab:params-ser} présente les paramètres
+d'extraction vocale.
+
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+\hline
+\rowcolor{gray!20}
+\textbf{Opération} & \textbf{Valeur} & \textbf{Motif du réglage} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{gray!20}
+\textbf{Opération} & \textbf{Valeur} & \textbf{Motif du réglage} \\
+\hline
+\endhead
+\endfoot
+\endlastfoot
+Échantillonnage & $16$~kHz, mono &
+Fréquence attendue par l'encodeur WavLM. \\
+\hline
+Bornes du segment & \texttt{start\_time}, \texttt{end\_time} &
+Lecture de l'énoncé annoté dans le dialogue. \\
+\hline
+Durée minimale (apprentissage) & $1$~s &
+Écarte les énoncés trop courts pour porter une prosodie exploitable. \\
+\hline
+Étiquettes exclues & \texttt{xxx}, \texttt{oth} &
+Retire les annotations indéterminées. \\
+\hline
+Fichier audio & obligatoire &
+L'apprentissage ne retient que les énoncés dont le fichier existe. \\
+\hline
+Encodeur retenu & WavLM, tête seule, $800$ extraits &
+F-score macro de validation $0{,}434$, graine $42$. \\
+\hline
+Ancre émotionnelle & WavLM \textsc{IEMOCAP} ER, $w=0{,}22$ &
+Corrige la confusion du juge prioritaire. \\
+\hline
+Heuristique acoustique & énergie, ZCR, centroïde, $F_0$ &
+Mélange léger, ou juge unique si le modèle appris est absent. \\
+\hline
+\end{xltabular}
+\xlcaption{Paramètres d'extraction vocale.}
+\label{tab:params-ser}
+}
+
+Le segment passe par un encodeur WavLM \cite{chen2022wavlm}. Seule
+la tête est optimisée vers les quatre états \textsc{DAiSEE}. Le
+corpus d'apprentissage reprend la table parsée plus haut, après
+exclusion des étiquettes indéterminées, des énoncés trop courts et
+des fichiers audio absents. Une variante qui dégèle l'ensemble du
+réseau, mesurée sur $1\,200$ extraits, obtient un F-score macro de
+$0{,}396$. La configuration exécutée retient la tête seule
+($0{,}434$ sur $800$ extraits).
+
+En parallèle, une ancre WavLM, entraînée sur les quatre classes
+\textsc{IEMOCAP} \texttt{neu}, \texttt{hap}, \texttt{ang} et
+\texttt{sad}, relit le même segment, puis projette ses scores vers
+\textsc{DAiSEE}. Une heuristique acoustique estime, sur l'énergie, le
+taux de passages par zéro, le centroïde spectral et la fréquence
+fondamentale, une émotion du vocabulaire \textsc{IEMOCAP}, projetée
+ensuite selon le tableau~\ref{tab:heuristique-vocale}.
+
+Le mode hybride compose ces trois distributions. Le modèle fine-tuné
+reçoit le poids dominant. L'ancre reçoit un poids de $0{,}22$,
+porté plus haut lorsque ce modèle conclut à la confusion et que
+l'ancre est confiante sur l'engagement ou la frustration. Ce poids
+vaut zéro lorsque le modèle fine-tuné retient l'engagement et que
+l'ancre conclut à la frustration. L'heuristique contribue un mélange
+léger. En l'absence de modèle appris, elle fournit seule l'état.
+
+L'état $\hat{e}_a$ est la classe de probabilité maximale de la
+distribution fusionnée. L'intensité
+$\hat{n}_a=\mathrm{round}(3\,\max_e \hat{P}_a(e))$ est bornée à
+$\{1,2,3\}$. C'est ce couple qui est transmis à la fusion
+multimodale. La réponse expose l'état, l'intensité, les quatre
+scores, l'identifiant de l'énoncé, la méthode (apprise ou
+heuristique) et l'annotation de référence du corpus.
+
+\subsection{Fusion des modalités}
+\label{subsec:impl-fusion}
+
+Cette sous-section décrit comment les deux distributions, faciale et
+vocale, deviennent le couple $(\hat{e},\hat{n})$ et les scores
+$s^{(t)}$ transmis à la décision.
+
+L'orchestrateur reçoit les deux dictionnaires renvoyés par les
+modules facial et vocal. Chacun porte un état, une intensité, un
+score lu comme confiance dans $[0,1]$, et, lorsqu'elle est
+disponible, une distribution sur les quatre classes. Une modalité
+absente, ou marquée en erreur, a une confiance nulle. Une
+distribution manquante est remplacée par un pic sur l'état déclaré,
+de hauteur égale à cette confiance. Les deux classifieurs opèrent
+séparément, leurs sorties sont composées après l'observation.
+La figure~\ref{fig:fusion-pipeline} présente l'architecture de la
+fusion multimodale.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\textwidth]{figures/emolearn_fusion_pipeline.png}
+\caption{Architecture de la fusion multimodale.}
+\label{fig:fusion-pipeline}
+\end{figure}
+
+Le prior du visage $\tilde{w}_v$ vaut $0{,}60$, le visage étant le
+signal annoté par \textsc{DAiSEE}. Celui de la voix vaut
+$\tilde{w}_a=1-\tilde{w}_v$, la piste audio de production étant un
+énoncé \textsc{IEMOCAP} apparié.
+Le tableau~\ref{tab:params-fusion} présente les paramètres de la
+fusion.
+
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+\hline
+\rowcolor{gray!20}
+\textbf{Opération} & \textbf{Valeur} & \textbf{Motif du réglage} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{gray!20}
+\textbf{Opération} & \textbf{Valeur} & \textbf{Motif du réglage} \\
+\hline
+\endhead
+\endfoot
+\endlastfoot
+Prior visage $\tilde{w}_v$ & $0{,}60$ &
+Signal natif du visionnage, annoté par \textsc{DAiSEE}. \\
+\hline
+Prior voix $\tilde{w}_a$ & $0{,}40$ &
+Énoncé \textsc{IEMOCAP} apparié, hors piste native du clip. \\
+\hline
+Confiance $c_v$, $c_a$ & score de la modalité, $[0,1]$ &
+Une confiance nulle ramène le poids effectif à zéro. \\
+\hline
+Niveau fusionné $\hat{n}$ & arrondi du mélange des intensités &
+Même pondération que l'état, bornée à $\{1,2,3\}$. \\
+\hline
+Repli (confiances nulles) &
+frustration, confusion, ennui, engagement &
+Ordre de l'équation~\ref{eq:priorite}, dénominateur nul. \\
+\hline
+Scores transmis $s_e$ & $\mathrm{round}(3\,\hat{P}(e))$ &
+Échelle $0$--$3$ lue par la cascade de décision. \\
+\hline
+\end{xltabular}
+\xlcaption{Paramètres de la fusion multimodale.}
+\label{tab:params-fusion}
+}
+
+Le poids brut de chaque modalité est le produit du prior et de la
+confiance. Une distribution absente annule ce produit. Si la somme
+des poids bruts est strictement positive, elle est ramenée à
+l'unité : c'est le poids effectif $w_v^{\mathrm{eff}}$ de
+l'équation~\ref{eq:vote}. La distribution fusionnée s'écrit alors
+$\hat{P}(e)=w_v^{\mathrm{eff}}\,P_v(e)
++(1-w_v^{\mathrm{eff}})\,P_a(e)$. L'état $\hat{e}$ est la classe de
+masse maximale. L'intensité suit la même pondération,
+équation~\ref{eq:niveau}, puis l'arrondi à $\{1,2,3\}$.
+
+Lorsqu'un seul poids brut est non nul, le vote se réduit à cette
+modalité : état, intensité et distribution sont ceux du visage, ou
+ceux de la voix. Lorsque les deux poids bruts valent zéro, le
+dénominateur du vote est nul. Parmi les états déclarés encore
+lisibles, l'état retenu est celui de priorité pédagogique maximale,
+équation~\ref{eq:priorite} : frustration, confusion, ennui,
+engagement. En l'absence de tout état déclaré, l'engagement
+d'intensité~$1$ est renvoyé, avec un indicateur d'indétermination.
+
+Le journal conserve le type de désaccord (accord des états,
+désaccord, modalité unique, abstention), les poids effectifs et la
+modalité dominante, visage si $w_v^{\mathrm{eff}}\ge
+w_a^{\mathrm{eff}}$. L'état fusionné reste celui du vote. Les quatre
+probabilités $\hat{P}(e)$ sont projetées en scores
+$s_e=\mathrm{round}(3\,\hat{P}(e))$, lus ensuite par le moteur de
+décision. La comparaison entre ce vote et une fusion par résolution
+de conflit figure au chapitre~\ref{chap:validation}, sur le
+sous-corpus audiovisuel aligné.
+
+%==============================================================================
+\section{Implémentation de la couche de décision}
 \label{sec:impl-modele}
 
 Le modèle d'adaptation transforme un état perçu en une intention pédagogique. Sa
-formulation conceptuelle occupe les sections~\ref{sec:perception}
-et~\ref{sec:modele} du chapitre~\ref{chap:conception} ; il s'agit ici d'exposer
-sa traduction en code,
+formulation conceptuelle occupe le chapitre~\ref{chap:conception}, 
+il s'agit ici d'exposer sa traduction en code,
 c'est-à-dire l'ordre exact d'évaluation des règles, les seuils effectivement
-programmés et le traitement des cas où deux règles pourraient s'appliquer. Trois
-composants sont concernés : la fusion des modalités, la sélection de la stratégie
-et le patron de prompt, et la prise en compte de la dynamique temporelle.
+programmés et le traitement des cas où deux règles pourraient s'appliquer. Deux
+composants sont concernés : la sélection de la stratégie et du patron, et
+la dynamique temporelle. La fusion appartient à la couche de perception.
 
-\subsection{Règles de décision}
-\label{subsec:impl-regles}
 
-\paragraph{Fusion des deux modalités.} La fusion est implémentée en deux temps
-séparés : \emph{qualifier} la relation entre les deux perceptions, puis
-\emph{résoudre} le désaccord éventuel. La qualification distingue six situations,
-selon que les deux modalités désignent le même état ou non. Lorsqu'elles
-s'accordent, l'écart d'intensité est comparé à un seuil de tolérance d'un niveau :
-en deçà, l'accord est jugé suffisant et l'intensité finale est la moyenne pondérée
-des deux, avec un poids de 0{,}60 pour le visage et de 0{,}40 pour la voix ; au-delà,
-un conflit d'intensité est déclaré. Lorsqu'elles désignent des états différents, la
-sévérité du conflit est mesurée par l'écart entre les priorités pédagogiques des
-deux états, ce qui distingue un désaccord mineur — par exemple entre ennui et
-confusion — d'un désaccord majeur entre frustration et engagement. La résolution
-applique alors la stratégie sélectionnée par configuration
-(section~\ref{subsec:choix-archi}) : la priorité pédagogique retient l'état le plus
-urgent, la stratégie de confiance retient celui dont le score est le plus élevé.
-Un point important pour l'interprétation des résultats : quelle que soit la
-stratégie, la sortie conserve le type de conflit et la règle appliquée, si bien
-qu'une décision peut toujours être rejouée et expliquée.
-
-\paragraph{Deux familles de fusion, deux usages.} La distinction établie au
-chapitre~\ref{chap:conception} entre fusion par résolution de conflit et fusion par
-vote pondéré (section~\ref{subsec:vote}) se traduit par deux fonctions
-coexistantes. La première, employée par le serveur, décide d'abord de l'état puis
-pondère l'intensité : le poids n'influence donc pas le choix de l'état. La seconde
-combine les distributions de probabilité des quatre états avant d'en prendre
-l'argument maximal, de sorte que le poids agit cette fois sur l'état retenu ; elle
-est mobilisée par le banc d'essai sur le sous-corpus audiovisuel aligné, où elle
-permet le balayage des poids de modalité rapporté au chapitre~\ref{chap:validation}.
-Faire cohabiter les deux implémentations, plutôt que d'en généraliser une, était la
-seule manière de comparer les deux familles sur les mêmes données sans modifier le
-comportement du prototype.
-
-\paragraph{Cascade de sélection de la stratégie.} La décision proprement
-pédagogique est une cascade de conditions évaluées dans un ordre fixe, la première
-satisfaite l'emportant (tableau~\ref{tab:cascade-decision}). Cet ordre \emph{est}
-la règle : il encode une hiérarchie de besoins où le blocage combinant confusion et
-frustration passe avant le désengagement total, lui-même avant la frustration
-seule, la confusion, l'ennui, puis l'engagement. Écrire la même logique comme une
-suite de conditions indépendantes aurait laissé indéterminé le cas — fréquent dans
-le corpus — d'un clip présentant simultanément plusieurs scores élevés.
-
-\begin{table}[H]
-\centering
-\small
-\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{|c|>{\raggedright\arraybackslash}p{3.5cm}|>{\raggedright\arraybackslash}p{5.0cm}|c|}
-\hline
-\rowcolor{gray!20}
-\textbf{Rang} & \textbf{Condition} & \textbf{Stratégie retenue} &
-\textbf{Type} \\
-\hline
-1 & confusion $\geq 3$ et frustration $\geq 2$ & Aide de déblocage immédiate &
-A+D \\
-\hline
-2 & engagement $= 0$ & Réengagement urgent & B \\
-\hline
-3 & frustration $\geq 2$ & Encouragement et simplification & D+A \\
-\hline
-4 & confusion $\geq 2$ & Explication alternative & A \\
-\hline
-5 & ennui $\geq 2$ & Exercice avancé & C \\
-\hline
-6 & engagement $\leq 1$ & Exemple concret stimulant & B \\
-\hline
-7 & ennui $= 1$ & Application pratique & B \\
-\hline
-8 & engagement $\geq 2$ & Renforcement positif & D \\
-\hline
-9 & aucun des cas précédents & Continuation normale & aucune \\
-\hline
-\end{tabular}
-\caption{Cascade de décision telle qu'implémentée : la première condition
-satisfaite détermine la stratégie et le type de contenu.}
-\label{tab:cascade-decision}
-\end{table}
-
-\subsection{Algorithme de sélection de stratégies}
+\subsection{Sélection de stratégies}
 \label{subsec:impl-selection}
 
-\paragraph{Une sélection en deux étages.} Le type de contenu issu de la cascade ne
+Le type de contenu issu de la cascade ne
 suffit pas à lancer une génération : il désigne une famille d'intervention, non un
 patron de prompt. Un second étage traduit le couple formé par ce type et le
 contexte du clip en l'un des vingt patrons de la bibliothèque
 (tableau~\ref{tab:templates}). Ce découplage a une raison précise : il permet de
-faire évoluer la bibliothèque de patrons — en ajouter, en reformuler — sans
-toucher aux règles pédagogiques, et réciproquement de modifier un seuil de décision
+faire évoluer la bibliothèque de patrons en ajouter, en reformuler
+sans toucher aux règles pédagogiques, et réciproquement de modifier un
+seuil de décision
 sans réécrire de prompt. L'algorithme complet se déroule ainsi :
 
 \begin{enumerate}[itemsep=2pt, topsep=3pt]
-\item les quatre scores sont lus dans l'état fusionné ;
-\item la cascade du tableau~\ref{tab:cascade-decision} désigne un type de contenu
-      et une stratégie ;
-\item si la dynamique temporelle conclut à l'absence de besoin d'intervention, la
-      décision est court-circuitée
-      (section~\ref{subsec:impl-transitions}) ;
-\item sinon, le type est raffiné en un patron précis à l'aide de l'intensité de
-      l'état, du patron du clip et des scores individuels ;
-\item les métadonnées du patron — objectif, longueur cible, format, ton — sont
-      lues dans la bibliothèque et jointes à la décision ;
-\item l'objet de décision, qui porte à la fois le résultat et ses déterminants,
+\item Les quatre scores sont lus dans l'état fusionné.
+\item La cascade du tableau~\ref{tab:mapping} désigne un type de contenu
+      et une stratégie.
+\item Si la dynamique temporelle conclut à l'absence de besoin d'intervention, la
+      décision est court-circuitée.
+\item Sinon, le type est raffiné en un patron précis à l'aide de l'intensité de
+      l'état, du patron du clip et des scores individuels.
+\item Les métadonnées du patron, objectif, longueur cible, format, ton sont
+      lues dans la bibliothèque et jointes à la décision.
+\item L'objet de décision, qui porte à la fois le résultat et ses déterminants,
       est transmis au module de génération.
 \end{enumerate}
 
-\paragraph{Règles de raffinement.} Le raffinement obéit à des règles courtes et
-lisibles. Le type composite associant explication et soutien conduit directement au
-patron d'aide au déblocage. Le soutien guidé se scinde selon l'intensité de la
-frustration, un niveau maximal appelant un patron de soutien plus enveloppant
-qu'un patron d'encouragement standard. L'explication alternative se décline en
-trois variantes : une micro-explication décomposée lorsque la confusion est
-maximale, une explication reformulée lorsque le patron du clip confirme la
-confusion, une explication narrative dans les autres cas. L'exemple concret
-distingue le réengagement d'un apprenant totalement décroché de la simple
-stimulation d'un apprenant peu engagé. Enfin, un cas par défaut garantit qu'aucune
-combinaison de scores ne peut laisser la sélection sans patron.
+La chaîne entière est l'algorithme~\ref{alg:pipeline-global}.
+Ici, seul le raffinement du type en patron est détaillé.
 
-\paragraph{Ce que produit la cascade sur le référentiel.} Appliquée aux cinquante
-scénarios, la chaîne complète ne mobilise \textbf{que onze des vingt patrons}, la
-distribution étant fortement concentrée sur l'encouragement en cas de frustration
-modérée et sur l'exercice avancé en cas d'ennui élevé. Ce résultat, obtenu et
-consigné par le banc d'essai, n'est pas un défaut d'implémentation mais la
-conséquence conjointe de la composition du référentiel et de l'ordre de la
-cascade : les patrons dédiés aux situations rares ne peuvent être atteints que par
-des configurations de scores que l'échantillon contient peu ou pas. Il constitue à
-ce titre une observation de premier plan pour la discussion du
-chapitre~\ref{chap:validation}, et une justification du corpus complémentaire
-généré en section~\ref{sec:impl-corpus}, qui couvre dix-neuf patrons.
+Le second étage (après le test
+temporel) décline chaque type en un patron. Les composites ont un seul
+geste : $A{+}D$ vers l'aide au déblocage (A3), $D{+}A$ vers D2 ou D1
+selon l'intensité. Les types simples se séparent par niveau et pattern
+(micro-explication A2 si la confusion est maximale, réengagement B2 si
+l'engagement est nul, exercice avancé C1 si l'ennui est élevé). Un cas
+par défaut garantit qu'aucune combinaison de scores ne reste sans
+patron.
+
+Sur les cinquante scénarios du référentiel, onze des vingt patrons
+sont déclenchés. Les effectifs les plus élevés sont le patron D1
+(encouragement, frustration d'intensité modérée, $n=11$) et le
+patron C1 (exercice avancé, ennui élevé, $n=9$). La famille D
+totalise $21$ passages, la famille C $11$.
+Le tableau~\ref{tab:templates-50} présente cette distribution.
+Elle suit la composition du référentiel, qui sur-représente les
+profils problématiques, et l'ordre de la cascade, qui oriente ces
+profils vers D1 et C1. Les neuf patrons restants (A4, B3--B5,
+C3--C5, D3, D5) exigent des combinaisons de scores absentes de ce
+passage.
 
 \subsection{Gestion des transitions d'état}
 \label{subsec:impl-transitions}
 
-\paragraph{Quatre degrés d'urgence.} La dynamique temporelle est implémentée dans
-un module distinct, qui reçoit l'historique récent et retourne quatre éléments :
-faut-il intervenir, avec quel degré d'urgence, en vertu de quelle règle nommée, et
-depuis combien de clips l'état persiste. Les degrés — immédiate, rapide, différée,
-aucune — sont évalués dans cet ordre, si bien qu'une situation de blocage aigu ne
-peut jamais être ramenée à une intervention différée par une règle de rang
-inférieur. La détection immédiate ne considère que le clip courant, dans deux cas
-seulement : confusion maximale accompagnée de frustration, ou désengagement total.
-L'urgence rapide exige la persistance d'un seuil sur \textbf{deux clips
-consécutifs}, ce qui filtre les fluctuations d'une seule fenêtre de dix secondes.
-L'urgence différée observe \textbf{quatre clips}, pour capter les états faibles mais
-durables — engagement bas prolongé, ennui de faible intensité qui s'installe — que
-la règle rapide laisserait passer.
+Cette sous-section décrit le branchement du module temporel,
+en particulier la non-intervention.
 
-\paragraph{Le cas de la non-intervention.} La règle la plus importante pour la
-crédibilité pédagogique du système est celle qui conclut à \emph{ne rien faire} :
-lorsque l'engagement se maintient à un niveau satisfaisant sur les deux derniers
-clips, aucune adaptation n'est déclenchée. Son implémentation traverse toute la
-chaîne. Le moteur de décision force alors le type de contenu à « aucune », remplace
-la stratégie par une continuation normale et marque explicitement la décision comme
-non déclenchée ; l'orchestrateur n'appelle pas le service de génération et
-substitue au contenu un objet portant un indicateur de saut ; enfin, ni le journal
-de décision ni la base de sessions ne reçoivent d'enregistrement. Une
-non-intervention ne consomme donc aucun appel au modèle de langue et reste
-distinguable, dans les traces, d'une intervention qui aurait échoué.
+Les règles du tableau~\ref{tab:temporel} sont évaluées dans l'ordre
+d'urgence. Le module reçoit l'historique et retourne le
+déclenchement, le degré, la règle nommée et la durée de persistance.
+Les séquences de la section~\ref{subsec:impl-segmentation} ont cinq
+clips : elles couvrent les trois fenêtres.
 
-\paragraph{Ce qui est implémenté, ce qui ne l'est pas.} Deux limites doivent être
-énoncées ici plutôt que découvertes au chapitre~\ref{chap:validation}. D'une part,
-le module temporel est complètement implémenté et couvert par des tests unitaires
-qui vérifient chacun de ses cas — déclenchement immédiat sur blocage,
-déclenchement immédiat sur désengagement, non-intervention sur engagement stable,
-déclenchement rapide sur ennui consécutif, court-circuitage de la décision — mais
-le point d'entrée exposé par l'API analyse un clip isolé : la dynamique n'est
-mobilisée que lorsqu'une trajectoire est rejouée à partir des séquences
-reconstituées, et non lors d'une analyse ponctuelle depuis l'interface. D'autre
-part, le moteur de décision est \textbf{sans mémoire d'une décision à la suivante} :
-il n'implémente ni hystérésis, ni délai de garde entre deux interventions, ni
-mécanisme évitant la répétition d'un même patron sur des clips voisins. Sur un
-parcours réel, ces absences produiraient un risque d'oscillation et de saturation
-de l'apprenant ; elles constituent la première piste d'amélioration formulée au
-chapitre~\ref{chap:conclusion}.
+Lorsque l'engagement se maintient à un niveau satisfaisant sur les
+deux derniers clips, le type de contenu devient « aucune », la
+stratégie une continuation normale, la décision non déclenchée.
+L'orchestrateur n'appelle pas le service de génération. Un objet de
+saut prend la place du texte. Ni le journal ni la base de sessions
+ne reçoivent d'enregistrement. La non-intervention se distingue,
+dans les traces, d'une génération qui aurait échoué.
+
+Chaque clip d'une séquence est analysé avec l'historique cumulé des
+états détectés. Le mode clip isolé n'a qu'une entrée : seules les
+règles instantanées s'appliquent.
+
+Hystérésis, délai de garde et filtrage des patrons répétés restent
+hors du moteur. Un usage longitudinal reste exposé à l'oscillation
+et à la saturation. Cette limite est reprise dans la conclusion
+générale.
 
 %==============================================================================
-\section{Implémentation du module de génération adaptative}
+\section{Implémentation de la couche de génération}
 \label{sec:impl-generation}
 
-La décision étant prise, il reste à produire le contenu. Cette section décrit la
+Cette section décrit la
 configuration du service de génération, la bibliothèque de patrons qui structure
 les demandes, l'assemblage du prompt effectivement envoyé, et les dispositifs de
 contrôle appliqués aux textes obtenus.
@@ -770,218 +1006,238 @@ contrôle appliqués aux textes obtenus.
 \subsection{Configuration du LLM}
 \label{subsec:impl-llm}
 
-\paragraph{Choix du service et du modèle.} La génération est confiée à un modèle
-\textsc{LLaMA}~3.1 de huit milliards de paramètres \cite{touvron2023llama},
-interrogé à distance via l'interface de programmation de Groq. Ce choix résulte des
-contraintes énoncées en section~\ref{sec:infrastructure} : un modèle propriétaire
-de très grande taille aurait supposé un budget d'appels incompatible avec la
-génération d'un corpus de plusieurs centaines de contenus, et un modèle hébergé
-localement était exclu par l'absence d'accélérateur. Le modèle est utilisé
-\textbf{sans réglage fin} : toute l'adaptation passe par le prompt, ce qui rend
-chaque contenu explicable par la conjonction d'un état détecté, d'un patron et d'un
-contexte documentaire, et rend le dispositif transposable à un autre fournisseur
-sans réapprentissage.
+Cette sous-section décrit le service de génération et ses paramètres.
 
-\paragraph{Paramètres de décodage.} Les paramètres retenus
-(tableau~\ref{tab:params-llm}) traduisent une exigence de sobriété plutôt que de
-créativité. Une température basse limite la variabilité entre deux générations
-comparables, ce qui est indispensable pour que le corpus produit soit
-interprétable. Un budget de sortie borné empêche les productions
-interminables et maintient les contenus dans l'ordre de grandeur attendu par les
-patrons. Le message de rôle système, enfin, formule trois interdits : produire en
-français, n'utiliser que les informations du contexte de référence fourni, et
-déclarer explicitement l'absence d'information plutôt que de l'inventer — première
-ligne de défense contre les hallucinations, complétée par le module RAG
-(ancrage documentaire) décrit en section~\ref{subsec:impl-pipeline-gen}.
+La génération est confiée à un modèle \textsc{GPT-OSS} de vingt
+milliards de paramètres, interrogé à distance via Groq. Le coût et
+la latence conviennent à un corpus de plusieurs centaines de textes.
+Toute l'adaptation passe par le prompt : chaque contenu reste
+explicable par l'état, le patron et le contexte documentaire, et le
+dispositif est transposable à un autre fournisseur.
+Le tableau~\ref{tab:params-llm} présente les paramètres de génération.
 
-\begin{table}[H]
-\centering
-\small
-\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{|>{\raggedright\arraybackslash}p{4.0cm}|>{\raggedright\arraybackslash}p{2.7cm}|>{\raggedright\arraybackslash}p{6.2cm}|}
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
 \hline
 \rowcolor{gray!20}
 \textbf{Paramètre} & \textbf{Valeur} & \textbf{Effet recherché} \\
 \hline
+\endfirsthead
+\hline
+\rowcolor{gray!20}
+\textbf{Paramètre} & \textbf{Valeur} & \textbf{Effet recherché} \\
+\hline
+\endhead
+\endfoot
+\endlastfoot
 Modèle & \texttt{openai/gpt-oss-20b} &
-Remplaçant Groq de \texttt{llama-3.1-8b-instant} (retiré le 16/08/2026) :
-coût faible et latence faible, au prix d'une capacité inférieure aux très grands
-modèles. \\
+Génération distante, coût et latence compatibles avec le corpus. \\
 \hline
 Température (contenu) & 0{,}3 &
 Contenus reproductibles à contexte constant. \\
 \hline
 Température (tuteur) & 0{,}25 à 0{,}55 &
-Modulée selon l'état : basse en confusion, plus haute en situation d'ennui. \\
+Basse en confusion, plus haute en ennui. \\
 \hline
-Budget de sortie & 600 unités &
-Borne la longueur des contenus adaptatifs. \\
+Budget de sortie (contenu) & 600 (cible) / $\geq 2\,048$
+(\texttt{max\_tokens}) &
+Longueur visée des patrons, plafond relevé pour le raisonnement interne. \\
 \hline
-Budget de sortie (tuteur) & 400 à 650 unités &
-Ajusté selon la demande de l'apprenant (exemple, exercice, détail). \\
+Budget de sortie (tuteur) & 400 à 650 (cible) / $\geq 2\,048$ &
+Cible selon la demande, même plafond. \\
 \hline
 Tentatives & 4, espacées de 2, 5 puis 8~s &
 Absorbe les limitations de débit du service gratuit. \\
 \hline
 Fenêtre de dialogue & 10 derniers messages &
-Borne le contexte conversationnel et le coût par échange. \\
+Borne le contexte conversationnel. \\
 \hline
 Clé d'accès & variable d'environnement &
 Aucun secret dans le dépôt. \\
 \hline
-\end{tabular}
-\caption{Configuration du service de génération et du tuteur conversationnel.}
+\end{xltabular}
+\xlcaption{Paramètres de génération.}
 \label{tab:params-llm}
-\end{table}
+}
 
-\paragraph{Comportement en cas d'indisponibilité.} La gestion des défaillances est
-partielle et il importe de le dire. Les dépassements de quota sont explicitement
-rattrapés par des tentatives espacées, mécanisme qui a rendu possible la génération
-du corpus décrite en section~\ref{sec:impl-corpus}. En revanche, aucun délai
-d'expiration n'est fixé sur l'appel distant et les autres erreurs de service ne
-sont pas retentées : elles remontent jusqu'au point d'entrée de l'API, qui répond
-par un message d'erreur explicite. Le prototype ne propose donc pas de contenu de
-repli hors ligne — un choix assumé, puisqu'un contenu produit sans le modèle
-n'aurait pas la même nature et fausserait l'analyse du corpus.
+Les dépassements de quota sont rattrapés par les tentatives du
+tableau. Les autres erreurs de service remontent jusqu'à l'API, qui
+répond par un message explicite.
 
-\subsection{Bibliothèque de 20 templates de prompts}
+\subsection{Bibliothèque de vingt patrons de prompts}
 \label{subsec:impl-templates}
 
-\paragraph{Séparation des métadonnées et des instructions.} La bibliothèque des
+La bibliothèque des
 vingt patrons introduite au chapitre~\ref{chap:conception}
 (tableau~\ref{tab:templates}) est implémentée en deux structures distinctes. La
-première est une table de \textbf{métadonnées} : pour chaque patron, sa famille,
+première est une table de métadonnées : pour chaque patron, sa famille,
 sa longueur cible en mots, son format attendu, son ton et son objectif pédagogique.
-Ces attributs ne servent pas seulement à documenter : ils sont injectés dans la
+Ces attributs sont injectés dans la
 section des contraintes du prompt, exposés par l'API et réutilisés par l'audit
-automatique comme référence de longueur (section~\ref{subsec:impl-postproc}). La
-seconde est une table de \textbf{constructeurs d'instructions}, une fonction par
+automatique comme référence de longueur. La
+seconde est une table de constructeurs d'instructions, une fonction par
 patron, qui produit le corps de la demande en y insérant les variables de contexte :
 concept visé, intensité de l'état, intensité spécifique de la frustration, durée de
 persistance et module en cours. Un patron inconnu retombe sur un patron de
 référence, de sorte qu'une faute de frappe dans un identifiant ne provoque jamais
-d'interruption.
+d'interruption. Le catalogue A1--D5 reste celui du
+tableau~\ref{tab:templates}, au runtime, ces champs sont lus dans
+la bibliothèque et injectés dans les contraintes du prompt.
 
-\paragraph{Anatomie d'un patron.} Les instructions ne demandent pas un texte libre
+Les instructions ne demandent pas un texte libre
 mais une structure. Le patron d'aide au déblocage, mobilisé lorsque confusion et
 frustration se combinent, demande ainsi quatre éléments dans un ordre imposé : une
 phrase rassurante qui normalise la difficulté, l'identification du point de blocage
 probable, une approche radicalement différente de l'explication initiale, puis un
-micro-exercice guidé très simple — le tout sur environ deux cents mots et sur un ton
+micro-exercice guidé très simple, le tout sur environ deux cents mots et sur un ton
 déculpabilisant. Le patron de félicitation, à l'autre extrémité de la bibliothèque,
 demande de célébrer la réussite, d'expliciter la compétence acquise, de faire le
 lien avec la suite du parcours et de renforcer la confiance, en cent cinquante mots.
-Cette forme numérotée n'est pas un détail stylistique : elle rend le contenu
-généré \emph{vérifiable}, puisqu'un auditeur — automatique ou humain — peut
-constater la présence ou l'absence de chaque élément attendu.
+Cette forme numérotée rend le contenu généré vérifiable : un auditeur
+automatique ou humain peut constater la présence ou l'absence de chaque
+élément attendu.
 
 \subsection{Pipeline de génération}
 \label{subsec:impl-pipeline-gen}
 
-\paragraph{Ancrage documentaire (RAG).} Avant toute génération, un contexte de
-référence est constitué par \textbf{récupération augmentée}
-(\emph{Retrieval-Augmented Generation}, RAG) \cite{lewis2020retrieval}. Neuf fiches
-documentaires — définitions, exemples, exercices sur les algorithmes de tri, les
-réseaux de neurones et les structures de données, auxquelles s'ajoutent deux fiches
-sur l'encouragement et les méthodes d'apprentissage — sont encodées par un modèle
-de phrases multilingue et indexées dans une base vectorielle persistante utilisant
-la similarité cosinus. Les documents étant courts, aucun découpage en fragments n'a
-été nécessaire. La requête n'est pas le concept seul : elle est enrichie de l'état
-détecté, de sorte qu'un apprenant frustré et un apprenant curieux sur le même
-concept ne reçoivent pas nécessairement le même appui documentaire. Les trois
-documents les plus proches sont retenus, à condition de dépasser un seuil de
-similarité ; en deçà, ils sont écartés et un contexte générique est fourni, ce qui
-évite d'ancrer un contenu sur une source hors sujet.
+Cette sous-section décrit comment l'intention pédagogique
+$(\tau,\gamma)$ et le contexte de cours deviennent un texte.
 
-\paragraph{Assemblage du prompt.} Le prompt transmis au modèle est une composition
-de cinq blocs ordonnés (figure~\ref{fig:prompt}). Cet ordre suit une progression
-délibérée : la référence factuelle d'abord, la situation pédagogique ensuite,
-l'état affectif et sa durée, puis seulement la tâche et ses contraintes. La durée
-de persistance de l'état est convertie en secondes dans le prompt, afin que le
-modèle raisonne sur une réalité temporelle et non sur un compteur abstrait de
-clips.
+Un contexte de référence est constitué, avant l'appel, par
+récupération augmentée (\emph{Retrieval-Augmented Generation}, RAG)
+\cite{lewis2020retrieval,gao2023retrieval}. Vingt fiches ---
+définitions, exemples, exercices et cartes de méthode --- couvrent
+les algorithmes de tri, les réseaux de neurones, les structures de
+données, la complexité, la récursion et l'encouragement pédagogique.
+Elles sont distinctes des vingt patrons A1--D5. Un encodeur de
+phrases multilingue \textsc{MiniLM} \cite{wang2020minilm} les
+projette, ChromaDB les indexe en similarité cosinus. Les fiches,
+courtes, sont indexées en entier.
+La figure~\ref{fig:gen-pipeline} présente l'architecture du pipeline
+de génération.
 
 \begin{figure}[H]
 \centering
-\begin{tikzpicture}[
-  font=\footnotesize,
-  blk/.style={rectangle, draw=black, thick, align=left, text width=11.4cm,
-              minimum height=0.8cm, inner sep=4pt, fill=white},
-  arr/.style={-{Stealth[length=2.4mm]}, thick}
-]
-\node[blk] (b1) {\textbf{1. Contexte de référence} — trois documents récupérés
-  (type, source, contenu) ou contexte générique};
-\node[blk, below=0.28cm of b1] (b2) {\textbf{2. Contexte pédagogique} — sujet,
-  module, concept, niveau de l'apprenant, objectif};
-\node[blk, below=0.28cm of b2] (b3) {\textbf{3. État d'engagement} — état,
-  intensité sur 3, durée de persistance, patron, moment du cours};
-\node[blk, below=0.28cm of b3] (b4) {\textbf{4. Tâche et contraintes} — famille de
-  contenu, longueur cible, format, ton};
-\node[blk, below=0.28cm of b4] (b5) {\textbf{5. Instructions du patron} — structure
-  numérotée propre au patron retenu};
-\node[rectangle, rounded corners, draw=black, thick, fill=black!8, below=0.45cm of b5,
-      text width=11.4cm, align=center, minimum height=0.8cm] (out)
-  {Contenu adaptatif en français + indicateurs (nombre de mots, sources
-   documentaires)};
-\draw[arr] (b5) -- (out);
-\end{tikzpicture}
-\caption{Composition du prompt de génération : cinq blocs assemblés dans un ordre
-fixe, précédés d'un message de rôle système interdisant l'invention de faits.}
-\label{fig:prompt}
+\includegraphics[width=0.98\textwidth]{figures/emolearn_generation_pipeline.png}
+\caption{Architecture du pipeline de génération.}
+\label{fig:gen-pipeline}
 \end{figure}
 
-\paragraph{Sortie et traçabilité.} La réponse retournée par le module de génération
-ne contient pas seulement le texte. Elle porte l'état et l'intensité qui l'ont
-motivée, le patron employé, l'objectif visé, le nombre de mots produits, un
-indicateur d'utilisation effective de la récupération documentaire, le nombre et les
-sources des documents injectés, et le cas échéant le message d'erreur de la
-récupération. L'interface expose ces éléments à l'utilisateur et le journal en
-conserve les principaux : un contenu du corpus peut ainsi être rattaché, après
-coup, à la décision et aux sources qui l'ont produit.
+Le tableau~\ref{tab:params-rag} présente les paramètres de la
+récupération.
 
-\paragraph{Tuteur conversationnel.} Le même dispositif alimente un second mode
-d'interaction. Le tuteur reçoit l'état détecté et adapte trois éléments : le ton et
-la consigne pédagogique, propres à chaque état ; la température de décodage, plus
-basse en situation de confusion pour privilégier la précision, plus haute en
-situation d'ennui pour autoriser la variété ; et le budget de réponse, étendu
-lorsque la question de l'apprenant appelle un exemple, un exercice ou un
-approfondissement. Le contenu adaptatif initial est réinjecté comme premier tour de
-parole, de sorte que le dialogue prolonge l'adaptation au lieu de repartir de zéro.
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+\hline
+\rowcolor{gray!20}
+\textbf{Opération} & \textbf{Valeur} & \textbf{Motif du réglage} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{gray!20}
+\textbf{Opération} & \textbf{Valeur} & \textbf{Motif du réglage} \\
+\hline
+\endhead
+\endfoot
+\endlastfoot
+Fiches indexées & 20 &
+Corpus de démonstration, distinct des patrons A1--D5. \\
+\hline
+Encodeur & \texttt{paraphrase-multilingual-MiniLM-L12-v2} &
+Phrases françaises et anglaises sur un même espace. \\
+\hline
+Index & ChromaDB, espace cosinus &
+Persistance locale, similarité directe. \\
+\hline
+Requête & concept et état $\hat{e}$ &
+L'appui documentaire dépend de la situation affective. \\
+\hline
+Voisins retenus $k$ & 3 &
+Compromis entre couverture et longueur du prompt. \\
+\hline
+Seuil de similarité & $0{,}3$ &
+Complément de la distance cosinus, écarte les fiches trop éloignées. \\
+\hline
+Repli & contexte générique (concept, état) &
+Conserve un appel lorsque aucun voisin ne franchit le seuil. \\
+\hline
+\end{xltabular}
+\xlcaption{Paramètres de la récupération documentaire.}
+\label{tab:params-rag}
+}
 
-\subsection{Post-processing et validation}
+La requête combine le concept et l'état $\hat{e}$. Les trois plus
+proches sont retenus si leur similarité atteint $0{,}3$. En deçà, un
+contexte générique nomme le concept et l'état.
+
+Le prompt utilisateur suit l'ordre des cinq blocs de la
+figure~\ref{fig:prompt-blocs} : contexte de référence, situation de
+cours, état d'engagement, tâche (identifiant $\gamma$ et objectif),
+contraintes du patron, puis instructions spécifiques. Le message
+système assigne un rôle d'expert en pédagogie et restreint la
+génération aux faits du contexte. La durée d'état est convertie en
+secondes avant insertion. L'appel distant reprend les paramètres du
+tableau~\ref{tab:params-llm}.
+
+La réponse du module porte le texte, l'état et l'intensité qui l'ont
+motivé, le patron, l'objectif, le nombre de mots, l'usage effectif du
+RAG, le nombre et les sources des documents injectés, et le cas
+échéant l'erreur de récupération. L'interface les expose, le journal
+en conserve les principaux.
+
+Le tuteur conversationnel réutilise ce pipeline. L'état module le
+ton, la consigne et la température ($0{,}25$ en confusion, $0{,}55$
+en ennui). Le budget de tokens s'étend de 400 à 650 selon la
+demande. Les dix derniers tours sont conservés. Le contenu adaptatif
+initial est réinjecté comme premier tour assistant, de sorte que le
+dialogue prolonge l'adaptation.
+
+\subsection{Post-traitement et validation}
 \label{subsec:impl-postproc}
 
-\paragraph{Un contrôle a posteriori, hors de la boucle de génération.} Le module de
+Le module de
 génération n'applique aucune transformation au texte reçu, hormis le comptage des
 mots : ni troncature, ni réécriture, ni nouvelle tentative en cas de sortie jugée
 insatisfaisante. Ce choix est méthodologique. Un post-traitement corrigeant
 silencieusement les productions rendrait impossible la mesure de la qualité
 intrinsèque du dispositif : on n'évaluerait plus la génération adaptative, mais la
 génération augmentée d'un correcteur. Le contrôle est donc reporté sur un
-\textbf{audit hors ligne} appliqué à l'ensemble du corpus, dont les verdicts
-alimentent une régénération ciblée (section~\ref{sec:impl-corpus}).
+audit hors ligne appliqué à l'ensemble du corpus, dont les verdicts
+alimentent une régénération ciblée.
 
-\paragraph{Critères de l'audit automatique.} L'audit vérifie trois familles de
-propriétés (tableau~\ref{tab:audit-criteres}) : la conformité de longueur, évaluée
-par rapport à une plage tolérée autour de la longueur cible du patron ; la
-cohérence entre l'émotion enregistrée et la famille du patron ; et la présence de
-marqueurs lexicaux attendus, détectés par expressions régulières — marqueurs
-d'explication pour la famille A, de consigne d'exercice pour la famille C, de
-soutien pour les patrons de frustration. Chaque anomalie détectée porte un code
-nommé et retire vingt-cinq points à un score de qualité initialisé à cent, un
-contenu sans anomalie étant déclaré conforme. Cette granularité rend l'audit
-actionnable : le rapport indique non pas qu'un contenu est mauvais, mais quel
-critère précis il enfreint.
+L'audit vérifie trois familles de
+propriétés (tableau~\ref{tab:audit-criteres}) : la conformité de longueur,
+évaluée par rapport à une plage tolérée autour de la cible du patron, la
+cohérence émotion--famille, et des marqueurs lexicaux attendus (explication
+pour A, consigne d'exercice pour C, soutien pour la frustration). Chaque
+anomalie porte un code et retire vingt-cinq points à un score initialisé à
+cent. Ce taux mesure la conformité de forme, il ne dit rien de
+l'exactitude factuelle ni de la pertinence pédagogique
+(chapitre~\ref{chap:validation}). Le rapport identifie le critère
+enfreint.
 
-\begin{table}[H]
-\centering
-\small
-\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{|>{\raggedright\arraybackslash}p{5.3cm}|>{\raggedright\arraybackslash}p{7.6cm}|}
+Le tableau~\ref{tab:audit-criteres} présente les critères de l'audit automatique.
+
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
 \hline
 \rowcolor{gray!20}
 \textbf{Code d'anomalie} & \textbf{Propriété vérifiée} \\
 \hline
+\endfirsthead
+\hline
+\rowcolor{gray!20}
+\textbf{Code d'anomalie} & \textbf{Propriété vérifiée} \\
+\hline
+\endhead
+\endfoot
+\endlastfoot
 \texttt{trop\_court} · \texttt{trop\_long} &
 Longueur du contenu au regard de la cible déclarée par le patron. \\
 \hline
@@ -1003,246 +1259,297 @@ Présence d'un registre rassurant dans un contenu de déblocage. \\
 \texttt{template\_inconnu} &
 Existence du patron déclaré dans la bibliothèque. \\
 \hline
-\end{tabular}
-\caption{Critères de l'audit automatique du contenu généré et codes d'anomalie
-associés.}
+\end{xltabular}
+\xlcaption{Critères d'audit automatique.}
 \label{tab:audit-criteres}
-\end{table}
+}
 
-\paragraph{Indicateurs de lisibilité.} Un second script calcule, indépendamment de
-l'audit de cohérence, des indicateurs de forme : nombre de mots et de phrases,
-longueur moyenne des phrases, indice de lisibilité approché par comptage
-syllabique, et taux de répétition défini comme le complément du rapport entre mots
-distincts et mots totaux. Ces indicateurs ne portent aucun jugement pédagogique ; ils
-fournissent une caractérisation objective du corpus, exploitée au
-chapitre~\ref{chap:validation} en complément de l'appréciation humaine, dont ils ne
-peuvent tenir lieu.
+En parallèle de l'audit, un script calcule des indicateurs de
+forme sur le corpus exporté ($N=208$) : nombre de mots et de phrases,
+mots par phrase, indice de Kandel--Moles approché par comptage
+syllabique, et taux de répétition $1-|V|/|T|$, où $V$ est le
+vocabulaire et $T$ les tokens. Ces grandeurs caractérisent la forme
+du corpus au chapitre~\ref{chap:validation}, à côté de
+l'appréciation enseignante.
+
+\section{Algorithme global}
+\label{sec:algo-global}
+
+Cette section relie les trois couches en un unique parcours
+d'exécution.
+
+L'orchestrateur reçoit un clip vidéo $v$, un segment audio $a$, le
+contexte pédagogique $c$ et l'historique $H$ des scores détectés.
+Il produit un texte $y$, ou l'objet de saut $\varnothing$ lorsque
+l'urgence vaut « aucune ». Le journal $J$ accompagne $y$.
+L'algorithme~\ref{alg:pipeline-global} présente cette chaîne.
+
+\begin{algorithm}[H]
+\caption{Chaîne complète \emolearn{} : perception, décision, génération}
+\label{alg:pipeline-global}
+\begin{algorithmic}[1]
+\Require clip vidéo $v$, segment audio $a$,
+contexte pédagogique $c$, historique $H$
+\Ensure contenu $y$ ou $\varnothing$, journal $J$ si génération
+\State $(P_v, n_v, c_v) \gets \mathrm{FER}(v)$
+\State $(P_a, n_a, c_a) \gets \mathrm{SER}(a)$
+\If{$c_v = c_a = 0$}
+    \State $\hat{e} \gets \arg\max_{e \in E} \pi(e)$,
+          $\hat{n}$ du candidat retenu
+          \Comment{repli}
+\Else
+    \State $(w_v^{\mathrm{eff}},\hat{P},\hat{e},\hat{n})
+          \gets$ vote pondéré
+\EndIf
+\State $s_e \gets \mathrm{round}(3\,\hat{P}(e))$ pour tout $e \in E$
+\State $H \gets H \cup \{s\}$
+\State $u \gets$ urgence$(H)$
+      \Comment{tableau~\ref{tab:temporel}}
+\If{$u=\text{aucune}$}
+    \State \Return $\varnothing$
+\EndIf
+\State $(\tau,\gamma) \gets \Delta(\hat{e},\hat{n},s,H)$
+      \Comment{tableau~\ref{tab:mapping}}
+\State $r \gets \mathrm{RAG}(c,\hat{e})$
+\State $y \gets \mathrm{LLM}\bigl(\mathrm{prompt}(c,s,\gamma,r)\bigr)$
+\State journaliser $(\hat{e},\tau,\gamma,u)$ dans $J$
+\State \Return $(y,\,J)$
+\end{algorithmic}
+\end{algorithm}
+
+Les étapes de perception correspondent aux
+sections~\ref{subsec:impl-fer} à~\ref{subsec:impl-fusion}. Les scores
+$s$ alimentent $H$ avant l'urgence, y compris en mode clip isolé, où
+$H$ ne contient alors que le vecteur courant. Lorsque $u$ vaut
+« aucune », l'orchestrateur retourne l'objet de saut, sans appel au
+modèle. Dans les autres cas, $\Delta$ fixe $(\tau,\gamma)$, le RAG
+ancre le prompt et le LLM produit $y$.
 
 %==============================================================================
 \section{Développement du prototype de simulation}
 \label{sec:impl-prototype}
+\label{sec:prototype}
 
-Le prototype n'a pas pour fonction de démontrer une faisabilité technique déjà
-établie par le serveur : il a pour fonction de rendre la chaîne
-\emph{observable}. Ce qui doit être visible, c'est moins le contenu produit que le
-raisonnement qui y conduit — quel état a été perçu par chaque modalité, comment le
-désaccord a été tranché, quel patron a été retenu, quelles sources ont ancré la
-génération.
+Cette section décrit l'interface de simulation. Le prototype rend
+observable la chaîne de l'algorithme~\ref{alg:pipeline-global} : état
+de chaque modalité, fusion, patron retenu et sources documentaires.
 
 \subsection{Interface de visualisation}
 \label{subsec:impl-interface}
 
-\paragraph{Une application d'une seule page.} L'interface est une application
-\textsc{React} en page unique, sans routeur : la configuration, l'attente et les
-résultats occupent des sections successives d'une même vue, ce qui maintient sous
-les yeux le lien entre le profil choisi et l'adaptation obtenue. L'adresse du
-serveur est lue dans une variable d'environnement, avec repli sur l'hôte local, et
-la disponibilité de l'API est vérifiée toutes les trente secondes puis signalée par
-un indicateur d'état : un prototype de recherche est fréquemment utilisé pendant que
-le serveur redémarre, et distinguer une panne d'API d'une absence de résultat évite
-de fausses conclusions lors des démonstrations. Le tableau~\ref{tab:composants-ui}
-récapitule les composants et leur rôle.
+Cette sous-section décrit l'application cliente et l'agencement
+des vues.
 
-\begin{table}[H]
-\centering
-\small
-\renewcommand{\arraystretch}{1.15}
-\begin{tabular}{|>{\raggedright\arraybackslash}p{4.0cm}|>{\raggedright\arraybackslash}p{8.9cm}|}
+L'interface est une application \textsc{React} en page unique. La
+configuration, l'attente et les résultats occupent des sections
+successives de la même vue. Deux modes d'entrée coexistent : un clip
+isolé, parmi les cinquante scénarios, et une séquence de cinq extraits
+du même apprenant \textsc{DAiSEE}.
+L'adresse du serveur est lue dans \texttt{REACT\_APP\_API\_URL}, à
+défaut \texttt{http://localhost:8000}. Un indicateur interroge l'API
+toutes les 30~s et sépare l'indisponibilité du service d'une analyse
+sans contenu.
+
+Le tableau~\ref{tab:composants-ui} présente les composants de l'interface.
+
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
 \hline
 \rowcolor{gray!20}
 \textbf{Composant} & \textbf{Rôle dans l'observation de la chaîne} \\
 \hline
+\endfirsthead
+\hline
+\rowcolor{gray!20}
+\textbf{Composant} & \textbf{Rôle dans l'observation de la chaîne} \\
+\hline
+\endhead
+\endfoot
+\endlastfoot
 Sélecteur de scénario & Liste filtrable des cinquante scénarios, avec repère
-coloré de l'état dominant et raccourcis vers un scénario type de chaque patron. \\
+coloré de l'état dominant. \\
 \hline
-Diagramme en barres & Intensité des quatre dimensions du scénario sélectionné,
-avec mise en évidence de la dimension dominante. \\
+Bascule clip / séquence & Passage du mode isolé au parcours multi-clips
+(cinq extraits du même apprenant \textsc{DAiSEE}). \\
 \hline
-Diagramme radial & Même information sous forme de profil, plus lisible pour
-comparer deux scénarios de mémoire. \\
+Lecteur vidéo DAiSEE & Lecture du clip source, distincte de l'analyse FER. \\
 \hline
-Flux de pipeline & Progression en quatre étapes : engagement, décision,
-récupération documentaire, contenu. \\
+Lecteur audio IEMOCAP & Voix appariée, annotation corpus vs aperçu SER WavLM. \\
 \hline
-Panneau d'attente & Messages d'étape pendant l'analyse, dont la durée dépend du
-service distant. \\
+Vignettes de séquence & Cinq images du même sujet, dans l'ordre du parcours. \\
 \hline
-Pastille d'état & Codage couleur et symbole constants pour chaque état
-d'engagement, réutilisés dans tout l'écran. \\
+Diagramme en barres / radial & Profil des quatre dimensions du scénario. \\
 \hline
-Tuteur conversationnel & Dialogue prolongeant l'adaptation, avec activation ou
-désactivation de l'ancrage documentaire. \\
+Flux de pipeline & Engagement, décision, récupération documentaire, contenu. \\
 \hline
-Historique latéral & Dix dernières adaptations, rechargées depuis le serveur au
-démarrage. \\
+Panneau d'attente & Messages d'étape pendant l'analyse. \\
 \hline
-\end{tabular}
-\caption{Composants de l'interface de simulation et fonction de chacun.}
+Pastille d'état & Codage couleur constant dans tout l'écran. \\
+\hline
+Tuteur conversationnel & Dialogue prolongeant l'adaptation, RAG activé par défaut. \\
+\hline
+Étapes de parcours & États clip par clip, règle temporelle, non-intervention. \\
+\hline
+Historique latéral & Dix dernières adaptations, rechargées au démarrage. \\
+\hline
+\end{xltabular}
+\xlcaption{Composants de l'interface.}
 \label{tab:composants-ui}
-\end{table}
+}
 
-\paragraph{Des visualisations écrites à la main.} Les deux représentations
-graphiques ne reposent sur aucune bibliothèque de tracé : le diagramme en barres est
-construit en éléments de mise en page et le diagramme radial est un dessin
-vectoriel direct. Pour quatre dimensions bornées à quatre niveaux, une bibliothèque
-générique aurait ajouté une dépendance volumineuse sans apporter de fonction utile,
-et aurait rendu moins direct le contrôle du codage couleur, lequel doit rester
-strictement identique entre les pastilles d'état, les graphiques et les cartes de
-fusion.
+En mode clip, l'utilisateur sélectionne l'un des cinquante scénarios, 
+des raccourcis regroupent les profils par état dominant. Les lecteurs
+prévisualisent le clip \textsc{DAiSEE} et l'énoncé \textsc{IEMOCAP}
+apparié. Le contexte pédagogique (niveau, moment, concept, module)
+est optionnel et alimente le prompt.
+La figure~\ref{fig:ui-clip} présente la configuration d'un clip isolé.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/ui_emolearn_clip.png}
+\caption{Interface en mode clip.}
+\label{fig:ui-clip}
+\end{figure}
+
+En mode séquence, un parcours de cinq extraits du même apprenant
+\textsc{DAiSEE} remplace le scénario unique. Une grille de vignettes
+ordonne les clips, une seule requête enchaîne les analyses avec
+l'historique cumulé, décrit à la section~\ref{subsec:impl-parcours}.
+La figure~\ref{fig:ui-sequence} présente l'interface en mode séquence.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/ui_emolearn_sequence.png}
+\caption{Interface en mode séquence.}
+\label{fig:ui-sequence}
+\end{figure}
+
+Le diagramme en barres est construit en éléments de mise en page, le
+diagramme radial est un dessin vectoriel. Les quatre états partagent
+le même codage couleur sur les pastilles, les graphiques et les cartes
+de fusion.
 
 \subsection{Lecteur de parcours d'apprentissage}
 \label{subsec:impl-parcours}
 
-\paragraph{Le parcours comme enchaînement de clips.} Un parcours est, dans le
-prototype, une suite ordonnée de clips appartenant à une même séquence
-(section~\ref{subsec:impl-segmentation}). Sa lecture s'effectue en enchaînant les
-analyses : l'utilisateur sélectionne successivement les clips de la séquence, chaque
-analyse produisant une décision et, le cas échéant, un contenu. L'interface
-matérialise le parcours par un historique latéral qui conserve les dix dernières
-adaptations avec leur état et leur horodatage, et qui est rechargé depuis la base de
-sessions au démarrage : une trajectoire simulée survit donc au rafraîchissement de
-la page et peut être reprise ou présentée après coup.
+Cette sous-section décrit l'exécution d'un parcours multi-clips.
 
-\paragraph{Ce que le lecteur ne fait pas.} La lecture est \textbf{pilotée par
-l'utilisateur} et non automatisée : l'interface ne comporte ni commande de lecture
-continue, ni boutons de clip suivant et précédent, et le référentiel de séquences
-n'est pas exposé par le serveur — il reste un artefact hors ligne exploité par les
-scripts d'évaluation. Cette limite est cohérente avec le choix, assumé en
-section~\ref{subsec:impl-transitions}, d'un point d'entrée au grain du clip ; elle
-implique en retour que l'évaluation des trajectoires du chapitre~\ref{chap:validation}
-s'appuie sur les séquences rejouées hors ligne, non sur des captures d'écran de
-l'interface. L'ajout d'un véritable lecteur de parcours, doté d'une notion de
-session identifiée, figure parmi les développements proposés au
-chapitre~\ref{chap:conclusion}.
+Un parcours est une suite ordonnée de cinq clips d'un même sujet
+\textsc{DAiSEE}, parmi les dix séquences de la
+section~\ref{subsec:impl-segmentation}. L'utilisateur en sélectionne
+une. Une requête unique enchaîne les analyses : chaque extrait
+emprunte le pipeline du mode clip (FER+AU, voix appariée, fusion),
+avec l'historique $H$ des scores déjà produits.
+
+Par défaut, le service de génération est sollicité pour le dernier
+clip, afin de borner le coût d'API. Les étapes intermédiaires
+conservent l'état détecté, le patron et la règle temporelle. Seule
+la dernière génération est écrite dans le journal et la table des
+sessions.
+
+Après l'analyse, une liste d'étapes reprend, pour chaque clip,
+l'état détecté, le patron, la règle temporelle et le déclenchement.
+Les trois fenêtres d'urgence --- un clip, deux clips consécutifs,
+quatre clips --- deviennent lisibles à mesure que $H$ s'allonge.
+L'historique latéral recharge les dix dernières sessions au
+démarrage.
 
 \subsection{Affichage des adaptations}
 \label{subsec:impl-affichage}
 
-\paragraph{Rendre la décision lisible avant le contenu.} L'écran de résultats place
-la décision avant le texte produit. Un bandeau annonce l'état détecté et son
-intensité ; une grille de quatre indicateurs donne le patron retenu, sa famille, le
-fait qu'une intervention a bien été déclenchée et le nombre de documents injectés ;
-une carte reprend en clair la description de la décision. Ce n'est qu'ensuite
-qu'apparaît le contenu, accompagné de son patron, de son objectif et de son nombre
-de mots. L'ordre est intentionnel : il empêche de lire le contenu comme un texte
-autonome et rappelle qu'il est la conséquence d'une décision documentée.
+Cette sous-section décrit l'écran de résultat.
 
-\paragraph{Montrer la fusion et ses désaccords.} Lorsque l'analyse est
-effectivement multimodale, trois cartes juxtaposent l'état perçu par le visage,
-l'état perçu par la voix et l'état fusionné. C'est l'élément d'interface le plus
-directement lié à la contribution scientifique du travail : il rend visible, cas par
-cas, le désaccord entre modalités et la manière dont il a été tranché, là où un
-affichage du seul état final laisserait croire à une perception univoque. La liste
-des sources documentaires injectées joue le même rôle pour la génération, en
-rattachant le texte produit à des références identifiables.
+L'écran place la décision avant le texte. Un bandeau affiche l'état
+détecté et son intensité. Les métadonnées indiquent le patron
+$\gamma$, sa famille $\tau$ et le nombre de documents RAG. Une
+carte reprend la description renvoyée par $\Delta$. Le journal
+d'étapes suit ces indicateurs : visage, voix, fusion, scores,
+règle temporelle et patron.
 
-\paragraph{Exploitation du contenu produit.} Deux fonctions closent l'écran : la
-copie du contenu dans le presse-papiers et son export en document \textsc{PDF}
-titré, portant le concept, l'état, l'intensité et le patron employé. Cette
-seconde fonction n'est pas un ornement : elle a servi à constituer les pièces
-soumises aux évaluateurs humains du chapitre~\ref{chap:validation}, en garantissant
-que le contenu évalué est bien celui produit par le système et qu'il reste
-accompagné des métadonnées qui en conditionnent l'appréciation.
+Lorsque les deux modalités sont actives, trois cartes juxtaposent
+l'état facial, l'état vocal et l'état fusionné. Les sources
+documentaires apparaissent sous le texte généré.
+
+Le contenu porte le patron, l'objectif et le nombre de mots. La copie
+vers le presse-papiers et l'export \textsc{PDF} (concept, état,
+intensité, patron) ont servi aux fiches soumises aux évaluateurs du
+chapitre~\ref{chap:validation}. Un tuteur conversationnel optionnel
+prolonge l'adaptation, avec le contenu initial comme premier tour.
+
+La section « Perception et décision » occupe le haut de l'écran, le
+contenu généré, le patron et les sources RAG occupent le bas. La
+figure~\ref{fig:ui-resultats} présente l'écran de résultat.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/ui_emolearn_resultats.png}
+\caption{Écran de résultat.}
+\label{fig:ui-resultats}
+\end{figure}
 
 %==============================================================================
 \section{Génération du corpus de contenu adaptatif}
 \label{sec:impl-corpus}
 
-L'artefact final du travail n'est pas seulement un logiciel : c'est un
-\emph{corpus} de contenus pédagogiques adaptatifs, produit par le système et
-soumis à évaluation. Cette section décrit sa constitution, depuis le choix des
-situations couvertes jusqu'à sa documentation.
+Cette section décrit la production du corpus adaptatif, ses artefacts
+et des extraits.
 
-\subsection{Sélection de 50 séquences représentatives}
-\label{subsec:impl-selection-sequences}
-
-\paragraph{Cinquante situations, six patrons.} Les cinquante séquences retenues
-sont les clips de dix secondes du référentiel constitué en
-section~\ref{subsec:impl-scenarios}. Leur sélection répond à un critère de
-couverture et non de représentativité statistique : chacun des six patrons
-pédagogiques est présent, les situations problématiques étant sur-représentées pour
-que la chaîne de décision soit sollicitée sur l'ensemble de son domaine. Le passage
-complet du banc d'essai sur ces cinquante séquences — perception faciale réelle,
-perception vocale appariée, fusion, décision — produit une table de décisions
-consignant pour chaque scénario l'état retenu, la stratégie et le patron, qui
-constitue la base de référence des analyses du chapitre~\ref{chap:validation}.
-
-\paragraph{Des séquences aux trajectoires.} Ces cinquante situations sont en outre
-regroupées en dix trajectoires de quatre à sept clips, chacune illustrant une
-évolution typique. Une trajectoire n'ajoute aucune donnée : elle ordonne des
-scénarios existants pour qu'une dynamique devienne observable. C'est sur ces
-trajectoires que les règles temporelles peuvent être exercées, une situation isolée
-ne permettant par construction de tester que les règles instantanées.
-
-\subsection{Génération de contenus pour chaque scénario}
+\subsection{Génération et documentation du corpus}
 \label{subsec:impl-generation-corpus}
-
-\paragraph{Volume et couverture.} Le corpus a été produit en appliquant la chaîne
-complète à chaque scénario, pour plusieurs patrons compatibles avec son état, de
-manière à couvrir la bibliothèque au-delà des seuls patrons que la cascade
-sélectionne spontanément. Il compte environ \textbf{220 contenus}, chacun
-enregistré avec l'identifiant du clip, son patron pédagogique, le patron de prompt
-employé, l'émotion et son intensité, le texte produit et son nombre de mots.
-Dix-neuf des vingt patrons de prompts sont représentés, contre onze lors du seul
-passage automatique sur les cinquante scénarios : le corpus documente donc
-davantage de situations pédagogiques que le référentiel n'en produit
-spontanément. Le patron manquant, dédié à un exercice comparatif, n'a été atteint
-par aucune combinaison de scores présente dans l'échantillon — observation
-cohérente avec la concentration de la cascade relevée en
-section~\ref{subsec:impl-selection}.
-
-\paragraph{Caractéristiques mesurées.} Les indicateurs de forme calculés sur
-l'ensemble du corpus situent les contenus autour de \textbf{225 mots} en moyenne,
-dans une plage allant de 115 à 434 mots, avec un taux de répétition lexicale moyen
-proche de 0{,}49. La dispersion des longueurs suit les longueurs cibles des patrons :
-les patrons d'encouragement produisent les textes les plus courts, ceux d'exercice
-et d'application les plus longs. Cette conformité relative n'est pas garantie par
-construction — aucun mécanisme ne tronque les sorties
-(section~\ref{subsec:impl-postproc}) — et constitue donc un résultat en soi,
-discuté au chapitre~\ref{chap:validation}.
-
-\paragraph{Régénération ciblée plutôt que globale.} Le corpus n'a pas été produit
-en une passe. Un premier audit a signalé un nombre important de contenus
-incohérents, principalement des associations douteuses entre émotion enregistrée et
-famille de patron. Une passe de correction des seules métadonnées, recalculant la
-décision sans rappeler le modèle, a ramené la proportion de contenus conformes à
-plus de neuf sur dix ; une passe de régénération, limitée aux lignes encore
-signalées et sauvegardant le corpus avant écriture, a porté cette proportion à
-\textbf{97,7 \%}, les anomalies résiduelles ne concernant plus que cinq contenus.
-Deux propriétés de l'outillage ont rendu cette progression possible : la
-régénération est \emph{sélective}, elle ne retouche que les entrées signalées par
-l'audit et laisse les autres intactes ; et elle est \emph{temporisée}, un délai
-séparant deux appels au service distant, sans quoi la limitation de débit
-interromprait le traitement. Cette traçabilité du corpus — état initial, correction
-appliquée, état final — fait partie du livrable au même titre que les contenus.
-
-\subsection{Documentation du corpus}
 \label{subsec:impl-doc-corpus}
 
-\paragraph{Artefacts livrés.} Le corpus n'est pas un fichier isolé mais un ensemble
-d'artefacts articulés (tableau~\ref{tab:artefacts-corpus}) : les contenus
-eux-mêmes, le rapport d'audit ligne par ligne, les indicateurs de forme,
-l'échantillon stratifié soumis aux évaluateurs et les fiches d'évaluation vierges.
-Chaque fichier est produit par un script identifié, à un emplacement fixe, ce qui
-permet de reconstituer la chaîne complète depuis les scénarios jusqu'aux fiches.
+Cette sous-section décrit la production, l'audit et les fichiers
+livrés.
 
-\begin{table}[H]
-\centering
-\small
-\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{|>{\raggedright\arraybackslash}p{4.4cm}|>{\raggedright\arraybackslash}p{6.5cm}|>{\raggedright\arraybackslash}p{2.0cm}|}
+Le corpus est produit sur les cinquante scénarios du référentiel.
+La chaîne complète est appliquée à chaque scénario, pour plusieurs
+patrons compatibles avec son état. Le passage automatique déclenche
+onze patrons, le corpus en documente dix-neuf. Le patron C5
+(exercice comparatif) reste sans ligne.
+
+L'audit porte sur 220 contenus. Chaque ligne enregistre
+l'identifiant du clip, le patron, l'émotion, l'intensité, le texte et
+le nombre de mots. L'export des métriques de forme en retient 208 :
+douze lignes étaient absentes ou incomplètes au moment du calcul.
+
+Le corpus a été obtenu en plusieurs passes. Un audit initial a
+signalé surtout des associations émotion--famille. Une correction des
+métadonnées, par recalcul de la décision, a relevé la conformité de
+forme. Une régénération sélective des lignes restantes, précédée
+d'une sauvegarde et séparée par un délai entre appels, a porté cette
+proportion à $97{,}7\,\%$ (215/220 : longueur, famille, marqueurs
+lexicaux). Cinq contenus restent hors critère. L'état initial, la
+correction et l'état final font partie du livrable.
+
+Le tableau~\ref{tab:artefacts-corpus} présente les artefacts du corpus adaptatif.
+
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
 \hline
 \rowcolor{gray!20}
 \textbf{Artefact} & \textbf{Contenu} & \textbf{Volume} \\
 \hline
-Corpus de contenus & Texte généré, patron, émotion, intensité, nombre de mots &
-$\approx$ 220 \\
+\endfirsthead
+\hline
+\rowcolor{gray!20}
+\textbf{Artefact} & \textbf{Contenu} & \textbf{Volume} \\
+\hline
+\endhead
+\endfoot
+\endlastfoot
+Corpus de contenus & Texte généré, patron, émotion, intensité, nombre de mots
+(208 lignes exportées) &
+220 générés / 208 exportés \\
 \hline
 Rapport d'audit & Anomalies détectées et score de qualité par contenu &
-$\approx$ 220 \\
+220 \\
 \hline
 Indicateurs de forme & Longueur, phrases, lisibilité approchée, répétition &
-$\approx$ 220 \\
+208 \\
 \hline
 Échantillon d'évaluation & Tirage stratifié par famille de patron & 58 \\
 \hline
@@ -1250,38 +1557,126 @@ Fiches d'évaluation & Extrait de contenu et grille de notation à remplir & 58 
 \hline
 Table de décisions & État, stratégie et patron retenus par scénario & 50 \\
 \hline
-\end{tabular}
-\caption{Artefacts constituant le corpus de contenu adaptatif et son appareil de
-validation.}
+\end{xltabular}
+\xlcaption{Artefacts du corpus adaptatif.}
 \label{tab:artefacts-corpus}
-\end{table}
+}
 
-\paragraph{Documentation méthodologique.} Deux documents accompagnent ces fichiers.
-Le premier décrit la procédure de régénération : commandes exactes de l'audit, de
-la simulation à blanc, de la correction des métadonnées puis de la régénération
-complète, prérequis d'accès au service de génération, et proportions de conformité
-obtenues à chaque étape. Le second fixe le protocole d'évaluation : constitution de
-l'échantillon à quinze contenus par famille de patron, maintien d'un concept
-identique pour rendre les contenus comparables, critères de notation soumis aux
-enseignants et articulation avec les indicateurs automatiques. Ce protocole est
-détaillé et mis en œuvre au chapitre~\ref{chap:validation}.
+Les fiches d'évaluation sont générées par script, à partir d'un
+tirage stratifié initialisé par une graine fixe. L'effectif visé
+était de soixante contenus, quinze par famille, cinquante-huit
+fiches ont été obtenues, du fait de la couverture inégale des
+familles. Ces effectifs, et le protocole enseignant, sont ceux du
+chapitre~\ref{chap:validation}.
 
-\paragraph{Reproductibilité de la chaîne.} Le tirage de l'échantillon d'évaluation
-est lui-même initialisé par une graine fixe, et les fiches soumises aux évaluateurs
-sont générées par script à partir du corpus, non recopiées manuellement. L'écart
-entre l'effectif visé — soixante contenus, quinze par famille — et l'effectif
-obtenu de cinquante-huit provient de la couverture inégale des familles de patrons
-dans le corpus ; il est mentionné ici pour que les effectifs rapportés au
-chapitre~\ref{chap:validation} soient interprétés à leur juste valeur.
+\subsection{Exemples de contenu généré}
+\label{subsec:exemples-contenu}
 
-\paragraph{Bilan de l'implémentation.} Au terme de ce chapitre, l'artefact est
-complet : deux corpus préparés et documentés, une chaîne de perception dont les
-variantes sont commutables par configuration, un moteur de décision dont chaque
-règle est nommée et testée, un module de génération ancré documentairement, une
-interface qui expose le raisonnement autant que son résultat, et un corpus de
-contenus accompagné de son appareil de validation. Trois limites ont été énoncées
-en chemin plutôt que dissimulées : l'absence de mémoire entre décisions
-successives, la lecture de parcours pilotée manuellement et l'absence de
-post-traitement des contenus générés. Le chapitre~\ref{chap:validation} soumet cet
-artefact à l'épreuve des faits, en mesurant successivement la perception, la
-décision et la qualité pédagogique du corpus produit.
+Les extraits ci-dessous proviennent du corpus et portent sur le même
+concept, «~les algorithmes de tri~». Ils relèvent des familles A, B,
+C et D. Le texte intégral et les métadonnées (clip, patron, sources
+RAG) restent dans l'export.
+
+\paragraph{A3 --- aide de déblocage (confusion et frustration, 195 mots):}
+
+\begin{quote}
+\small
+«~Ce concept est complexe, c'est normal. La plupart des gens ont du mal
+à comprendre les algorithmes de tri au début. Alors, ne vous inquiétez
+pas si vous avez du mal à les mettre en pratique.~»
+
+Il semble que vous ayez du mal à comprendre pourquoi certains
+algorithmes de tri fonctionnent mieux que d'autres. C'est peut-être en
+raison de la complexité des étapes impliquées. Pour simplifier les
+choses, imaginez que vous devez organiser des livres sur une étagère.
+Vous voulez les organiser par ordre alphabétique, mais vous n'avez pas
+de tableau de bord pour montrer la progression.
+
+Essayez de visualiser les algorithmes de tri comme des processus de tri
+des livres. Pensez à la manière dont vous pouvez utiliser des étiquettes
+ou des cartes pour les organiser de manière logique. [\ldots]
+
+Exercice guidé : imaginez que [\ldots]
+\end{quote}
+
+Le marqueur d'ouverture imposé par A3 («~Ce concept est complexe, c'est
+normal~») est présent. L'analogie des livres et le mini-exercice
+suivent les quatre consignes du patron.
+
+\paragraph{B1 --- application concrète (ennui, 199 mots):}
+
+\begin{quote}
+\small
+L'exemple de l'application de l'algorithme de tri dans le monde
+de la musique. Imaginez que vous êtes le coordonnateur d'une grande
+fête de musique. Vous avez reçu plusieurs centaines de CD que vous
+souhaitez classer par ordre alphabétique pour les présenter à vos
+invités. [\ldots] Vous pouvez utiliser l'algorithme de tri rapide
+(\emph{quick sort}) qui a une complexité en temps de $O(n\log n)$.
+[\ldots] Vous choisissez une piste aléatoire et vous la considérez comme
+la «~pièce maîtresse~» de votre ordre. [\ldots]
+\end{quote}
+
+Le texte part d'une situation concrète et nomme une complexité.
+L'exactitude de ce chiffre relève du chapitre~\ref{chap:validation}.
+
+\paragraph{C2 --- exercice progressif (336 mots):}
+
+\begin{quote}
+\small
+Exercice de consolidation : algorithmes de tri et structures de
+données. Vous avez bien compris les algorithmes de tri, mais maintenant
+il est temps de les appliquer à des scénarios plus complexes. [\ldots]
+
+Étape 1 --- tri simple. Un magasin a une liste de produits avec
+leurs prix. Triez cette liste par ordre croissant de prix. [\ldots]
+
+Étape 2 --- tri avec structure de données. Une université a une
+liste d'étudiants (noms, dates de naissance, notes). Triez par nom puis
+par date de naissance, en choisissant une structure adaptée. [\ldots]
+\end{quote}
+
+La longueur (336 mots) dépasse la cible nominale de 200 mots du patron
+C2, elle reste dans la fourchette de famille C retenue pour l'audit de
+forme (200--360 mots).
+
+\paragraph{D2 --- message de soutien (frustration, 168 mots):}
+\label{subsec:exemple-d2}
+\label{sec:annexe-hallucination}
+
+\begin{quote}
+\small
+Je vois que les algorithmes de tri te rendent un peu perdu(e) en ce
+moment. C'est tout à fait normal ! [\ldots] Prenez une pause si
+nécessaire. [\ldots] Une stratégie qui a aidé de nombreux apprenants est
+de commencer par comprendre les principes de base du tri et d'identifier
+les différents types d'algorithmes (tri par insertion, tri à bulles,
+etc.). [\ldots] Rappelle-toi que la persévérance est plus importante que
+la vitesse.
+\end{quote}
+
+Les quatre consignes de D2 (pause, normalisation, stratégie,
+persévérance) sont présentes. Le même enregistrement contenait une
+statistique («~85\,\% des apprenants~») absente des fiches RAG. Ce
+cas d'hallucination chiffrée est repris au
+chapitre~\ref{chap:validation}.
+
+%==============================================================================
+\section{Conclusion}
+\label{sec:ch4-concl}
+
+Le prototype exécute la chaîne spécifiée. La perception faciale
+repose sur FER+AU, la perception vocale sur WavLM et un énoncé
+\textsc{IEMOCAP} apparié, la fusion sur des priors $0{,}60$/$0{,}40$.
+La décision $\Delta$ retient onze patrons sur le référentiel et
+court-circuite la génération lorsque l'urgence vaut « aucune ».
+La génération est ancrée par vingt fiches RAG et vingt patrons,
+via \textsc{GPT-OSS}. L'algorithme~\ref{alg:pipeline-global} relie
+ces étages. L'interface expose l'état, la fusion, le patron et les
+sources, en clip isolé et en parcours de cinq extraits.
+
+Le corpus livré compte 220 contenus ($N=208$ pour les métriques de
+forme), dix-neuf patrons, un audit de forme à $97{,}7\,\%$.
+Hystérésis et session identifiée restent hors du moteur. Le
+chapitre~\ref{chap:validation} évalue la perception, la décision et
+la qualité pédagogique de ce corpus.

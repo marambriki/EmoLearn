@@ -62,7 +62,44 @@ def test_decision_sans_declenchement():
     assert d["type_contenu"] == "aucune"
 
 
-def test_decision_suit_fusion_pas_scores_bruts():
+def test_decision_frustration_molle_suit_etat_pas_scores():
+    """Argmax Frustration + proba molles (scores 0–1) → D, pas B2."""
+    fusion = {
+        "etat": "Frustration",
+        "niveau": 1,
+        "probs_etats": {
+            "Boredom": 0.08,
+            "Confusion": 0.34,
+            "Engagement": 0.22,
+            "Frustration": 0.36,
+        },
+        "multimodal": True,
+        "conflit": False,
+    }
+    d = preparer_decision(fusion=fusion)
+    assert d["etat"] == "Frustration"
+    assert d["type_contenu_regle"] == "D+A"
+    assert d["template_id"] in ("D1", "D2")
+    assert d["pattern"] == "frustration"
+
+
+def test_decision_ennui_suit_etat():
+    fusion = {
+        "etat": "Boredom",
+        "niveau": 2,
+        "probs_etats": {
+            "Boredom": 0.40,
+            "Confusion": 0.20,
+            "Engagement": 0.25,
+            "Frustration": 0.15,
+        },
+        "multimodal": True,
+        "conflit": False,
+    }
+    d = preparer_decision(fusion=fusion)
+    assert d["type_contenu_regle"] == "B"
+    assert d["template_id"] in ("B1", "B3")
+    assert d["pattern"] == "ennui_eleve"
     """La cascade pédagogique doit suivre la fusion, pas les scores CSV bruts."""
     fusion = {
         "etat": "Engagement",

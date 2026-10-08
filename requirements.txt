@@ -1,27 +1,26 @@
-# EmoLearn — dépendances backend & scripts
-fastapi
-uvicorn
-pandas
-pydantic
-python-dotenv
-python-multipart
-groq
-chromadb
-Pillow
-transformers
-torch
-torchvision
-matplotlib
-pytest
-httpx
-librosa
-soundfile
-sentence-transformers
-opencv-python
-mediapipe>=1.0.0
-scikit-learn
-joblib
-# Métriques similarité LLM (optionnel — scripts/metrics_llm_similarity.py)
-sacrebleu
-rouge-score
-bert-score
+# EmoLearn — dépendances figées (versions de l'environnement local)
+fastapi==0.136.3
+uvicorn==0.47.0
+pandas==3.0.3
+pydantic==2.13.4
+python-dotenv==1.2.2
+python-multipart==0.0.30
+groq==1.4.0
+chromadb==1.5.9
+pillow==11.0.0
+transformers==5.10.2
+torch==2.12.0
+matplotlib==3.9.3
+pytest==9.0.3
+httpx==0.28.1
+librosa==0.11.0
+soundfile==0.14.0
+sentence-transformers==5.5.1
+opencv-python==4.13.0.92
+mediapipe==1.0.1
+scikit-learn==1.8.0
+joblib==1.5.3
+
+# Métriques LLM optionnelles (scripts/metrics_llm_similarity.py).
+# Non installées dans l'environnement figé :
+#   sacrebleu, rouge-score, bert-score

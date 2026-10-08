@@ -1,0 +1,39 @@
+{
+  "generated_at": "2026-08-30T15:18:38.646004+00:00",
+  "scenarios_path": "C:\\Users\\Lenovo\\EmoLearn\\data\\scenarios_50.csv",
+  "n_scenarios": 50,
+  "variante_a": "similarite_profil_vad",
+  "variante_b": "similarite_profil_acoustique",
+  "voix_change_count": 40,
+  "voix_change_pct": 0.8,
+  "similarite_vad_moyenne": 0.7387,
+  "similarite_acoustique_moyenne": 0.7586,
+  "delta_similarite_moyen": 0.0198,
+  "delta_similarite_median": 0.0231,
+  "delta_similarite_positif_pct": 0.94,
+  "etat_cible_aligne_vad_pct": 1.0,
+  "etat_cible_aligne_acoustique_pct": 1.0,
+  "par_etat": {
+    "Boredom": {
+      "n": 13,
+      "voix_change_pct": 1.0,
+      "delta_similarite_moyen": 0.0036
+    },
+    "Confusion": {
+      "n": 8,
+      "voix_change_pct": 0.75,
+      "delta_similarite_moyen": 0.0176
+    },
+    "Engagement": {
+      "n": 13,
+      "voix_change_pct": 0.769,
+      "delta_similarite_moyen": 0.0307
+    },
+    "Frustration": {
+      "n": 16,
+      "voix_change_pct": 0.688,
+      "delta_similarite_moyen": 0.0253
+    }
+  },
+  "interpretation": "L'index acoustique modifie le choix de voix dans le pool filtré par état ; l'alignement sur l'état cible reste identique si le filtre est appliqué. Un delta de similarité positif indique un profil cosinus plus proche du scénario."
+}

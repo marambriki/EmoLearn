@@ -9,7 +9,7 @@ Les algorithmes de tri reposent sur deux opérations essentielles : la comparais
 
 **Liens avec ce qui a déjà été compris**
 
-Si vous avez déjà travaillé sur les algorithmes de recherche, vous comprenez la notion de comparaison et d'échange. En fait, les algorithmes de recherche utilisent également la comparaison pour trouver un élément spécifique dans une liste. La différence clé est que les algorithmes de tri utilisent la comparaison pour mettre les éléments dans l'ordre, tandis qu'les algorithmes de recherche utilisent la comparaison pour trouver un élément spécifique.
+Si vous avez déjà travaillé sur les algorithmes de recherche, vous comprenez la notion de comparaison et d'échange. En fait, les algorithmes de recherche utilisent également la comparaison pour trouver un élément spécifique dans une liste. La différence clé est que les algorithmes de tri utilisent la comparaison pour mettre les éléments dans l'ordre, tandis que les algorithmes de recherche utilisent la comparaison pour trouver un élément spécifique.
 
 **Représentation mentale unificatrice**
 

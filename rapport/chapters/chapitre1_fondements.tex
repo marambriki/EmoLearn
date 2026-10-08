@@ -11,35 +11,52 @@ La conception d'un système d'apprentissage adaptatif fondé sur
 l'engagement émotionnel mobilise un ensemble de notions issues de
 domaines distincts : sciences de l'éducation, informatique affective,
 apprentissage multimodal et intelligence artificielle générative. Ces
-notions sont souvent présentées séparément ; les rassembler permet
+notions sont souvent présentées séparément, les rassembler permet
 d'établir un vocabulaire partagé et d'expliciter les hypothèses sur
 lesquelles repose le pipeline \emolearn{}.
 
-Ce chapitre examine les concepts fondamentaux nécessaires à la
-compréhension de cette architecture. Il aborde successivement
-l'apprentissage en ligne et les MOOC, la notion d'engagement de
-l'apprenant, les apports de l'informatique affective, les principes de
-la détection multimodale, puis les bases de l'intelligence artificielle
-générative appliquée à l'éducation (LLM, guidage par prompts et RAG).
+Le présent chapitre construit progressivement ce socle. Il part de
+l'apprentissage en ligne et des MOOC, précise ce que recouvre
+l'engagement de l'apprenant, puis introduit les apports de l'informatique
+affective. Il présente ensuite les principes de la détection multimodale
+avant d'aborder l'intelligence artificielle générative appliquée à
+l'éducation, à travers les grands modèles de langue, le guidage par
+prompts et la récupération augmentée. Outre ce cadrage conceptuel, le
+chapitre assume une vocation de rappel technique général : les notions
+de Transformer, de prompts et de RAG y sont exposées de manière
+introductive, afin de préparer la lecture des chapitres de conception et
+d'implémentation.
 
 %==============================================================================
 \section{Apprentissage en ligne et MOOC}
 \label{sec:fond-mooc}
 
-\subsection{Définition}
+\subsection{Définition et genèse}
 
 Les cours en ligne ouverts et massifs (MOOC, \emph{Massive Open Online
 Courses}) désignent des dispositifs de formation accessibles à distance, le
 plus souvent sans prérequis d'inscription stricts, et destinés à un public
-potentiellement très large \cite{daniel2012making,breslow2013studying}. Ils
-reposent typiquement sur des vidéos pédagogiques, des quiz, des forums et un
+potentiellement très large \cite{daniel2012making}. Ils reposent
+typiquement sur des vidéos pédagogiques, des quiz, des forums et un
 parcours de progression asynchrone.
 
-\subsection{Implication pour l'adaptation}
+Le sigle s'est imposé au tournant des années 2010, lorsque des universités
+ont ouvert des cours à une audience mondiale via des plateformes telles
+que Coursera ou edX. L'un des cas les plus documentés demeure Circuits and Electronics (6.002x), premier MOOC d'edX, qui a
+rassemblé plus de cent cinquante mille inscrits
+\cite{breslow2013studying}. \textcite{daniel2012making} en a dégagé
+très tôt la tension constitutive : une promesse d'accès élargi, associée
+à des difficultés persistantes de suivi et d'achèvement.
 
-Dans ce modèle, le contenu est principalement diffusé de manière uniforme.
-Toute forme d'adaptation automatique suppose donc, en amont, de disposer
-d'une mesure d'engagement plus fine que les simples proxies de présence
+\subsection{Rétention et implication pour l'adaptation}
+
+Les études de cohortes confirment que les taux d'achèvement restent
+structurellement bas, souvent de l'ordre de 10\,\%, une part importante
+des inscrits quittant le parcours dès les premières semaines
+\cite{onah2014dropout,jordan2015massive,reich2019mooc}. Dans ce modèle,
+le contenu est principalement diffusé de manière uniforme. Toute forme
+d'adaptation automatique suppose donc, en amont, de disposer d'une
+mesure d'engagement plus fine que les simples proxies de présence
 (connexion, clics), point développé dans la section suivante.
 
 %==============================================================================
@@ -48,16 +65,23 @@ d'une mesure d'engagement plus fine que les simples proxies de présence
 
 \subsection{Définition}
 
-L'engagement désigne la mobilisation cognitive, comportementale et
-émotionnelle de l'apprenant vis-à-vis de la tâche d'apprentissage
-\cite{kizilcec2013deconstructing,hew2016promoting,fredricks2004school}. Il ne se réduit pas à la
-simple présence en ligne (connexion, clics), mais renvoie à une implication
-active dans le traitement de l'information.
+\textcite{fredricks2004school} définissent
+l'engagement comme la mobilisation cognitive, comportementale et
+émotionnelle de l'apprenant vis-à-vis de la tâche. Dans les MOOC,
+\textcite{kizilcec2013deconstructing} ainsi que
+\textcite{hew2016promoting} montrent que cette implication ne se réduit
+pas à la simple présence en ligne (connexion, clics), mais renvoie à une
+participation active dans le traitement de l'information.
 
 \subsection{Dimensions de l'engagement}
 
-On distingue classiquement :
+Le cadre théorique dominant, formulé par
+\textcite{fredricks2004school}, distingue trois dimensions complémentaires :
+une dimension cognitive, une dimension comportementale
+et une dimension émotionnelle.
 
+
+La figure~\ref{fig:fond-dimensions-engagement} présente les trois dimensions de l'engagement.
 
 \begin{figure}[H]
 \centering
@@ -73,19 +97,19 @@ On distingue classiquement :
 \node[draw=gray!55, dashed, rounded corners=4pt, fit=(cog)(beh)(emo),
       inner sep=8pt, label={[font=\small\bfseries]above:Engagement de l'apprenant}] {};
 \node[below=0.35cm of emo, font=\footnotesize\itshape, text=orange!80!black, align=center]
-  {Focus \emolearn{}};
+  {Cible \emolearn{}};
 \end{tikzpicture}
-\caption{Les trois dimensions classiques de l'engagement. }
+\caption{Dimensions de l'engagement.}
 \label{fig:fond-dimensions-engagement}
 \end{figure}
 
-\emolearn{} se concentre principalement sur la dimension émotionnelle /
-affective, tout en visant un effet sur la persévérance globale.
+\emolearn{} se concentre principalement sur la dimension émotionnelle,
+ou affective, tout en visant un effet sur la persévérance globale.
 
 \subsection{Mesure de l'engagement}
 
 Les indicateurs usuels en e-learning (durée de session, progression, scores)
-fournissent des \emph{proxies} utiles mais incomplets. Les approches plus
+fournissent des proxies utiles mais incomplets. Les approches plus
 récentes mobilisent des signaux multimodaux (visage, voix, posture) pour
 estimer l'état affectif de manière plus directe
 \cite{dmello2015review,sharma2020multimodal,goldberg2021attentive}.
@@ -96,17 +120,30 @@ estimer l'état affectif de manière plus directe
 
 \subsection{Rôle des émotions dans l'apprentissage}
 
-Les travaux en psychologie de l'apprentissage montrent que les émotions
-modulent l'attention, la mémorisation et la persévérance
-\cite{pekrun2006control,dmello2012dynamics,baker2010better,loderer2020beyond,graesser2020emotions}. Elles ne sont
+\textcite{picard1997affective} a posé le cadre de l'informatique
+affective. En psychologie de l'apprentissage,
+\textcite{pekrun2006control} montre que les émotions de réussite modulent
+l'attention et la persévérance. \textcite{dmello2012dynamics}, ainsi que
+\textcite{baker2010better}, précisent le rôle de l'ennui, de la confusion et
+de la frustration dans la profondeur du traitement et la mémorisation
+\cite{loderer2020beyond,graesser2020emotions}. Les émotions ne sont
 donc pas périphériques à la cognition, mais constitutives du processus
 d'apprentissage.
 
 \subsection{États pertinents pour l'adaptation pédagogique}
 
-Dans le cadre de ce mémoire, quatre états issus du corpus \textsc{DAiSEE}
-\cite{gupta2016daisee} structurent la taxonomie d'engagement :
+Il faut distinguer deux emplois du mot engagement. Au sens large, il
+désigne le construit théorique de la section précédente (mobilisation
+cognitive, comportementale et émotionnelle). Dans la taxonomie
+\textsc{DAiSEE}, \og Engagement \fg{} désigne en revanche un état
+ponctuel annoté, aux côtés de l'ennui, de la confusion et de la
+frustration : c'est une étiquette d'observation, et non le concept
+général. Dans ce mémoire, ces quatre états issus du corpus
+\cite{gupta2016daisee} structurent la taxonomie opérationnelle, chacun
+annoté sur une échelle d'intensité à quatre niveaux.
 
+
+La figure~\ref{fig:fond-taxonomie-daisee} présente les quatre états d'engagement retenus.
 
 \begin{figure}[H]
 \centering
@@ -123,7 +160,7 @@ Dans le cadre de ce mémoire, quatre états issus du corpus \textsc{DAiSEE}
       inner sep=10pt,
       label={[font=\small\bfseries]above:Taxonomie \textsc{DAiSEE} (4 états)}] {};
 \end{tikzpicture}
-\caption{Taxonomie des quatre états d'engagement retenus (\textsc{DAiSEE}).}
+\caption{Quatre états d'engagement (\textsc{DAiSEE}).}
 \label{fig:fond-taxonomie-daisee}
 \end{figure}
 
@@ -131,14 +168,13 @@ Chacun de ces états appelle une stratégie pédagogique distincte.
 
 \subsection{Charge cognitive}
 
-La théorie de la charge cognitive rappelle qu'un contenu trop dense ou mal
-séquencé favorise la confusion et l'abandon
-\cite{sweller1988cognitive,sweller2019cognitive}. La théorie de
-l'apprentissage multimédia complète ce cadre : la conception des messages
-(texte, image, rythme) conditionne la charge utile
-\cite{mayer2021multimedia}. L'adaptation du niveau d'explication, du rythme
-et du type d'exemple constitue dès lors un levier central des systèmes
-d'apprentissage adaptatifs.
+\textcite{sweller1988cognitive,sweller2019cognitive} rappelle qu'un
+contenu trop dense ou mal séquencé favorise la confusion et l'abandon.
+\textcite{mayer2021multimedia} complète ce cadre par la théorie de
+l'apprentissage multimédia : la conception des messages (texte, image,
+rythme) conditionne la charge utile. L'adaptation du niveau d'explication,
+du rythme et du type d'exemple constitue dès lors un levier central des
+systèmes d'apprentissage adaptatifs.
 
 %==============================================================================
 \section{Détection multimodale de l'engagement}
@@ -146,15 +182,21 @@ d'apprentissage adaptatifs.
 
 \subsection{Modalités exploitées}
 
-La détection automatique de l'engagement peut s'appuyer sur :
+La détection automatique de l'engagement peut s'appuyer sur plusieurs
+familles de signaux \cite{dmello2015review,sharma2020multimodal} :
 \begin{itemize}
-  \item le \textbf{visage} (expressions faciales, regard)~;
-  \item la \textbf{voix} (prosodie, intensité, variations émotionnelles)~;
-  \item éventuellement la posture ou des signaux physiologiques.
+  \item le visage (expressions faciales, regard)
+  \cite{whitehill2014faces,gupta2016daisee}~,
+  \item la voix (prosodie, intensité, variations émotionnelles)
+  \cite{busso2008iemocap}~,
+  \item éventuellement la posture ou des signaux physiologiques
+  \cite{goldberg2021attentive}.
 \end{itemize}
 \emolearn{} combine les deux premières modalités, à partir de clips
 vidéo et audio annotés (hors temps réel), plutôt que de traces textuelles
 de forums ou de capteurs physiologiques.
+
+La figure~\ref{fig:fond-boucle-multimodale} présente la boucle de détection multimodale.
 
 \begin{figure}[H]
 \centering
@@ -180,7 +222,7 @@ de forums ou de capteurs physiologiques.
 \draw[arr] (fus) -- (etat);
 \draw[arr] (etat) -- (adap);
 \end{tikzpicture}
-\caption{Boucle conceptuelle de détection multimodale.}
+\caption{Détection multimodale.}
 \label{fig:fond-boucle-multimodale}
 \end{figure}
 
@@ -188,10 +230,14 @@ de forums ou de capteurs physiologiques.
 
 Deux corpus publics fondent la chaîne de perception :
 \begin{itemize}
-  \item \textsc{DAiSEE} \cite{gupta2016daisee} pour l'engagement facial annoté~;
+  \item \textsc{DAiSEE} \cite{gupta2016daisee} pour l'engagement facial annoté~,
   \item \textsc{IEMOCAP} \cite{busso2008iemocap} pour l'émotion vocale et, via
   un sous-corpus audiovisuel, la validation de la fusion alignée.
 \end{itemize}
+
+Comme ces deux corpus proviennent de populations distinctes,
+l'alignement des modalités est une contrainte méthodologique assumée,
+discutée lors de la conception et de la validation.
 
 \subsection{Fusion multimodale}
 
@@ -208,55 +254,59 @@ classes, qui seront traités dans la conception et la validation du système.
 \subsection{Grands modèles de langue}
 
 Les grands modèles de langue (LLM, \emph{Large Language Models}) sont des
-réseaux de neurones entraînés à prédire le prochain token d'une séquence à
-partir d'un très grand corpus textuel
-\cite{brown2020language,vaswani2017attention,wolf2020transformers,openai2023gpt4,dubey2024llama3}. Architecturée autour du
-\emph{Transformer} décodeur, cette famille de modèles suit un pipeline
-strictement séquentiel (figure~\ref{fig:fond-llm-arch}) : le texte d'entrée
-est d'abord \emph{tokenisé} (mots ou sous-mots convertis en identifiants
-numériques), puis ces identifiants passent dans une couche d'\emph{embeddings}
-combinée à un encodage de position, avant d'entrer dans une pile de blocs
-d'\emph{attention} et de couches \emph{feed-forward}. Une tête de langage
-produit enfin la distribution sur le vocabulaire. La génération est
-\emph{auto-régressive} : chaque token prédit est réinjecté pour produire le
-suivant.
+réseaux entraînés à prédire le token suivant d'une séquence
+\cite{brown2020language}. Leur architecture repose sur le Transformer
+\cite{vaswani2017attention} : tokenisation,
+plongements (embeddings) et attention, puis génération
+auto-régressive. Ce rappel, volontairement général, sert de socle à la
+génération pédagogique d'\emolearn{}, sans préempter les choix
+d'implémentation.
+
+La figure~\ref{fig:fond-llm-arch} présente l'architecture d'un grand modèle de langue.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.88\textwidth]{figures/llm_architecture_generale.png}
-\caption{Architecture générale d'un LLM de type Transformer décodeur.
-}
+\caption{Architecture d'un LLM (Transformer décodeur).}
 \label{fig:fond-llm-arch}
 \end{figure}
 
-En éducation, ces modèles permettent de générer, à la demande, des
-explications, reformulations, analogies ou encouragements en langage naturel
-\cite{kasneci2023chatgpt,lo2023chatgpt,yan2024practical,wang2024large}. Ils offrent ainsi une voie crédible pour produire
-des contenus pédagogiques personnalisés à grande échelle.
+En éducation, \textcite{kasneci2023chatgpt} et
+\textcite{lo2023chatgpt} montrent que ces modèles peuvent produire, à
+la demande, des explications, reformulations ou encouragements
+\cite{yan2024practical,wang2024large}. Ils offrent ainsi une voie
+crédible pour personnaliser des contenus pédagogiques à grande échelle.
 
 \subsection{Guidage par prompts et patrons}
 
-La qualité du contenu généré dépend fortement du guidage
-\cite{liu2023pretrain,white2023prompt,wei2022chain}. Une bibliothèque de
-patrons de prompts structurés permet de conditionner la génération selon
-l'état d'engagement détecté et le type d'intervention pédagogique souhaité.
+\textcite{liu2023pretrain}, \textcite{white2023prompt}
+et \textcite{wei2022chain}
+soulignent que la qualité du contenu généré dépend fortement du guidage.
+Une bibliothèque de patrons de prompts structurés permet ainsi de
+conditionner la génération selon l'état d'engagement détecté et le type
+d'intervention pédagogique souhaité.
 
 \subsection{Récupération augmentée (RAG)}
 
-Le mécanisme de \emph{Retrieval-Augmented Generation} (RAG)
-\cite{lewis2020retrieval,gao2023retrieval,fan2024survey} ancre la génération sur des documents de référence
-indexés dans une base vectorielle (figure~\ref{fig:fond-rag}). Les documents
+Le mécanisme de récupération augmentée
+(\emph{Retrieval-Augmented Generation}, RAG), introduit par
+\textcite{lewis2020retrieval} et synthétisé par
+\textcite{gao2023retrieval} et \textcite{fan2024survey},
+ancre la génération sur des documents de référence
+indexés dans une base vectorielle. Les documents
 sont d'abord découpés et vectorisés (indexation hors ligne). À l'exécution,
-la question est embedée puis confrontée à l'index pour récupérer les
-passages les plus pertinents ; ces passages enrichissent le prompt transmis
+la requête est à son tour vectorisée puis confrontée à l'index pour récupérer
+les passages les plus pertinents, ces passages enrichissent le prompt transmis
 au LLM, qui produit une réponse ancrée. Ce dispositif réduit le risque
 d'hallucinations factuelles et renforce la cohérence pédagogique des
 contenus produits.
 
+La figure~\ref{fig:fond-rag} présente l'architecture du RAG.
+
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.92\textwidth]{figures/rag_architecture_generale.png}
-\caption{Architecture générale du RAG.}
+\caption{Architecture du RAG.}
 \label{fig:fond-rag}
 \end{figure}
 
@@ -266,7 +316,8 @@ contenus produits.
 
 Ce chapitre a rappelé le socle conceptuel sur lequel s'appuie \emolearn{} :
 la définition des MOOC et l'enjeu d'adaptation, la centralité de
-l'engagement émotionnel, les bases de la détection multimodale et le potentiel
-de l'IA générative guidée et ancrée documentairement. Le chapitre suivant
-examine l'état de l'art correspondant et positionne le présent travail par
-rapport aux approches existantes.
+l'engagement émotionnel, les bases de la détection multimodale et le
+potentiel de l'IA générative guidée et ancrée documentairement. Ces
+briques étant
+définies, il devient possible de confronter \emolearn{} aux travaux
+existants, ce à quoi s'attache le chapitre~\ref{chap:etat_art}.

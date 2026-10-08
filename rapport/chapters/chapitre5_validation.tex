@@ -1,12 +1,30 @@
 %==============================================================================
 %  CHAPITRE 5 — VALIDATION ET RÉSULTATS
 %==============================================================================
-\titreduchapitre{Validation et Résultats}{chap:validation}
+\titreduchapitre{Validation et résultats}{chap:validation}
+\section{Introduction}
+\label{sec:ch5-intro}
 
-Ce chapitre présente l'évaluation multi-niveaux du prototype \emolearn{},
-conformément à l'OS6. Il distingue les validations \textbf{techniques}
-(conduites et chiffrées) des validations \textbf{expertes et utilisateurs}
-(instrumentées mais non finalisées dans le cadre de ce mémoire).
+Le chapitre précédent a livré le prototype : perception faciale et
+vocale, fusion, décision~$\Delta$, génération ancrée, interface de
+simulation, et un corpus de 220 contenus. Le présent chapitre évalue
+cet artefact selon quatre niveaux : la perception et la fusion, la
+cohérence du mapping état\,$\rightarrow$\,stratégie, la qualité
+pédagogique du corpus, et l'acceptabilité de l'idée ($n=15$).
+
+Deux cadres portent les mesures de fusion. Ils partagent le moteur de
+décision, le régime de vérité terrain diffère. Le pipeline produit
+associe un clip \textsc{DAiSEE} à une voix \textsc{IEMOCAP} appariée :
+visage et voix appartiennent à des locuteurs distincts. Le banc d'essai
+isole, dans \textsc{IEMOCAP}, des paires audiovisuelles synchronisées
+(même locuteur, même instant). Chaque métrique est lue dans le cadre qui
+la rend interprétable.
+
+Les mesures collectées portent sur la classification visage et voix, le
+banc aligné ($n=80$), les correspondances du référentiel ($n=50$), la
+forme du corpus, une grille enseignante L2 ($n=3$, huit extraits) et
+l'enquête d'idée. L'évaluation Likert experte L1 et le pilote C1/C2 sont
+reportés en perspective.
 
 %==============================================================================
 \section{Méthodologie d'évaluation multi-niveaux}
@@ -17,317 +35,1115 @@ conformément à l'OS6. Il distingue les validations \textbf{techniques}
 L'évaluation s'organise en quatre niveaux complémentaires :
 
 \begin{enumerate}[leftmargin=1.4em]
-  \item \textbf{Niveau technique — perception.} Exactitude des modules visage
-  (FER\,$\rightarrow$\,DAiSEE), voix (SER) et fusion multimodale sur jeux de
-  test documentés.
+  \item \textbf{Niveau technique --- perception:} Exactitude des modules
+  visage (FER+AU, juge produit), voix (WavLM fine-tuné vers
+  \textsc{DAiSEE}, hybride avec ancre \textsc{IEMOCAP}) et fusion
+  multimodale, sur des jeux de test documentés. Deux cadres coexistent :
+  le banc audiovisuel aligné ($n=80$) et un proxy du pipeline produit
+  (journal de décisions du référentiel).
 
-  \item \textbf{Niveau décision.} Cohérence du mapping
-  engagement\,$\rightarrow$\,stratégie et couverture des cinquante scénarios
-  simulés.
+  \item \textbf{Niveau décision --- correspondances:} Cohérence du mapping
+  engagement\,$\rightarrow$\,stratégie sur le référentiel ($n=50$ clips
+  joints), tables de contingence état fusionné $\times$ famille A/B/C/D,
+  $V$ de Cramér, et comportement des règles temporelles sur les parcours
+  multi-clips.
 
-  \item \textbf{Niveau contenu.} Métriques automatiques de forme sur le corpus
-  généré ; protocole d'évaluation experte préparé (60 fiches).
+  \item \textbf{Niveau contenu:} Métriques automatiques de forme
+  (longueur, lisibilité, audit heuristique) et de cohérence interne
+  (BLEU / ROUGE) sur le corpus généré, évaluation enseignante L2
+  ($n=3$, 8 textes).
 
-  \item \textbf{Niveau utilisateur.} Protocole d'étude pilote ($n=30$) documenté,
-  non exécuté dans la version actuelle du mémoire.
+  \item \textbf{Niveau utilisateur:} Enquête d'acceptabilité de l'idée
+  ($n=15$) hors prototype.
 \end{enumerate}
 
-Cette hiérarchie privilégie la \emph{mesure honnête} des compromis observés
-plutôt qu'une démonstration de performance maximale.
+\subsection{Deux cadres d'évaluation de la fusion}
+\label{subsec:val-deux-cadres}
+
+Le tableau~\ref{tab:deux-pipelines} présente les deux cadres : ils partagent
+le moteur de fusion, pas le régime de vérité terrain. Il rappelle ce que
+chaque cadre permet et interdit d'affirmer.
+
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+\hline
+\rowcolor{gray!20}
+ & \textbf{Pipeline produit} & \textbf{Banc d'essai aligné} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{gray!20}
+ & \textbf{Pipeline produit} & \textbf{Banc d'essai aligné} \\
+\hline
+\endhead
+\endfoot
+\endlastfoot
+Visage & Clip \textsc{DAiSEE} réel, FER+AU & Vidéo \textsc{IEMOCAP} (Session~1) \\
+\hline
+Voix & Audio \textsc{IEMOCAP} apparié (filtre d'état + profil acoustique) &
+Même locuteur, même segment \\
+\hline
+Vérité terrain & État dominant \textsc{DAiSEE} du clip (proxy, pas d'or
+multimodal) & Émotion \textsc{IEMOCAP} projetée vers \textsc{DAiSEE} \\
+\hline
+Ce que l'on mesure & Comportement du runtime tel qu'il est servi par l'API &
+Apport de la fusion \emph{sans} biais d'appariement \\
+\hline
+\end{xltabular}
+\xlcaption{Deux cadres d'évaluation.}
+\label{tab:deux-pipelines}
+}
+
+
+Le banc d'essai ($n=80$) est chiffré avec le stack produit
+(FER+AU, WavLM hybride, vote à incertitude).
 
 \subsection{Métriques et critères}
 
-Les métriques retenues varient selon le niveau :
+Les métriques varient selon le niveau :
 
 \begin{itemize}[leftmargin=1.4em]
-  \item \textbf{Classification} : accuracy, F1 macro, matrices de confusion ;
-  pour la fusion, rappel des états « urgents » (confusion, frustration).
-  \item \textbf{Corpus généré} : longueur en mots, indice de lisibilité
-  (Kandel--Moles), taux de répétition, taux de conformité à l'audit automatique.
-  \item \textbf{Évaluation experte} (protocole) : Likert 1--5 sur pertinence,
-  clarté, adéquation émotionnelle, qualité pédagogique, utilisabilité MOOC et
-  absence d'erreurs factuelles (avec RAG).
+  \item \textbf{Classification} : accuracy, F1 macro, rappels par classe
+  --- en particulier Frustration et Confusion, les états pédagogiquement
+  urgents. L'accuracy seule est trompeuse sur \textsc{DAiSEE} ($\approx$75\,\%
+  d'Engagement).
+  \item \textbf{Fusion} : accuracy versus rappel des états urgents
+  (Confusion $\cup$ Frustration), sensibilité aux poids visage/voix, 
+  cas synthétiques de pondération par incertitude.
+  \item \textbf{Appariement vocal} : similarité cosinus du profil,
+  proportion de voix changées, alignement sur l'état cible.
+  \item \textbf{Corpus généré} : longueur, indice Kandel--Moles, taux de
+  répétition, conformité à l'audit automatique, BLEU-4 et ROUGE-1/2/L
+  (référence interne par patron, pas d'or expert).
+  \item \textbf{Correspondances} : concordance famille (cascade sur
+  labels \textsc{DAiSEE} versus type journalisé), admissibilité du type
+  au regard de l'état fusionné, $V$ de Cramér sur la table
+  état\,$\times$\,famille.
+  \item \textbf{Évaluation experte} : L2 $n=3$ enseignants, 8 extraits
+  (Q1--Q6).
+  \item \textbf{Acceptabilité} : enquête d'idée $n=15$ (Likert 1--7, SUS
+  imaginé).
 \end{itemize}
 
 %==============================================================================
 \section{Validation de la perception et de la fusion}
 \label{sec:val-perception}
 
-\subsection{Classifieur FER\,$\rightarrow$\,DAiSEE (Random Forest)}
+\subsection{Le piège de l'accuracy : classifieur FER déséquilibré}
+\label{subsec:val-fer-collapse}
 
-Un échantillon de \textbf{1\,200} clips \textsc{DAiSEE} a servi à l'entraînement
-d'un Random Forest (GridSearchCV, $n\_estimators=200$) sur les sept scores de
-probabilité du modèle FER pré-entraîné \cite{li2020deepfer,wolf2020transformers}. Le jeu de test ($n=300$) est fortement
-déséquilibré ($\approx$75\,\% Engagement).
+Un premier Random Forest a été entraîné sur 1\,200 clips \textsc{DAiSEE}
+en respectant la distribution naturelle ($\approx$74\,\% Engagement). Sur
+le jeu de test ($n=300$), le modèle appris atteint une accuracy de
+0{,}723 contre 0{,}193 pour le mapping heuristique 7\,$\rightarrow$\,4,
+soit un gain absolu de $+0{,}530$.
+Ce gain d'exactitude masque un effondrement sur la classe
+majoritaire.
 
-\begin{table}[H]
-\centering
-\small
-\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{|l|c|c|}
+Le tableau~\ref{tab:fer-collapse} présente l'effondrement du FER sur la classe majoritaire.
+
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\raggedright\arraybackslash}X|c|c|c|}
 \hline
 \rowcolor{gray!20}
-\textbf{Approche} & \textbf{Accuracy} & \textbf{F1 macro} \\
+\textbf{Approche} & \textbf{Accuracy} & \textbf{F1 macro} &
+Rappel Fru./Conf. \\
 \hline
-Mapping heuristique (baseline) & 0{,}193 & 0{,}141 \\
-\hline
-\textbf{Random Forest appris} & \textbf{0{,}723} & \textbf{0{,}264} \\
-\hline
-Gain absolu & +0{,}530 & +0{,}123 \\
-\hline
-\end{tabular}
-\caption{Comparaison mapping heuristique vs classifieur appris (FER\,$\rightarrow$\,DAiSEE, $n=300$).}
-\label{tab:fer-rf}
-\end{table}
-
-Le classifieur appris améliore nettement l'accuracy mais le F1 macro reste
-modeste : le modèle prédit surtout \emph{Engagement}, avec un rappel nul sur
-\emph{Confusion} et \emph{Frustration} sur ce split. Le gain justifie néanmoins
-le déploiement du modèle appris en production, sous réserve de compléter
-l'évaluation par le rappel des classes minoritaires.
-
-\subsection{Fine-tuning SER (tête wav2vec2)}
-
-La tête de classification d'un modèle \emph{wav2vec2} pré-entraîné
-\cite{baevski2020wav2vec2} a été fine-tunée sur 600 segments \textsc{IEMOCAP}
-(150 par état DAiSEE, oversampling des classes rares), avec validation interne
-$n=120$ sur deux époques (CPU) :
-
-\begin{table}[H]
-\centering
-\small
-\begin{tabular}{|c|c|c|}
+\endfirsthead
 \hline
 \rowcolor{gray!20}
-\textbf{Époque} & \textbf{Accuracy} & \textbf{F1 macro} \\
+\textbf{Approche} & \textbf{Accuracy} & \textbf{F1 macro} &
+Rappel Fru./Conf. \\
 \hline
-1 & 0{,}275 & 0{,}279 \\
+\endhead
+\endfoot
+\endlastfoot
+Mapping heuristique & 0{,}193 & 0{,}141 & $\approx 0$ \\
 \hline
-2 & 0{,}300 & \textbf{0{,}309} \\
+RF déséquilibré (1\,200 clips) & 0{,}723 & 0{,}264 &
+0\,\% / 0\,\% \\
 \hline
-\end{tabular}
-\caption{Progression du fine-tuning SER (validation interne).}
+Gain & $+0{,}530$ & $+0{,}123$ & --- \\
+\hline
+\end{xltabular}
+\xlcaption{Effondrement du FER sur la classe majoritaire.}
+\label{tab:fer-collapse}
+}
+
+
+Ce chiffre, s'il était isolé, donnerait une image fausse du module. Le
+rappel est nul sur Confusion et Frustration : le classifieur
+prédit presque exclusivement Engagement. Or ce sont précisément les états
+qui doivent déclencher une intervention. L'accuracy élevée n'est donc pas
+un succès pédagogique, elle justifie le passage à un protocole stratifié et à des descripteurs plus riches (Action Units).
+
+\subsection{Module de décision : Random Forest basé sur FER + AU}
+\label{subsec:val-fer-au}
+
+Architecture du juge (ViT-émotions + AU + Random Forest) :
+chapitre~\ref{chap:implementation}. Ici, le protocole
+stratifié (800 clips, 200 par état, test $n=200$ équilibré)
+se compare à l'heuristique et au RF sans AU
+(tableau~\ref{tab:fer-au}, l'astérisque désigne un test équilibré).
+
+Le tableau~\ref{tab:fer-au} présente les scores du juge FER+AU.
+
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\raggedright\arraybackslash}X|c|c|c|c|}
+\hline
+\rowcolor{gray!20}
+\textbf{Variante} & \textbf{Acc.} & \textbf{F1} &
+\textbf{Rapp.\ Fru.} & Rapp.\ Conf. \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{gray!20}
+\textbf{Variante} & \textbf{Acc.} & \textbf{F1} &
+\textbf{Rapp.\ Fru.} & Rapp.\ Conf. \\
+\hline
+\endhead
+\endfoot
+\endlastfoot
+Heuristique (même split FER+AU) & 0{,}26 & 0{,}19 & 4\,\% & 8\,\% \\
+\hline
+RF 7 scores, stratifié 300/état & 0{,}28$^*$ & 0{,}27 & 20\,\% & 41\,\% \\
+\hline
+FER+AU (retenu) & 0{,}37 & 0{,}37 &
+\textbf{34\,\%} & 34\,\% \\
+\hline
+\end{xltabular}
+\xlcaption{Mapping visage vers \textsc{DAiSEE}.}
+\label{tab:fer-au}
+}
+
+
+Le F1 macro passe de 0{,}19 (heuristique) à 0{,}37 ($+0{,}18$).
+Les AU aident à séparer Frustration et Confusion. L'accuracy (0{,}37) est
+inférieure au 0{,}72 du modèle déséquilibré : c'est le prix d'un
+test équitable et d'un rappel non nul sur les classes rares.
+
+La matrice de confusion du juge retenu
+(tableau~\ref{tab:fer-au-cm}) détaille cette répartition.
+
+Le tableau~\ref{tab:fer-au-cm} présente la matrice de confusion FER+AU.
+
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\raggedright\arraybackslash}X|c|c|c|c|}
+\hline
+\rowcolor{gray!20}
+ & \textbf{Bor.} & \textbf{Conf.} & \textbf{Eng.} & \textbf{Fru.} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{gray!20}
+ & \textbf{Bor.} & \textbf{Conf.} & \textbf{Eng.} & \textbf{Fru.} \\
+\hline
+\endhead
+\endfoot
+\endlastfoot
+\textbf{Ennui (GT)} & 18 & 7 & 17 & 8 \\
+\hline
+\textbf{Confusion (GT)} & 3 & 17 & 14 & 16 \\
+\hline
+\textbf{Engagement (GT)} & 5 & 14 & 22 & 9 \\
+\hline
+\textbf{Frustration (GT)} & 5 & 15 & 13 & 17 \\
+\hline
+\end{xltabular}
+\xlcaption{Matrice de confusion FER+AU (test équilibré $n=200$).}
+\label{tab:fer-au-cm}
+}
+
+Les rappels par état s'établissent à $36\,\%$ pour l'ennui, $34\,\%$ pour
+la confusion, $44\,\%$ pour l'engagement et $34\,\%$ pour la frustration.
+Un ViT fine-tuné vers les quatre états, sur le même protocole équilibré
+(800 extraits), atteint un F1 de $0{,}39$ et un rappel Frustration de
+$48\,\%$ ($+14$ points par rapport à FER+AU). Les ablations (2 ou 4
+couches) restent à $0{,}36$--$0{,}37$ de F1, un cache élargi
+($\approx 1\,566$ clips) laisse le F1 inchangé. Le ViT est conservé
+comme filtre de frames et recours, FER+AU reste le juge transmis à la
+fusion.
+
+\subsection{Fine-tuning SER : WavLM vers DAiSEE}
+\label{subsec:val-ser}
+
+Le protocole d'apprentissage (tête WavLM, ablation complète, ancre
+hybride, mode dégradé librosa) est au chapitre~\ref{chap:implementation}.
+Le tableau~\ref{tab:ser-ft} présente les scores du fine-tuning SER.
+
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\raggedright\arraybackslash}X|c|c|c|c|}
+\hline
+\rowcolor{gray!20}
+\textbf{Modèle} & \textbf{Éch.} & \textbf{Acc.} & \textbf{F1} &
+Rôle \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{gray!20}
+\textbf{Modèle} & \textbf{Éch.} & \textbf{Acc.} & \textbf{F1} &
+Rôle \\
+\hline
+\endhead
+\endfoot
+\endlastfoot
+WavLM DAiSEE tête & 800 & 0{,}453 & 0{,}434 &
+Défaut runtime \\
+\hline
+WavLM DAiSEE complet & 1\,200 & 0{,}457 & 0{,}396 & Ablation (F1
+inférieur) \\
+\hline
+WavLM ancre IEMOCAP ER & 1\,200 & 0{,}533 & 0{,}512 & Hybride
+(\texttt{neu/hap/ang/sad}) \\
+\hline
+\end{xltabular}
+\xlcaption{Fine-tuning SER WavLM.}
 \label{tab:ser-ft}
-\end{table}
+}
 
-Ces chiffres mesurent la progression d'entraînement ; la performance en usage
-réel est évaluée ci-dessous sur le banc d'essai audiovisuel aligné.
+
+Le checkpoint retenu est l'époque~2 (F1 0{,}434), les époques 3 à 5 ne
+l'améliorent pas. Confusion reste la
+classe la plus difficile (146 exemples contre 200, rappel 27\,\%), 
+Frustration est bien rappelée (82\,\%). Le hybride priorise WavLM
+\textsc{DAiSEE} ($w_{\mathrm{ancre}}=0{,}22$ par défaut, soit
+$\approx$78\,\% au fine-tune) et n'appelle l'ancre que si le
+fine-tune dit Confusion alors que l'ancre est confiante sur Engagement
+ou Frustration.
+
+\subsection{Appariement vocal : index acoustique}
+\label{subsec:val-appariement}
+
+La règle d'appariement (filtre d'état, profil à 12 dimensions, index
+10\,039 énoncés) est aux chapitres~\ref{chap:conception}
+et~\ref{chap:implementation}. L'évaluation A/B sur les 50 scénarios
+(tableau~\ref{tab:appariement-ab}) compare le profil VAD seul à l'ajout
+de l'acoustique : similarité $0{,}739$ contre $0{,}759$
+($\Delta +0{,}020$), 80\,\% des voix changées, alignement d'état inchangé
+($100\,\%$). L'index change donc le choix dans le pool, pas l'état. La
+limite demeure : les descripteurs acoustiques du scénario \textsc{DAiSEE}
+sont un \emph{proxy} (pas d'audio natif). On mesure une similarité de
+profil, pas un jugement «~bonne voix~».
+
+Le tableau~\ref{tab:appariement-ab} présente les résultats de l'appariement vocal.
+
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\raggedright\arraybackslash}X|c|c|}
+\hline
+\rowcolor{gray!20}
+\textbf{Métrique} & \textbf{VAD seul (A)} & \textbf{+ acoustique (B)} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{gray!20}
+\textbf{Métrique} & \textbf{VAD seul (A)} & \textbf{+ acoustique (B)} \\
+\hline
+\endhead
+\endfoot
+\endlastfoot
+Similarité moyenne & 0{,}739 & 0{,}759 \\
+\hline
+$\Delta$ similarité moyen & --- & $+0{,}020$ \\
+\hline
+Voix changée & --- & 40/50 (80\,\%) \\
+\hline
+Alignement état cible & 100\,\% & 100\,\% \\
+\hline
+\end{xltabular}
+\xlcaption{Appariement vocal ($n=50$).}
+\label{tab:appariement-ab}
+}
 
 \subsection{Banc d'essai audiovisuel aligné ($n=80$)}
+\label{subsec:val-banc}
 
-Un sous-corpus \textsc{IEMOCAP} \textbf{aligné} (même locuteur, visage et voix
-synchronisés, 20 segments par état) permet de comparer modalités uniques et
-fusion sans biais d'appariement. Le tableau~\ref{tab:fusion-av} synthétise les
-résultats.
+Construction du sous-corpus (Session~1, même locuteur, 20 segments par
+état) : chapitre~\ref{chap:implementation}. Les deux cadres d'évaluation
+sont au tableau~\ref{tab:deux-pipelines}. Le tableau~\ref{tab:fusion-av-produit}
+présente le banc aligné avec le stack produit (FER+AU, WavLM hybride, vote à
+incertitude, visages à 98{,}8\,\%).
 
-\begin{table}[H]
-\centering
-\small
-\renewcommand{\arraystretch}{1.15}
-\begin{tabular}{|l|c|c|}
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\raggedright\arraybackslash}X|c|c|}
 \hline
 \rowcolor{gray!20}
-\textbf{Variante} & \textbf{Accuracy} & \textbf{Rappel urgents} \\
+\textbf{Variante (stack produit)} & \textbf{Accuracy} & \textbf{Rappel urgents} \\
 \hline
-Visage — FER 1 frame & 0{,}375 & 0{,}250 \\
+\endfirsthead
 \hline
-Visage — FER multi-frames & 0{,}412 & 0{,}275 \\
+\rowcolor{gray!20}
+\textbf{Variante (stack produit)} & \textbf{Accuracy} & \textbf{Rappel urgents} \\
 \hline
-Voix — SER heuristique & 0{,}263 & 0{,}225 \\
+\endhead
+\endfoot
+\endlastfoot
+Visage --- FER+AU (5 images) & 0{,}312 & 0{,}750 \\
 \hline
-Voix — \textbf{SER appris (wav2vec2)} & \textbf{0{,}487} & 0{,}200 \\
+Voix --- SER heuristique & 0{,}263 & 0{,}150 \\
 \hline
-Fusion — priorité pédagogique & 0{,}338 & \textbf{0{,}400} \\
+Voix --- SER WavLM hybride & 0{,}425 & 0{,}225 \\
 \hline
-Fusion — \textbf{vote pondéré} & \textbf{0{,}500} & 0{,}125 \\
+Fusion --- perception faible & 0{,}275 & 0{,}225 \\
 \hline
-\end{tabular}
-\caption{Validation multimodale sur sous-corpus IEMOCAP aligné ($n=80$).}
-\label{tab:fusion-av}
-\end{table}
+Fusion --- vote à incertitude & 0{,}487 & 0{,}350 \\
+\hline
+\end{xltabular}
+\xlcaption{Fusion multimodale ($n=80$), stack déployé.}
+\label{tab:fusion-av-produit}
+}
 
-\paragraph{Lecture.} Le SER appris double quasi l'accuracy de la voix
-($+0{,}224$ vs heuristique). La fusion par \emph{weighted vote} atteint la
-meilleure accuracy (0{,}500) ; la stratégie \emph{pedagogical priority} maximise
-le rappel des états urgents (0{,}400) au prix d'une accuracy plus faible. Ce
-compromiss est assumé : le prototype retient 60\,\%/40\,\% (visage/voix) pour
-équilibrer les deux objectifs (tableau~\ref{tab:poids-fusion}).
+\paragraph{Lecture:} Le vote à incertitude atteint
+0{,}487 d'accuracy et 0{,}350 de rappel urgent. Il
+dépasse WavLM (0{,}425) et le visage FER+AU (0{,}312). Confusion est
+reconnue 5 fois sur 20, comme le détaille la matrice de confusion
+(tableau~\ref{tab:fusion-cm}).
 
-\begin{table}[H]
-\centering
-\small
-\begin{tabular}{|c|c|c|}
+Le tableau~\ref{tab:fusion-cm} présente la matrice de confusion de la fusion.
+
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\raggedright\arraybackslash}X|c|c|c|c|}
+\hline
+\rowcolor{gray!20}
+ & \textbf{Bor.} & \textbf{Conf.} & \textbf{Eng.} & \textbf{Fru.} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{gray!20}
+ & \textbf{Bor.} & \textbf{Conf.} & \textbf{Eng.} & \textbf{Fru.} \\
+\hline
+\endhead
+\endfoot
+\endlastfoot
+\textbf{Ennui (GT)} & 15 & 3 & 0 & 2 \\
+\hline
+\textbf{Confusion (GT)} & 13 & 5 & 1 & 1 \\
+\hline
+\textbf{Engagement (GT)} & 4 & 1 & 11 & 4 \\
+\hline
+\textbf{Frustration (GT)} & 10 & 0 & 2 & 8 \\
+\hline
+\end{xltabular}
+\xlcaption{Matrice de confusion de la fusion ($n=80$).}
+\label{tab:fusion-cm}
+}
+
+Le runtime retient le vote à incertitude (prior 60\,\%/40\,\%,
+chapitre~\ref{chap:conception}). Le balayage
+(tableau~\ref{tab:poids-fusion}) retient le couple $0{,}6/0{,}4$,
+qui y maximise le rappel urgent ($0{,}425$).
+
+Le tableau~\ref{tab:poids-fusion} présente le balayage des poids de fusion.
+
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|X|c|c|}
 \hline
 \rowcolor{gray!20}
 \textbf{Poids visage / voix} & \textbf{Accuracy} & \textbf{Rappel urgents} \\
 \hline
+\endfirsthead
+\hline
+\rowcolor{gray!20}
+\textbf{Poids visage / voix} & \textbf{Accuracy} & \textbf{Rappel urgents} \\
+\hline
+\endhead
+\endfoot
+\endlastfoot
 0{,}5 / 0{,}5 & 0{,}287 & 0{,}375 \\
 \hline
-\textbf{0{,}6 / 0{,}4 (retenu)} & 0{,}300 & \textbf{0{,}425} \\
+\textbf{0{,}6 / 0{,}4 (retenu)} & 0{,}300 & 0{,}425 \\
 \hline
 0{,}7 / 0{,}3 & 0{,}338 & 0{,}400 \\
 \hline
 0{,}8 / 0{,}2 & 0{,}325 & 0{,}350 \\
 \hline
-\end{tabular}
-\caption{Balayage des poids de fusion (variante vote pondéré, $n=80$).}
+\end{xltabular}
+\xlcaption{Balayage des poids de fusion ($n=80$).}
 \label{tab:poids-fusion}
-\end{table}
+}
+
+Le couple $0{,}6/0{,}4$ maximise le rappel urgent, $0{,}7/0{,}3$
+maximise l'accuracy sur cette grille. Les poids effectifs s'écrivent
+$w = \mathrm{prior} \times \mathrm{confiance}$. Six cas synthétiques
+(modalité bruitée, incertitude totale, accord, prior visage) vérifient
+ce mécanisme : la pondération continue obtient 6/6. Une voix bruitée
+est sous-pondérée, le repli pédagogique n'intervient que lorsque les
+deux confiances sont nulles.
+
+\subsection{Proxy du pipeline produit}
+\label{subsec:val-proxy}
+
+Sur le journal de décisions des cinquante scénarios du référentiel,
+le fichier proxy compte $n=50$ lignes (un clip unique chacun).
+L'accuracy versus l'état dominant \textsc{DAiSEE} (priorité
+pédagogique en cas d'égalité, pas une étiquette audiovisuelle
+conjointe) s'établit à $0{,}46$ ($23/50$).
+Le rappel des états urgents vaut $0{,}625$ : une part des clips
+annotés Confusion ou Frustration est bien classée urgente, tandis que
+Frustration est encore trop souvent prédite (vingt-trois fois pour
+seize clips annotés). Quelques urgents annotés échappent donc encore
+à la fusion. Ces scores mesurent la cohérence du runtime avec l'état
+dominant \textsc{DAiSEE} sous appariement, non une exactitude
+multimodale sur un or visage--voix conjoint.
 
 \subsection{Analyse de sensibilité du mapping IEMOCAP\,$\rightarrow$\,DAiSEE}
+\label{subsec:val-mapping}
 
-Sur 10\,039 utterances \textsc{IEMOCAP}, des variantes plausibles du mapping
-émotion\,$\rightarrow$\,engagement modifient jusqu'à \textbf{17\,\%} des
-étiquettes (neutre\,$\rightarrow$\,Engagement au lieu d'Ennui). La sensibilité
-confirme que cette hypothèse n'est pas anodine et justifie une validation
-experte prioritaire sur les correspondances neutre/tristesse.
+Sur 10\,039 utterances \textsc{IEMOCAP}, des variantes plausibles du
+mapping émotion\,$\rightarrow$\,engagement 
+modifient jusqu'à 17\,\% des étiquettes. La correspondance
+neutre\,$\rightarrow$\,Ennui, en particulier, n'est pas anodine : la
+reclasser en Engagement déplacerait 1\,708 énoncés. Cette sensibilité
+confirme que le mapping est une hypothèse de construit, pas une
+équivalence psychologique, et justifie une validation experte prioritaire.
+
+Le mapping de référence associe neutre et tristesse à l'ennui, colère,
+frustration et dégoût à la frustration, joie et excitation à
+l'engagement, surprise et peur à la confusion. Le
+tableau~\ref{tab:sensibilite-mapping} chiffre l'effet de quatre
+variantes plausibles.
+
+Le tableau~\ref{tab:sensibilite-mapping} présente la sensibilité du mapping \textsc{IEMOCAP} vers \textsc{DAiSEE}.
+
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\raggedright\arraybackslash}X|c|c|}
+\hline
+\rowcolor{gray!20}
+\textbf{Variante} & \textbf{Énoncés modifiés} & \textbf{\%} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{gray!20}
+\textbf{Variante} & \textbf{Énoncés modifiés} & \textbf{\%} \\
+\hline
+\endhead
+\endfoot
+\endlastfoot
+neutre $\rightarrow$ Engagement & 1\,708 & 17{,}0 \\
+\hline
+tristesse $\rightarrow$ Frustration & 1\,084 & 10{,}8 \\
+\hline
+surprise $\rightarrow$ Engagement & 107 & 1{,}1 \\
+\hline
+dégoût $\rightarrow$ Ennui & 2 & $\approx 0$ \\
+\hline
+\end{xltabular}
+\xlcaption{Sensibilité du mapping IEMOCAP vers DAiSEE ($n=10\,039$).}
+\label{tab:sensibilite-mapping}
+}
 
 %==============================================================================
 \section{Validation du modèle d'adaptation}
 \label{sec:val-decision}
 
-\subsection{Analyse de la pertinence du mapping}
+Cette section mesure le mapping
+engagement\,$\rightarrow$\,stratégie sur deux axes : pertinence (le type servi est-il celui que l'état justifie~?) et
+couverture des quatre états.
 
-La cascade engagement\,$\rightarrow$\,type de contenu (A/B/C/D) + patron (A1--D5)
-a été appliquée aux cinquante scénarios du référentiel. La distribution des
-patrons est concentrée sur l'encouragement (type D) en cas de frustration
-élevée, conforme à la conception (section~\ref{sec:impl-corpus} du
-chapitre~\ref{chap:implementation}).
+\subsection{Analyse de la pertinence du mapping}
+\label{subsec:val-correspondances}
+
+La pertinence se lit à deux niveaux. Sur les labels annotés, la
+cascade est-elle fidèle à elle-même~? Sur l'état fusionné servi
+à l'apprenant, le type journalisé est-il encore celui que justifie cet
+état~? Le journal des décisions a été joint aux scores
+\textsc{DAiSEE} ($n=50$).
+
+\paragraph{Cohérence du moteur sur les scores annotés:}
+La cascade A/B/C/D appliquée aux quatre scores \textsc{DAiSEE} du
+scénario reproduit 98\,\% des familles journalisées et
+82\,\% des patrons exacts (un clip live hors famille attendue
+sur labels, le reste, écarts de sous-type). Le $V$ de Cramér famille
+annotée $\times$ famille journalisée vaut $0{,}965$. Le mapping reste
+très fidèle dès que l'état d'entrée est le label.
+
+\paragraph{Écart perception / décision journalisée:}
+Dès que l'entrée est l'état détecté, la pertinence chute. L'état
+fusionné ne coïncide avec l'état dominant annoté que dans
+46\,\% des cas ($V=0{,}437$). Conditionnellement à l'état
+détecté, le type journalisé n'est la famille canonique
+(Confusion\,$\rightarrow$\,A, Ennui\,$\rightarrow$\,C,
+Frustration\,$\rightarrow$\,D, Engagement\,$\rightarrow$\,D) que dans
+44\,\% des cas ($22/50$). Sur les 56\,\%
+restants, seuls 6 cas ($12\,\%$ du total) relèvent encore
+d'un voisin pédagogique admissible prévu par le modèle de décision
+(chapitre~\ref{chap:conception}), les 22
+autres ($44\,\%$ du total) sortent de cet ensemble. L'ensemble
+admissible --- canonique inclus --- couvre donc 56\,\% des
+clips. Le $V$ de Cramér état fusionné $\times$ famille observée
+(tableau~\ref{tab:correspondances}) vaut $0{,}412$ : association
+modérée, loin d'une fonction déterministe. La pertinence telle que l'apprenant la verrait n'est garantie que si la
+perception est juste.
+
+Le tableau~\ref{tab:correspondances} présente la contingence état fusionné $\times$ famille.
+
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\raggedright\arraybackslash}X|c|c|c|c|}
+\hline
+\rowcolor{gray!20}
+\textbf{État fusionné} & \textbf{A} & \textbf{B} & \textbf{C} & \textbf{D} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{gray!20}
+\textbf{État fusionné} & \textbf{A} & \textbf{B} & \textbf{C} & \textbf{D} \\
+\hline
+\endhead
+\endfoot
+\endlastfoot
+Ennui & 5 & 2 & 2 & 3 \\
+\hline
+Confusion & 4 & 0 & 0 & 2 \\
+\hline
+Engagement & 0 & 3 & 0 & 6 \\
+\hline
+Frustration & 1 & 3 & 9 & 10 \\
+\hline
+\end{xltabular}
+\xlcaption{Contingence état fusionné $\times$ famille ($n=50$).}
+\label{tab:correspondances}
+}
+
+Cette analyse quantifie la correspondance observée, sans juger si elle
+est pédagogiquement souhaitable au-delà des familles retenues.
 
 \subsection{Couverture des états d'engagement}
 
-Les cinquante séquences couvrent les quatre états \textsc{DAiSEE} avec un
-échantillonnage stratifié favorisant les états problématiques (confusion,
-frustration). Six patrons de séquence (stable, dégradation, récupération, etc.)
-sont représentés.
+La cascade a été appliquée aux cinquante scénarios. Le tirage
+sur-représente les états problématiques (confusion, frustration, état
+critique), les quatre états \textsc{DAiSEE} et les quatre familles A--D
+sont néanmoins atteints (tableau~\ref{tab:templates-50} : onze patrons
+distincts). Les taux de ce tableau ne sont pas des taux attendus
+en population. Onze patrons sur vingt sont déclenchés, les absents
+(A4, B3--B5, C3--C5, D3, D5) sont surtout des sous-types rares, pas des
+familles manquantes.
 
-\subsection{Validation par experts pédagogiques}
+Le tableau~\ref{tab:templates-50} présente la distribution des patrons sur les cinquante scénarios.
 
-Un protocole Delphi simplifié (deux tours, trois experts, 15 cas tests +
-20 fiches de patrons) a été préparé. Les fiches d'évaluation
-(\texttt{results/validation\_expert\_fiches.csv}, 58 contenus stratifiés) sont
-prêtes ; les scores Likert restent à compléter. Le livrable final visé est
-documenté dans \texttt{docs/PROTOCOLE\_EVALUATION.md}.
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\raggedright\arraybackslash}X|l|c|}
+\hline
+\rowcolor{gray!20}
+\textbf{Type} & \textbf{Patrons observés} & \textbf{$n$} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{gray!20}
+\textbf{Type} & \textbf{Patrons observés} & \textbf{$n$} \\
+\hline
+\endhead
+\endfoot
+\endlastfoot
+A --- explication & A1~(4), A2~(2), A3~(2), A5~(2) & 10 \\
+\hline
+B --- exemple & B1~(4), B2~(4) & 8 \\
+\hline
+C --- exercice & C1~(9), C2~(2) & 11 \\
+\hline
+D --- encouragement & D1~(11), D2~(5), D4~(5) & 21 \\
+\hline
+\end{xltabular}
+\xlcaption{Distribution des patrons (50 scénarios).}
+\label{tab:templates-50}
+}
+
+Les patrons absents de ce tableau ne sont pas déclenchés par cet
+échantillon de scénarios statiques, plusieurs n'apparaissent que sur
+parcours multi-clips ou dans le corpus généré.
+
+\paragraph{Couverture temporelle:} Les règles d'urgence ne s'observent
+pas sur un clip isolé. Dix séquences de cinq extraits du même
+apprenant \textsc{DAiSEE} (engagement stable, ennui progressif,
+frustration montante, confusion, état critique) font parcourir toutes
+les fenêtres (immédiate, rapide, différée). Chaque extrait traverse le
+pipeline produit, l'historique des scores détectés alimente les
+règles. Validation fonctionnelle, pas une étude longitudinale.
 
 %==============================================================================
 \section{Validation de la qualité du contenu généré}
 \label{sec:val-contenu}
 
-\subsection{Corpus produit et audit automatique}
+La chaîne (perception simulée, décision, LLM + RAG) a produit environ
+220 contenus. Cette section rapporte l'ancrage documentaire,
+l'évaluation enseignante ($n=3\times 8$), les métriques automatiques et
+la comparaison par type A/B/C/D.
 
-La chaîne complète (perception simulée, décision, LLM + RAG) a produit
-\textbf{220} contenus (\texttt{corpus\_200.csv}). Les métriques automatiques
-donnent :
+\subsection{Ancrage documentaire (RAG)}
+\label{subsec:val-rag}
+
+L'index de vingt fiches a été évalué sur 19 questions ($k=3$).
+Le MRR global vaut $1{,}0$ et le score top-1
+moyen $0{,}661$. Le tableau~\ref{tab:rag-eval} présente le Hit@$k$ et la précision
+$P@k$ par concept.
+
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\raggedright\arraybackslash}X|c|c|c|}
+\hline
+\rowcolor{gray!20}
+\textbf{Concept} & \textbf{$n$} & \textbf{Hit@$k$} & \textbf{P@$k$} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{gray!20}
+\textbf{Concept} & \textbf{$n$} & \textbf{Hit@$k$} & \textbf{P@$k$} \\
+\hline
+\endhead
+\endfoot
+\endlastfoot
+Algorithmes de tri & 4 & 1{,}00 & 0{,}917 \\
+\hline
+Réseaux de neurones & 3 & 1{,}00 & 1{,}000 \\
+\hline
+Encouragement & 3 & 1{,}00 & 1{,}000 \\
+\hline
+Structures de données & 3 & 1{,}00 & 0{,}667 \\
+\hline
+Complexité algorithmique & 3 & 1{,}00 & 0{,}556 \\
+\hline
+Récursion & 3 & 1{,}00 & 0{,}333 \\
+\hline
+\textbf{Global} & 19 & 1{,}00 & 0{,}754 \\
+\hline
+\end{xltabular}
+\xlcaption{Récupération RAG.}
+\label{tab:rag-eval}
+}
+
+Le MRR de $1{,}0$ indique que le premier document renvoyé appartient
+au concept visé. La précision $P@k$ plus faible sur la récursion
+($0{,}333$) traduit des collisions avec d'autres fiches (tri,
+encouragement).
+
+\subsection{Évaluation experte (3 enseignants $\times$ 8 exemples)}
+
+Trois enseignants d'informatique ont noté 8 textes
+(deux extraits par famille A/B/C/D, Likert Q1--Q6), sans utiliser le
+prototype (24 grilles). 
+
+Le tableau~\ref{tab:l2-n3} présente la grille L2 renseignée par les enseignants.
+
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\raggedright\arraybackslash}X|c|c|}
+\hline
+\rowcolor{gray!20}
+\textbf{Critère} & $\mathbf{M}$ & \textbf{ET} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{gray!20}
+\textbf{Critère} & $\mathbf{M}$ & \textbf{ET} \\
+\hline
+\endhead
+\endfoot
+\endlastfoot
+Q1 Pertinence & 3{,}83 & 0{,}76 \\
+\hline
+Q2 Clarté & 3{,}92 & 0{,}83 \\
+\hline
+Q3 Adéquation à l'état & 3{,}83 & 0{,}70 \\
+\hline
+Q4 Qualité pédagogique & 4{,}12 & 0{,}90 \\
+\hline
+Q5 Utilisable en ligne & 4{,}08 & 0{,}72 \\
+\hline
+Q6 Factualité & 3{,}62 & 0{,}71 \\
+\hline
+\end{xltabular}
+\xlcaption{Grille L2, $n=3$ enseignants $\times$ 8 textes (Likert 1--5).}
+\label{tab:l2-n3}
+}
+
+Moyenne globale $\approx 3{,}9/5$. Q4 et Q5 sont les plus hauts, Q6
+(erreurs factuelles) est le plus bas.
+\subsection{Métriques automatiques (lisibilité, longueur, diversité)}
+
+Sur $N=208$ contenus (12 lignes de l'audit 220 n'ont pas d'export de
+forme) :
 
 \begin{itemize}[leftmargin=1.4em]
-  \item Longueur moyenne : \textbf{225} mots (min 115, max 434).
-  \item Indice Kandel--Moles moyen : 94{,}2 (textes accessibles).
-  \item Taux de répétition moyen : 0{,}485.
-  \item Conformité à l'audit heuristique : \textbf{97{,}7\,\%} (215/220 sans
-  anomalie majeure ; 5 contenus avec alertes mineures).
+  \item \textbf{Longueur} : 222 mots en moyenne (min.\ 113, max.\ 410,
+  médiane 216), 83\,\% dans la cible du patron.
+  \item \textbf{Lisibilité} (Kandel--Moles) : 95{,}0 (textes accessibles).
+  \item \textbf{Diversité / régularité} : taux de répétition moyen
+  $0{,}479$, BLEU-4 interne $0{,}139$ et ROUGE-1 $0{,}449$
+  ($N=189$, référence = contenu médian du même patron, sans
+  étiquette experte).
+  \item \textbf{Audit heuristique} : 97{,}7\,\% conformes (215/220), après
+  régénération sélective (chapitre~\ref{chap:implementation}).
 \end{itemize}
 
-Les patrons d'encouragement (D1--D5) produisent les textes les plus courts
-($\approx$130--190 mots) ; les exercices (C1--C2) les plus longs
-($\approx$320--350 mots), en cohérence avec les contraintes des patrons.
+Ces indicateurs contrôlent la forme et la stéréotypie interne.
+Ils ne remplacent pas Q1--Q6, ils les complètent (forme vs jugement
+enseignant sur 8 extraits).
 
-\subsection{Évaluation experte (protocole)}
+\subsection{Analyse comparative par type de contenu}
 
-Un échantillon de 60 contenus stratifiés par type (A/B/C/D) a été extrait
-(\texttt{corpus\_evaluation\_60.csv}). La grille comprend six critères Likert,
-dont l'absence d'erreurs factuelles \emph{avec RAG}. Cette évaluation humaine
-n'a pas été menée à terme dans le délai du mémoire ; elle constitue la
-perspective immédiate de validation du fond pédagogique.
+Les quatre familles se distinguent comme prévu par les patrons
+(tableau~\ref{tab:contenu-par-type}) : D le plus court et le plus
+stéréotypé, C le plus long et le plus variable, A et B intermédiaires.
+Les cibles de longueur sont respectées en moyenne. C5 n'a aucune entrée
+dans le corpus.
 
-\subsection{Métriques automatiques complémentaires}
+Le tableau~\ref{tab:contenu-par-type} présente la comparaison des contenus par type.
 
-Le script \texttt{scripts/metrics\_contenu.py} calcule longueur, lisibilité et
-présence heuristique des éléments structurants des patrons. Ces métriques
-contrôlent la \emph{forme} mais ne garantissent pas la pertinence sémantique.
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\raggedright\arraybackslash}X|c|c|c|c|}
+\hline
+\rowcolor{gray!20}
+\textbf{Type} & \textbf{$n$} & \textbf{Mots} & \textbf{BLEU-4} &
+ROUGE-1 \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{gray!20}
+\textbf{Type} & \textbf{$n$} & \textbf{Mots} & \textbf{BLEU-4} &
+ROUGE-1 \\
+\hline
+\endhead
+\endfoot
+\endlastfoot
+A --- explication & 51 & 230 & 0{,}119 & 0{,}426 \\
+\hline
+B --- exemple & 43 & 250 & 0{,}127 & 0{,}432 \\
+\hline
+C --- exercice & 48 & 286 & 0{,}099 & 0{,}418 \\
+\hline
+D --- encouragement & 66 & 151 & 0{,}190 & 0{,}498 \\
+\hline
+\end{xltabular}
+\xlcaption{Comparaison par type de contenu (forme $N=208$, similarité
+$N=189$).}
+\label{tab:contenu-par-type}
+}
+
+Le tableau~\ref{tab:longueurs-fam} présente ces longueurs rapportées aux
+cibles déclarées par chaque famille de patron.
+
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\raggedright\arraybackslash}X|c|c|c|}
+\hline
+\rowcolor{gray!20}
+\textbf{Famille} & \textbf{$n$} & \textbf{Mots (moy.)} & \textbf{Cible (mots)} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{gray!20}
+\textbf{Famille} & \textbf{$n$} & \textbf{Mots (moy.)} & \textbf{Cible (mots)} \\
+\hline
+\endhead
+\endfoot
+\endlastfoot
+A & 51 & 230{,}0 & 150--280 \\
+\hline
+B & 43 & 250{,}1 & 180--320 \\
+\hline
+C & 48 & 286{,}2 & 200--360 \\
+\hline
+D & 66 & 151{,}3 & 100--220 \\
+\hline
+\end{xltabular}
+\xlcaption{Longueurs par famille de patron.}
+\label{tab:longueurs-fam}
+}
+
+Quelques patrons s'écartent de la moyenne de leur famille. A4
+($310$ mots) dépasse la cible A ($150$--$280$), C3 ($190$) reste sous
+la cible C ($200$--$360$), C2 ($356$) atteint le plafond de cette
+cible. Les encouragements D1, D4 et D5 se situent autour de $130$ mots.
+
+Le tableau~\ref{tab:bleu-rouge} présente la similarité interne,
+mesurée par rapport au contenu médian du même patron ($N=189$,
+dix-neuf patrons).
+
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\raggedright\arraybackslash}X|c|c|c|c|}
+\hline
+\rowcolor{gray!20}
+ & \textbf{Global} & \textbf{Type A} & \textbf{Type C} & \textbf{Type D} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{gray!20}
+ & \textbf{Global} & \textbf{Type A} & \textbf{Type C} & \textbf{Type D} \\
+\hline
+\endhead
+\endfoot
+\endlastfoot
+BLEU-4 & 0{,}139 & 0{,}119 & 0{,}099 & 0{,}190 \\
+\hline
+ROUGE-1 F1 & 0{,}449 & 0{,}426 & 0{,}418 & 0{,}498 \\
+\hline
+ROUGE-2 F1 & 0{,}176 & 0{,}146 & 0{,}140 & 0{,}230 \\
+\hline
+ROUGE-L F1 & 0{,}272 & 0{,}248 & 0{,}240 & 0{,}324 \\
+\hline
+\end{xltabular}
+\xlcaption{Similarité interne des contenus.}
+\label{tab:bleu-rouge}
+}
+
+Le type D présente la plus faible diversité lexicale interne, le type C
+la plus élevée. Ces scores mesurent une similarité de forme, distincte
+d'une qualité pédagogique.
 
 %==============================================================================
-\section{Validation utilisateur (étude pilote)}
+\section{Validation utilisateur}
 \label{sec:val-utilisateur}
 
-\subsection{Protocole expérimental}
-
-Un protocole \emph{within-subject} ($n=30$, deux conditions : contenu statique
-vs contenu adaptatif \emolearn{}) est documenté (durée $\approx$45 min, SUS,
-Likert utilité/adéquation émotionnelle). Les hypothèses exploratoires (C2 $>$
-C1 sur utilité ; SUS $\geq 68$) n'ont pas été testées empiriquement dans cette
-version du travail.
+Cette section rapporte l'enquête d'idée ($n=15$) et une simulation qui
+documente l'observabilité du prototype.
 
 \subsection{Simulation de parcours adaptatifs}
 
-Le prototype React permet néanmoins une démonstration qualitative : lecture de
-séquences vidéo, affichage de l'état détecté, de la décision et du contenu
-généré (avec sources RAG), export PDF et journal SQLite.
+Le parcours est simulé sur les dix séquences déjà décrites
+(couverture temporelle) : chaque extrait alimente l'historique des
+scores détectés. Le protocole reste une simulation de parcours.
+
+Le prototype React rend la chaîne observable comme le ferait une session
+pilote : clip (vidéo \textsc{DAiSEE} + voix \textsc{IEMOCAP} appariée),
+parcours multi-clips, état détecté, décision, contenu (sources RAG),
+tuteur dont le ton dépend de l'état, aperçu SER WavLM distinct de
+l'annotation corpus, export PDF et journal SQLite. Cette simulation
+montre que le parcours adaptatif est exécutable, elle ne mesure pas
+l'acceptabilité.
+
+\subsection{Enquête d'acceptabilité de l'idée ($n=15$)}
+\label{subsec:val-enquete-idee}
+
+Quinze étudiants ont renseigné un formulaire autonome, sans ouvrir le
+prototype. Les items Likert (utilité perçue, maintien dans le cours,
+satisfaction, acceptation d'une captation) et le SUS
+\cite{brooke1996sus} portent sur l'idée décrite, formulée au
+conditionnel. Le pilote C1/C2 et un SUS après usage restent en
+perspective.
+
+Les répondants se situent du niveau L1 au master ou cycle d'ingénieur, 
+la familiarité déclarée avec les MOOC vaut $M=3{,}33$ sur une échelle
+$1$--$5$. Les libellés et la formule du SUS imaginé figurent aux
+tableaux~\ref{tab:annexe-enquete-idee} et~\ref{tab:annexe-enquete-sus}.
+
+Le tableau~\ref{tab:enquete-idee-n15} présente les moyennes et
+écarts-types de l'enquête.
+
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\raggedright\arraybackslash}X|c|c|c|}
+\hline
+\rowcolor{gray!20}
+\textbf{Mesure} & \textbf{Échelle} & $\mathbf{M}$ & \textbf{ET} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{gray!20}
+\textbf{Mesure} & \textbf{Échelle} & $\mathbf{M}$ & \textbf{ET} \\
+\hline
+\endhead
+\endfoot
+\endlastfoot
+Utilité perçue de l'adaptation & 1--7 & 4{,}60 & 1{,}40 \\
+\hline
+Rester dans le cours & 1--7 & 4{,}80 & 1{,}37 \\
+\hline
+Satisfaction & 1--7 & 5{,}07 & 1{,}16 \\
+\hline
+Acceptation webcam / micro & 1--7 & 4{,}87 & 1{,}06 \\
+\hline
+SUS imaginé & 0--100 & 61{,}0 & 9{,}1 \\
+\hline
+\end{xltabular}
+\xlcaption{Enquête d'idée ($n=15$). SUS $\geq 68$ : $3/15$.}
+\label{tab:enquete-idee-n15}
+}
+
+Les moyennes Likert se situent autour de $5/7$. Le SUS moyen ($61$)
+demeure sous le seuil $68$ retenu pour un usage réel, trois
+participants l'atteignent ($80$, $70$, $77{,}5$). Deux copies peu
+différenciées (presque tout à $1$, tout à $3$ sur le SUS) sont
+conservées, avec mention. Les champs ouverts sont repris à la
+section~\ref{sec:val-resultats}.
 
 %==============================================================================
-\section{Résultats et analyses}
+\section{Synthèse des résultats}
 \label{sec:val-resultats}
 
-\subsection{Synthèse quantitative}
+Le tableau~\ref{tab:synthese-val} présente les métriques retenues aux
+quatre niveaux. Les lignes du banc aligné reprennent le
+tableau~\ref{tab:fusion-av-produit}. Le $V$ de Cramér de l'association
+état\,$\times$\,famille vaut $0{,}965$ lorsque l'entrée est le label
+annoté, et $0{,}412$ lorsque l'entrée est l'état fusionné. L2
+($n=3\times 8$) et l'enquête ($n=15$) sont rapportées par des moyennes
+et des écarts-types.
 
-\begin{table}[H]
-\centering
-\small
-\renewcommand{\arraystretch}{1.15}
-\begin{tabular}{|>{\raggedright\arraybackslash}p{4.2cm}|c|c|}
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\raggedright\arraybackslash}X|c|c|}
 \hline
 \rowcolor{gray!20}
 \textbf{Composant} & \textbf{Métrique clé} & \textbf{Valeur} \\
 \hline
-FER\,$\rightarrow$\,DAiSEE (appris) & Accuracy test & 0{,}723 \\
+\endfirsthead
 \hline
-SER wav2vec2 (banc aligné) & Accuracy & 0{,}487 \\
+\rowcolor{gray!20}
+\textbf{Composant} & \textbf{Métrique clé} & \textbf{Valeur} \\
 \hline
-Fusion vote pondéré & Accuracy & 0{,}500 \\
+\endhead
+\endfoot
+\endlastfoot
+FER+AU (juge produit, test éq.) & F1 macro & 0{,}37 \\
 \hline
-Fusion priorité pédagogique & Rappel urgents & 0{,}400 \\
+FER+AU --- rappel Fru.\ /\ Conf. & Rappel & 34\,\% / 34\,\% \\
+\hline
+ViT fine-tuné complet (filtre) & F1 macro & 0{,}39 \\
+\hline
+WavLM DAiSEE tête (retenu) & F1 val. & 0{,}434 \\
+\hline
+WavLM DAiSEE complet (ablation) & F1 val. & 0{,}396 \\
+\hline
+Banc aligné --- vote (stack produit) & Accuracy / rappel urgents &
+0{,}487 / 0{,}350 \\
+\hline
+Proxy produit (50 scénarios) & Acc.\ vs état dominant & 0{,}46 \\
+\hline
+Correspondances ($n=50$) & Famille GT / patron exact & 98\,\% / 82\,\% \\
+\hline
+Correspondances & État GT vs fusion / type admissible & 46\,\% / 56\,\% \\
+\hline
+Correspondances & $V$ de Cramér état fusionné $\times$ famille & 0{,}412 \\
+\hline
+Appariement + acoustique & $\Delta$ similarité / voix changées &
+$+0{,}020$ / 80\,\% \\
 \hline
 Corpus généré (LLM + RAG) & Audit OK & 97{,}7\,\% \\
 \hline
-\end{tabular}
-\caption{Synthèse des résultats chiffrés disponibles.}
+Forme du corpus ($N=208$) & Longueur moy.\ /\ Kandel--Moles &
+222 mots / 95{,}0 \\
+\hline
+Similarité interne ($N=189$) & BLEU-4 / ROUGE-1 & 0{,}139 / 0{,}449 \\
+\hline
+Enquête d'idée ($n=15$) & SUS imaginé (moy.) & 61{,}0 \\
+\hline
+L2 enseignants ($n=3$, 8 textes) & Likert Q1--Q6 (moy.) & 3{,}9/5 \\
+\hline
+\end{xltabular}
+\xlcaption{Synthèse des résultats.}
 \label{tab:synthese-val}
-\end{table}
+}
 
 \subsection{Retours qualitatifs}
 
-Les démonstrations internes du prototype mettent en évidence la \emph{lisibilité}
-de la chaîne de décision (journal complet) et l'apport visible du RAG (sources
-documentaires affichées dans l'interface). Les limites perceptives sur les
-classes minoritaires et le compromis fusion accuracy/rappel urgent sont
-explicitement documentées plutôt que masquées.
+Les champs ouverts de l'enquête ($n=15$) sont rarement renseignés.
+Les verbatims disponibles portent sur l'utilité perçue d'un contenu
+qui suivrait l'engagement, sur la captation (opt-in, explication des
+données) et sur le besoin d'une authentification. Une mention
+«~Erreur de contenu~» reste sans précision. Un enseignant ($n=3$)
+signale, sur l'extrait A4, un parallèle abusif tri\,/\,recherche et une
+métaphore peu claire, en ligne avec Q6 comme critère le plus bas.
 
 %==============================================================================
-\section{Discussion approfondie}
+\section{Discussion}
 \label{sec:val-discussion}
 
-\subsection{Interprétation des résultats}
+\subsection{Lecture des mesures}
 
-Les validations techniques confirment que (i) l'apprentissage léger améliore
-fortement le mapping FER\,$\rightarrow$\,DAiSEE, (ii) le SER appris surpasse
-l'heuristique vocale, (iii) la fusion apporte un gain mesurable mais impose un
-arbitrage entre exactitude globale et sensibilité aux états critiques. Le module
-RAG et les patrons structurés maintiennent la forme du corpus à un niveau
-acceptable (97{,}7\,\% d'audit OK), sans préjuger de la qualité pédagogique
-profonde, qui requiert l'évaluation experte prévue.
+Sur \textsc{DAiSEE}, l'engagement domine la distribution
+\cite{gupta2016daisee}. Une accuracy élevée sur un test non stratifié
+peut masquer un rappel nul des états qui justifient une intervention.
+Les métriques retenues sont le F1 macro et le rappel de la confusion et
+de la frustration. L'accuracy $0{,}72$ du Random Forest déséquilibré
+décrit la classe majoritaire.
 
-\subsection{Comparaison avec l'état de l'art}
+La cascade engagement\,$\rightarrow$\,stratégie est presque
+déterministe dès que l'état d'entrée est le label annoté : $98\,\%$ des
+familles et $82\,\%$ des patrons exacts sur le référentiel ($n=50$).
+Lorsque l'entrée est l'état fusionné, l'accord d'état tombe à $46\,\%$
+et le type admissible à $56\,\%$. L'adaptation servie à l'apprenant
+dépend d'abord de la perception.
 
-Peu de travaux publient une chaîne comparable (multimodal + règles + RAG + LLM)
-avec métriques de fusion \emph{et} corpus généré audité. La contribution
-distinctive réside dans l'architecture reproductible et l'honnêteté sur les
-compromis, plus que dans des scores de référence établis sur MOOC réels.
+La forme du corpus est contrainte par les patrons, le RAG et l'audit
+($97{,}7\,\%$). Les enseignants notent plus haut la qualité pédagogique
+et l'utilisabilité en ligne (Q4--Q5, vers $4{,}1/5$) que la factuelité
+(Q6). Le vote à incertitude, l'index acoustique et l'ancrage
+documentaire encodent ces arbitrages.
 
-\subsection{Forces et limites identifiées}
+\subsection{Positionnement}
 
-\begin{itemize}[leftmargin=1.4em]
-  \item \textbf{Forces} : pipeline bout-en-bout, traçabilité, RAG intégré,
-  banc d'essai aligné, protocoles d'évaluation documentés.
-  \item \textbf{Limites} : simulation (pas de captation live), appariement
-  visage--voix hétérogène en production, évaluations experte et utilisateur non
-  finalisées, déséquilibre \textsc{DAiSEE} pénalisant le F1 macro.
-\end{itemize}
+Les scores de perception restent inférieurs aux benchmarks FER et SER
+rapportés pour des taxonomies émotionnelles plus larges
+\cite{busso2008iemocap,chen2022wavlm}. La tâche visée est une projection
+vers quatre états pédagogiques, à partir de corpus hétérogènes. En
+production, visage et voix n'appartiennent pas au même locuteur, le
+banc aligné isole l'apport de la fusion hors de ce biais. Conformément
+à la recherche orientée conception \cite{hevner2004design}, la
+contribution retenue est une architecture reproductible, deux cadres
+d'évaluation distincts, et l'explicitation des compromis.
+
+\subsection{Portée et limites}
+
+Le prototype exécute la chaîne spécifiée et en journalise les maillons :
+état, sources RAG, aperçu SER distinct de l'annotation. Le banc aligné
+($n=80$) compare les fusions sur des paires synchronisées. L'appariement
+vocal est évalué en A/B, les ablations du ViT et de WavLM documentent
+le juge retenu.
+
+Le protocole reste une simulation sur corpus. L'appariement
+visage--voix du pipeline produit est hétérogène. Le mapping
+\textsc{IEMOCAP}\,$\rightarrow$\,\textsc{DAiSEE} déplace jusqu'à
+$17\,\%$ des énoncés selon la variante. Le F1 facial du juge s'établit
+à $0{,}37$. Le proxy produit se réfère à l'état dominant
+\textsc{DAiSEE}. La grille L2 porte sur huit extraits, l'enquête
+($n=15$) porte sur l'idée. L'index RAG compte vingt fiches. L1, le
+pilote C1/C2 et les 58 fiches L2 sont reportés en perspective.
+
+%==============================================================================
+\section{Conclusion}
+\label{sec:ch5-concl}
+
+La validation porte sur la perception et la fusion, le mapping
+état\,$\rightarrow$\,stratégie, la forme du corpus et l'acceptabilité
+de l'idée. Le juge FER+AU atteint un F1 macro de $0{,}37$, la tête
+WavLM un F1 de $0{,}434$. Le vote à incertitude obtient, sur le banc
+aligné ($n=80$), une accuracy de $0{,}487$ et un rappel urgent de
+$0{,}350$. Sur le référentiel ($n=50$), la famille concorde avec le
+label annoté à $98\,\%$ et l'état fusionné à $46\,\%$.
+
+Le corpus ($N=208$ pour la forme) passe l'audit à $97{,}7\,\%$. Trois
+enseignants notent huit extraits à $3{,}9/5$ en moyenne. Quinze
+étudiants évaluent l'idée : le SUS imaginé vaut $61$. Chaque score de
+fusion se lit dans son cadre, produit apparié ou banc synchronisé.
+L1 et le pilote C1/C2 sont reportés en perspective. La conclusion
+générale dresse le bilan de ces mesures.

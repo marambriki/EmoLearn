@@ -1,0 +1,55 @@
+<mxfile host="app.diagrams.net" modified="2026-10-03T16:50:00.000Z" agent="EmoLearn" version="22.1.0" type="device">
+  <diagram id="prompt-blocks" name="Architecture du prompt">
+    <mxGraphModel dx="1100" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="860" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="title" value="Composition du prompt contextuel" style="text;html=1;align=center;verticalAlign=middle;fontSize=20;fontStyle=1;fontColor=#1a365d;" vertex="1" parent="1">
+          <mxGeometry x="80" y="12" width="700" height="40" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="sys" value="&lt;b&gt;&lt;font color=&quot;#4a5568&quot;&gt;Message système&lt;/font&gt;&lt;/b&gt;&lt;br&gt;Rôle : expert en pédagogie  ·  n'inventer aucun fait absent du contexte" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#edf2f7;strokeColor=#4a5568;strokeWidth=2;fontSize=15;fontColor=#1a202c;align=left;verticalAlign=middle;spacingLeft=16;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="40" y="64" width="780" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="rag" value="&lt;b&gt;&lt;font color=&quot;#2b6cb0&quot;&gt;1. Contexte de référence (RAG)&lt;/font&gt;&lt;/b&gt;&lt;br&gt;Passages documentaires indexés, ou contexte générique si rien de pertinent" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ebf8ff;strokeColor=#2b6cb0;strokeWidth=2;fontSize=15;fontColor=#1a202c;align=left;verticalAlign=middle;spacingLeft=16;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="40" y="204" width="780" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="ped" value="&lt;b&gt;&lt;font color=&quot;#2c7a7b&quot;&gt;2. Contexte pédagogique&lt;/font&gt;&lt;/b&gt;&lt;br&gt;Sujet, module, concept, niveau de l'apprenant, objectif du cours" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e6fffa;strokeColor=#2c7a7b;strokeWidth=2;fontSize=15;fontColor=#1a202c;align=left;verticalAlign=middle;spacingLeft=16;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="40" y="344" width="780" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="aff" value="&lt;b&gt;&lt;font color=&quot;#6b46c1&quot;&gt;3. État d'engagement&lt;/font&gt;&lt;/b&gt;&lt;br&gt;État, intensité, durée, pattern, moment du cours" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#faf5ff;strokeColor=#6b46c1;strokeWidth=2;fontSize=15;fontColor=#1a202c;align=left;verticalAlign=middle;spacingLeft=16;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="40" y="484" width="780" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="task" value="&lt;b&gt;&lt;font color=&quot;#b7791f&quot;&gt;4. Tâche et contraintes&lt;/font&gt;&lt;/b&gt;&lt;br&gt;Patron retenu (A1–D5), objectif, longueur, format, ton" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fffff0;strokeColor=#b7791f;strokeWidth=2;fontSize=15;fontColor=#1a202c;align=left;verticalAlign=middle;spacingLeft=16;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="40" y="624" width="780" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="patron" value="&lt;b&gt;&lt;font color=&quot;#c53030&quot;&gt;5. Instructions spécifiques du patron&lt;/font&gt;&lt;/b&gt;&lt;br&gt;Structure numérotée propre à A1–D5 (ce que le texte doit contenir)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff5f5;strokeColor=#c53030;strokeWidth=2;fontSize=15;fontColor=#1a202c;align=left;verticalAlign=middle;spacingLeft=16;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="40" y="764" width="780" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="llm" value="&lt;b&gt;Grand modèle de langue (API)&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#4a5568&quot;&gt;Contenu pédagogique adaptatif en français + journal de génération&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f7fafc;strokeColor=#4a5568;strokeWidth=2;dashed=1;dashPattern=8 6;fontSize=15;fontColor=#1a202c;align=center;verticalAlign=middle;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="40" y="904" width="780" height="110" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#4a5568;endArrow=block;endFill=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="sys" target="rag">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#4a5568;endArrow=block;endFill=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="rag" target="ped">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#4a5568;endArrow=block;endFill=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="ped" target="aff">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#4a5568;endArrow=block;endFill=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="aff" target="task">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#4a5568;endArrow=block;endFill=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="task" target="patron">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#4a5568;endArrow=block;endFill=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="patron" target="llm">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -79,6 +79,7 @@ def test_fer_module_agrege_finetuned_sans_remapping(monkeypatch):
     from PIL import Image
 
     monkeypatch.setattr(fm, "fer_runtime_mode", lambda: "finetuned")
+    monkeypatch.setattr(fm, "model_au_disponible", lambda: False)
     monkeypatch.setattr(
         fm,
         "extract_face_frames",

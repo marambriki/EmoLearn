@@ -10,7 +10,7 @@ from typing import Any
 
 import numpy as np
 
-from au_module import AU_FEATURE_ORDER, au_actif, au_to_vector
+from au_module import AU_FEATURE_ORDER, au_to_vector
 
 # Mapping émotions FER (7 classes) → états DAiSEE (4 classes)
 mapping_fer_daisee = {
@@ -145,10 +145,10 @@ def _predire_avec_pack(pack, x: np.ndarray):
 
 def predire_etat(tous_scores: dict, path: str | None = None, au_scores: dict | None = None):
     """
-    Prédit l'état DAiSEE depuis les scores FER (+ AU si modèle AU actif).
+    Prédit l'état DAiSEE depuis les scores FER (+ AU si modèle AU présent).
     Retourne (etat, niveau, proba_dict) ou None si modèle indisponible.
     """
-    if au_actif() and au_scores is not None and model_au_disponible():
+    if model_au_disponible():
         pack_au = charger_classifieur_au()
         if pack_au and pack_au.get("beats_baseline", True) is not False:
             x = features_fer_au(tous_scores, au_scores)
@@ -164,7 +164,7 @@ def predire_etat(tous_scores: dict, path: str | None = None, au_scores: dict | N
 def mapping_mode_actif() -> str:
     mode = _FER_MAPPING_MODE
     if mode == "auto":
-        if au_actif() and model_au_disponible():
+        if model_au_disponible():
             pack = charger_classifieur_au()
             if pack and pack.get("beats_baseline") is not False:
                 return "learned"
@@ -175,7 +175,7 @@ def mapping_mode_actif() -> str:
             return "heuristique"
         return "learned"
     if mode in ("learned", "learn", "sklearn", "classifieur"):
-        if au_actif() and model_au_disponible():
+        if model_au_disponible():
             return "learned"
         return "learned" if model_disponible() else "heuristique"
     return "heuristique"
@@ -197,7 +197,7 @@ def appliquer_mapping(
             etat, niveau, probs = pred
             source = (
                 "classifieur_sklearn_au"
-                if au_actif() and au_scores is not None and model_au_disponible()
+                if model_au_disponible()
                 else "classifieur_sklearn"
             )
             return etat, niveau, source, probs

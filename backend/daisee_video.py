@@ -208,7 +208,7 @@ def extract_face_frames(clip_id: str, n_frames: int = 5, avi_path: str = None):
 
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0)
     if total_frames <= 0:
-        meta["erreur"] = "video_vide"
+        meta["erreur"] = "aucune_image"
         cap.release()
         return [], meta
 
@@ -237,4 +237,6 @@ def extract_face_frames(clip_id: str, n_frames: int = 5, avi_path: str = None):
 
     cap.release()
     meta["n_frames"] = len(images)
+    if not images and not meta["erreur"]:
+        meta["erreur"] = "aucune_image"
     return images, meta

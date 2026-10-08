@@ -6,7 +6,7 @@
 
 import os
 
-from au_module import au_actif, extraire_au, moyenner_au
+from au_module import extraire_au, moyenner_au
 from daisee_video import extract_face_frames
 from fer_offline import (
     ETATS_DAISEE,
@@ -129,9 +129,9 @@ def analyser_visage_depuis_scenario(scenario_row, n_frames=N_FRAMES_DEFAUT):
     else:
         moyennes, n_valides, n_rejetees = agrege
 
-    # AU moyen sur les frames acceptées (seulement si classifieur AU présent)
+    # AU : toujours extrait en runtime si le classifieur FER+AU est déployé
     au_scores = None
-    use_au = au_actif() and model_au_disponible()
+    use_au = model_au_disponible()
     if use_au:
         aus = []
         for i, (img, r) in enumerate(zip(images, resultats_frames)):
@@ -140,15 +140,14 @@ def analyser_visage_depuis_scenario(scenario_row, n_frames=N_FRAMES_DEFAUT):
             if not fallback_filtre and _confiance_frame(r) < SEUIL_FRAME_FER:
                 continue
             aus.append(extraire_au(img))
-        if aus:
-            au_scores = moyenner_au(aus)
+        au_scores = moyenner_au(aus) if aus else moyenner_au([])
 
     emotion_dominante = max(moyennes, key=moyennes.get)
     score_confiance = float(moyennes[emotion_dominante])
     mode = fer_runtime_mode()
 
-    # Chemin FER+AU : 7 scores pretrained + AU → RF
-    if use_au and au_scores is not None:
+    # Chemin FER+AU (prioritaire en runtime si modèle présent)
+    if use_au:
         fer7 = _agreger_fer7_frames(images)
         if fer7:
             emo7 = max(fer7, key=fer7.get)
@@ -185,7 +184,7 @@ def analyser_visage_depuis_scenario(scenario_row, n_frames=N_FRAMES_DEFAUT):
                 result["probs_etats"] = probs_etats
             return result
 
-    if mode == "finetuned" and emotion_dominante in ETATS_DAISEE:
+    if mode == "finetuned" and emotion_dominante in ETATS_DAISEE and not use_au:
         probs_etats = {e: float(moyennes.get(e, 0.0)) for e in ETATS_DAISEE}
         niveau = max(1, min(3, int(round(score_confiance * 3))))
         out = {
@@ -224,7 +223,7 @@ def analyser_visage_depuis_scenario(scenario_row, n_frames=N_FRAMES_DEFAUT):
         "tous_scores": {label: round(v, 4) for label, v in moyennes.items()},
         "mapping_source": mapping_source,
         "fer_mode": mode,
-        "au_actif": bool(au_scores and "au" in mapping_source),
+        "au_actif": bool(use_au),
         "erreur": None,
         "clip_id": clip_id,
         "n_frames_analysees": n_valides,

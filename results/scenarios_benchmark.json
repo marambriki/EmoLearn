@@ -2,18 +2,8 @@
   "mode": "scenarios_benchmark",
   "n_scenarios": 50,
   "template_distribution": {
-    "D1": 12,
-    "D4": 5,
-    "B1": 4,
-    "C2": 2,
-    "D2": 5,
-    "A5": 2,
-    "C1": 9,
-    "A3": 2,
-    "A2": 2,
-    "A1": 4,
-    "B2": 3
+    "B2": 50
   },
   "output_csv": "C:\\Users\\Lenovo\\EmoLearn\\results\\scenarios_decisions.csv",
-  "timestamp": "2026-05-31T22:07:40.703674+00:00"
+  "timestamp": "2026-09-27T20:16:30.391501+00:00"
 }

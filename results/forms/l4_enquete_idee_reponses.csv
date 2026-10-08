@@ -1,0 +1,16 @@
+id,submitted_utc,niveau,familiarite_mooc_1_5,utilite_1_7,adequation_1_7,satisfaction_1_7,acceptation_captation_1_7,sus_1,sus_2,sus_3,sus_4,sus_5,sus_6,sus_7,sus_8,sus_9,sus_10,sus_score,aide,gene,suggestion,note_qualite
+1,2026-09-20T10:29:00Z,L3,3,3,3,3,2,1,1,1,1,1,1,2,1,2,2,52.5,,,,reponse_peu_differenciee_SUS
+2,2026-09-20T10:36:00Z,master,3,5,5,6,5,3,3,3,3,3,3,3,3,3,3,50.0,,,,reponse_milieu_SUS
+3,2026-09-20T10:41:00Z,L3 informatique,4,6,7,6,4,5,4,5,3,4,2,5,1,5,2,80.0,L’adaptation du contenu au niveau d’engagement de l’étudiant pourrait l’aider à rester concentré et à mieux comprendre les cours.,L’utilisation de la webcam et du microphone pourrait gêner certains étudiants à cause des questions de confidentialité et de vie privée.,Permettre à l’étudiant de choisir d’activer ou non la webcam et le microphone et lui expliquer clairement comment ses données sont utilisées.,
+4,2026-09-20T10:48:00Z,L2,4,5,5,5,5,4,1,4,4,4,1,4,1,4,5,70.0,,,,
+5,2026-09-21T22:05:00Z,cycle,3,5,6,5,5,4,2,4,3,3,3,4,2,3,3,62.5,ajouter une interface d'authentification,,,
+6,2026-09-21T22:10:00Z,L2 info de gestion,2,3,4,4,5,4,3,3,3,3,3,4,2,3,3,57.5,,Erreur de contenu,,
+7,2026-09-21T22:16:00Z,M1 PRO DSI,4,4,4,5,5,5,3,3,3,3,3,4,3,3,3,57.5,,,,
+8,2026-09-21T22:25:00Z,3e cycle d'ingénieur,4,7,7,7,6,5,2,2,3,3,4,3,3,4,4,52.5,,,,
+9,2026-09-21T22:34:00Z,L2 mdw,3,3,3,4,5,4,3,3,3,3,3,3,2,3,4,52.5,,,,
+10,2026-09-21T22:39:00Z,L1,1,3,4,4,5,4,3,3,3,3,3,4,3,3,3,55.0,,,,
+11,2026-09-21T22:42:00Z,L3,3,4,4,5,5,4,2,3,2,3,2,4,2,3,3,65.0,,,,
+12,2026-09-21T22:45:00Z,M1,3,4,4,5,5,5,1,4,3,3,3,3,3,3,3,62.5,,,,
+13,2026-09-21T22:48:00Z,L2,3,4,4,4,4,4,3,3,2,3,3,3,1,4,5,57.5,,,,
+14,2026-09-21T22:55:00Z,M1,5,6,5,6,5,5,2,4,1,3,3,3,3,3,4,62.5,,,,
+15,2026-09-21T23:02:00Z,L3,5,7,7,7,7,4,1,5,3,5,1,5,1,3,5,77.5,,,,

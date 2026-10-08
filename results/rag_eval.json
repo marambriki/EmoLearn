@@ -1,0 +1,356 @@
+{
+  "summary": {
+    "k": 3,
+    "nb_questions": 19,
+    "hit_rate": 1.0,
+    "precision@k": 0.754,
+    "mrr": 1.0,
+    "score_top1_moyen": 0.661,
+    "par_concept": {
+      "algorithmes de tri": {
+        "nb_questions": 4,
+        "hit_rate": 1.0,
+        "precision@k": 0.917,
+        "mrr": 1.0
+      },
+      "complexité algorithmique": {
+        "nb_questions": 3,
+        "hit_rate": 1.0,
+        "precision@k": 0.556,
+        "mrr": 1.0
+      },
+      "récursion": {
+        "nb_questions": 3,
+        "hit_rate": 1.0,
+        "precision@k": 0.333,
+        "mrr": 1.0
+      },
+      "réseaux de neurones": {
+        "nb_questions": 3,
+        "hit_rate": 1.0,
+        "precision@k": 1.0,
+        "mrr": 1.0
+      },
+      "structures de données": {
+        "nb_questions": 3,
+        "hit_rate": 1.0,
+        "precision@k": 0.667,
+        "mrr": 1.0
+      },
+      "encouragement": {
+        "nb_questions": 3,
+        "hit_rate": 1.0,
+        "precision@k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    "mode": "realiste",
+    "date": "2026-09-08 10:33 UTC"
+  },
+  "details": [
+    {
+      "question": "Comment fonctionne le tri à bulles ?",
+      "concept_attendu": "algorithmes de tri",
+      "etat": "Confusion",
+      "nb_recuperes": 3,
+      "nb_pertinents": 3,
+      "hit@k": 1,
+      "precision@k": 1.0,
+      "reciprocal_rank": 1.0,
+      "score_top1": 0.692,
+      "concepts_recuperes": [
+        "algorithmes de tri",
+        "algorithmes de tri",
+        "algorithmes de tri"
+      ]
+    },
+    {
+      "question": "Quelle est la différence entre QuickSort et MergeSort ?",
+      "concept_attendu": "algorithmes de tri",
+      "etat": "Confusion",
+      "nb_recuperes": 3,
+      "nb_pertinents": 3,
+      "hit@k": 1,
+      "precision@k": 1.0,
+      "reciprocal_rank": 1.0,
+      "score_top1": 0.573,
+      "concepts_recuperes": [
+        "algorithmes de tri",
+        "algorithmes de tri",
+        "algorithmes de tri"
+      ]
+    },
+    {
+      "question": "Explique le tri par insertion",
+      "concept_attendu": "algorithmes de tri",
+      "etat": "Confusion",
+      "nb_recuperes": 3,
+      "nb_pertinents": 2,
+      "hit@k": 1,
+      "precision@k": 0.667,
+      "reciprocal_rank": 1.0,
+      "score_top1": 0.727,
+      "concepts_recuperes": [
+        "algorithmes de tri",
+        "algorithmes de tri",
+        "complexité algorithmique"
+      ]
+    },
+    {
+      "question": "Quel algorithme de tri est le plus rapide ?",
+      "concept_attendu": "algorithmes de tri",
+      "etat": "Engagement",
+      "nb_recuperes": 3,
+      "nb_pertinents": 3,
+      "hit@k": 1,
+      "precision@k": 1.0,
+      "reciprocal_rank": 1.0,
+      "score_top1": 0.749,
+      "concepts_recuperes": [
+        "algorithmes de tri",
+        "algorithmes de tri",
+        "algorithmes de tri"
+      ]
+    },
+    {
+      "question": "C'est quoi la notation Big-O ?",
+      "concept_attendu": "complexité algorithmique",
+      "etat": "Confusion",
+      "nb_recuperes": 3,
+      "nb_pertinents": 2,
+      "hit@k": 1,
+      "precision@k": 0.667,
+      "reciprocal_rank": 1.0,
+      "score_top1": 0.781,
+      "concepts_recuperes": [
+        "complexité algorithmique",
+        "complexité algorithmique",
+        "algorithmes de tri"
+      ]
+    },
+    {
+      "question": "Comment mesurer la complexité d'un algorithme ?",
+      "concept_attendu": "complexité algorithmique",
+      "etat": "Confusion",
+      "nb_recuperes": 3,
+      "nb_pertinents": 2,
+      "hit@k": 1,
+      "precision@k": 0.667,
+      "reciprocal_rank": 1.0,
+      "score_top1": 0.769,
+      "concepts_recuperes": [
+        "complexité algorithmique",
+        "complexité algorithmique",
+        "algorithmes de tri"
+      ]
+    },
+    {
+      "question": "Quelle est la complexité d'une recherche dichotomique ?",
+      "concept_attendu": "complexité algorithmique",
+      "etat": "Engagement",
+      "nb_recuperes": 3,
+      "nb_pertinents": 1,
+      "hit@k": 1,
+      "precision@k": 0.333,
+      "reciprocal_rank": 1.0,
+      "score_top1": 0.702,
+      "concepts_recuperes": [
+        "complexité algorithmique",
+        "algorithmes de tri",
+        "encouragement"
+      ]
+    },
+    {
+      "question": "C'est quoi une fonction récursive ?",
+      "concept_attendu": "récursion",
+      "etat": "Confusion",
+      "nb_recuperes": 3,
+      "nb_pertinents": 1,
+      "hit@k": 1,
+      "precision@k": 0.333,
+      "reciprocal_rank": 1.0,
+      "score_top1": 0.684,
+      "concepts_recuperes": [
+        "récursion",
+        "algorithmes de tri",
+        "algorithmes de tri"
+      ]
+    },
+    {
+      "question": "Pourquoi une récursion a besoin d'un cas de base ?",
+      "concept_attendu": "récursion",
+      "etat": "Confusion",
+      "nb_recuperes": 3,
+      "nb_pertinents": 1,
+      "hit@k": 1,
+      "precision@k": 0.333,
+      "reciprocal_rank": 1.0,
+      "score_top1": 0.561,
+      "concepts_recuperes": [
+        "récursion",
+        "algorithmes de tri",
+        "encouragement"
+      ]
+    },
+    {
+      "question": "Donne un exemple de récursion",
+      "concept_attendu": "récursion",
+      "etat": "Engagement",
+      "nb_recuperes": 3,
+      "nb_pertinents": 1,
+      "hit@k": 1,
+      "precision@k": 0.333,
+      "reciprocal_rank": 1.0,
+      "score_top1": 0.405,
+      "concepts_recuperes": [
+        "récursion",
+        "encouragement",
+        "encouragement"
+      ]
+    },
+    {
+      "question": "Comment fonctionne un réseau de neurones ?",
+      "concept_attendu": "réseaux de neurones",
+      "etat": "Confusion",
+      "nb_recuperes": 3,
+      "nb_pertinents": 3,
+      "hit@k": 1,
+      "precision@k": 1.0,
+      "reciprocal_rank": 1.0,
+      "score_top1": 0.791,
+      "concepts_recuperes": [
+        "réseaux de neurones",
+        "réseaux de neurones",
+        "réseaux de neurones"
+      ]
+    },
+    {
+      "question": "C'est quoi la fonction d'activation ReLU ?",
+      "concept_attendu": "réseaux de neurones",
+      "etat": "Confusion",
+      "nb_recuperes": 3,
+      "nb_pertinents": 3,
+      "hit@k": 1,
+      "precision@k": 1.0,
+      "reciprocal_rank": 1.0,
+      "score_top1": 0.718,
+      "concepts_recuperes": [
+        "réseaux de neurones",
+        "réseaux de neurones",
+        "réseaux de neurones"
+      ]
+    },
+    {
+      "question": "Explique la rétropropagation dans un réseau de neurones",
+      "concept_attendu": "réseaux de neurones",
+      "etat": "Confusion",
+      "nb_recuperes": 3,
+      "nb_pertinents": 3,
+      "hit@k": 1,
+      "precision@k": 1.0,
+      "reciprocal_rank": 1.0,
+      "score_top1": 0.814,
+      "concepts_recuperes": [
+        "réseaux de neurones",
+        "réseaux de neurones",
+        "réseaux de neurones"
+      ]
+    },
+    {
+      "question": "Quelles sont les principales structures de données ?",
+      "concept_attendu": "structures de données",
+      "etat": "Confusion",
+      "nb_recuperes": 3,
+      "nb_pertinents": 2,
+      "hit@k": 1,
+      "precision@k": 0.667,
+      "reciprocal_rank": 1.0,
+      "score_top1": 0.691,
+      "concepts_recuperes": [
+        "structures de données",
+        "complexité algorithmique",
+        "structures de données"
+      ]
+    },
+    {
+      "question": "C'est quoi une pile et une file ?",
+      "concept_attendu": "structures de données",
+      "etat": "Confusion",
+      "nb_recuperes": 3,
+      "nb_pertinents": 2,
+      "hit@k": 1,
+      "precision@k": 0.667,
+      "reciprocal_rank": 1.0,
+      "score_top1": 0.416,
+      "concepts_recuperes": [
+        "structures de données",
+        "structures de données",
+        "réseaux de neurones"
+      ]
+    },
+    {
+      "question": "Comment fonctionne un arbre binaire de recherche ?",
+      "concept_attendu": "structures de données",
+      "etat": "Engagement",
+      "nb_recuperes": 3,
+      "nb_pertinents": 2,
+      "hit@k": 1,
+      "precision@k": 0.667,
+      "reciprocal_rank": 1.0,
+      "score_top1": 0.631,
+      "concepts_recuperes": [
+        "structures de données",
+        "structures de données",
+        "réseaux de neurones"
+      ]
+    },
+    {
+      "question": "Je suis frustré, je n'arrive pas à comprendre",
+      "concept_attendu": "encouragement",
+      "etat": "Frustration",
+      "nb_recuperes": 3,
+      "nb_pertinents": 3,
+      "hit@k": 1,
+      "precision@k": 1.0,
+      "reciprocal_rank": 1.0,
+      "score_top1": 0.661,
+      "concepts_recuperes": [
+        "encouragement",
+        "encouragement",
+        "encouragement"
+      ]
+    },
+    {
+      "question": "Comment rester motivé quand c'est difficile ?",
+      "concept_attendu": "encouragement",
+      "etat": "Frustration",
+      "nb_recuperes": 3,
+      "nb_pertinents": 3,
+      "hit@k": 1,
+      "precision@k": 1.0,
+      "reciprocal_rank": 1.0,
+      "score_top1": 0.684,
+      "concepts_recuperes": [
+        "encouragement",
+        "encouragement",
+        "encouragement"
+      ]
+    },
+    {
+      "question": "Je m'ennuie, ce cours est trop long",
+      "concept_attendu": "encouragement",
+      "etat": "Boredom",
+      "nb_recuperes": 3,
+      "nb_pertinents": 3,
+      "hit@k": 1,
+      "precision@k": 1.0,
+      "reciprocal_rank": 1.0,
+      "score_top1": 0.519,
+      "concepts_recuperes": [
+        "encouragement",
+        "encouragement",
+        "encouragement"
+      ]
+    }
+  ]
+}

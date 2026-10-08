@@ -1,54 +1,55 @@
 {
   "mode": "fusion_produit_proxy_from_decisions",
   "note": "Proxy depuis results/scenarios_decisions.csv : GT = état dominant DAiSEE, prédiction = etat_fusion du pipeline produit. Pas d'accuracy multimodale gold.",
-  "n": 52,
+  "n": 50,
   "strategie_fusion": "pipeline_produit",
   "accuracy_vs_etat_dominant": {
     "visage": null,
     "voix": null,
-    "fusion": 0.5
+    "fusion": 0.46
   },
   "rappel_etats_urgents": {
     "visage": null,
     "voix": null,
-    "fusion": 1.0
+    "fusion": 0.625
   },
   "distribution_gt": {
-    "Engagement": 26,
-    "Boredom": 22,
-    "Frustration": 4
+    "Frustration": 16,
+    "Engagement": 13,
+    "Boredom": 13,
+    "Confusion": 8
   },
   "distribution_fusion": {
-    "Frustration": 24,
+    "Frustration": 23,
     "Boredom": 12,
-    "Engagement": 10,
+    "Engagement": 9,
     "Confusion": 6
   },
   "confusion_fusion": {
     "Boredom": {
-      "Boredom": 12,
+      "Boredom": 5,
       "Confusion": 0,
       "Engagement": 0,
-      "Frustration": 10
+      "Frustration": 8
     },
     "Confusion": {
-      "Boredom": 0,
-      "Confusion": 0,
-      "Engagement": 0,
-      "Frustration": 0
+      "Boredom": 3,
+      "Confusion": 3,
+      "Engagement": 1,
+      "Frustration": 1
     },
     "Engagement": {
       "Boredom": 0,
-      "Confusion": 6,
-      "Engagement": 10,
-      "Frustration": 10
+      "Confusion": 0,
+      "Engagement": 7,
+      "Frustration": 6
     },
     "Frustration": {
-      "Boredom": 0,
-      "Confusion": 0,
-      "Engagement": 0,
-      "Frustration": 4
+      "Boredom": 4,
+      "Confusion": 3,
+      "Engagement": 1,
+      "Frustration": 8
     }
   },
-  "timestamp": "2026-08-05T16:48:31.530333+00:00"
+  "timestamp": "2026-09-27T20:15:06.816031+00:00"
 }

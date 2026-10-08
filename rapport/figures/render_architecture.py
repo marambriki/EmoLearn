@@ -4,7 +4,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 
-OUT = Path(__file__).resolve().parent / "emolearn_architecture.png"
+OUT = Path(__file__).resolve().parent / "emolearn_architecture.drawio.png"
 
 # Palette (professional, print-friendly)
 C_TEXT = "#1a202c"
@@ -22,7 +22,7 @@ C_IO = "#f7fafc"
 C_IO_STROKE = "#4a5568"
 
 
-def box(ax, x, y, w, h, text, *, fc, ec, lw=1.6, fs=9, bold=False, dashed=False):
+def box(ax, x, y, w, h, text, *, fc, ec, lw=1.6, fs=12, bold=False, dashed=False):
     patch = FancyBboxPatch(
         (x, y),
         w,
@@ -43,7 +43,7 @@ def box(ax, x, y, w, h, text, *, fc, ec, lw=1.6, fs=9, bold=False, dashed=False)
         va="center",
         fontsize=fs,
         color=C_TEXT,
-        fontweight="bold" if bold else "normal",
+        fontweight="bold",
         linespacing=1.25,
         zorder=4,
     )
@@ -64,12 +64,12 @@ def layer(ax, x, y, w, h, label, color, bg):
     )
     ax.add_patch(patch)
     ax.text(
-        x + 0.12,
+        x + 0.22,
         y + h / 2,
         label,
         ha="center",
         va="center",
-        fontsize=8.5,
+        fontsize=12,
         fontweight="bold",
         color=color,
         rotation=90,
@@ -94,158 +94,155 @@ def arrow(ax, p1, p2, color=C_MUTED):
 
 
 def main():
-    fig, ax = plt.subplots(figsize=(10.2, 8.4), dpi=220)
-    ax.set_xlim(0, 10.2)
-    ax.set_ylim(0, 8.4)
+    fig, ax = plt.subplots(figsize=(11.2, 9.2), dpi=220)
+    ax.set_xlim(0, 11.2)
+    ax.set_ylim(0, 9.2)
     ax.axis("off")
     fig.patch.set_facecolor("white")
 
     ax.text(
-        5.1,
-        8.15,
-        "EmoLearn — Architecture de bout en bout",
+        5.6,
+        8.92,
+        "Architecture fonctionnelle en trois couches",
         ha="center",
         va="center",
-        fontsize=13,
+        fontsize=16,
         fontweight="bold",
         color="#1a365d",
     )
 
-    # I/O
     box(
         ax,
-        2.7,
-        7.35,
-        4.8,
-        0.65,
-        "Entrée\nClip vidéo (DAiSEE) + segment audio (IEMOCAP)\n+ contexte pédagogique",
+        2.3,
+        7.95,
+        6.6,
+        0.80,
+        "Entrée audiovisuelle\nClip vidéo (DAiSEE) + segment audio (IEMOCAP)",
         fc=C_IO,
         ec=C_IO_STROKE,
         lw=1.8,
-        fs=8,
+        fs=12,
         dashed=True,
     )
 
     # Layers
-    layer(ax, 0.55, 4.85, 9.1, 2.25, "PERCEPTION", C_PERC, C_PERC_BG)
-    layer(ax, 0.55, 3.15, 9.1, 1.45, "DÉCISION", C_DEC, C_DEC_BG)
-    layer(ax, 0.55, 1.45, 9.1, 1.45, "GÉNÉRATION", C_GEN, C_GEN_BG)
+    layer(ax, 0.45, 5.15, 10.3, 2.50, "PERCEPTION", C_PERC, C_PERC_BG)
+    layer(ax, 0.45, 3.25, 10.3, 1.65, "DÉCISION", C_DEC, C_DEC_BG)
+    layer(ax, 0.45, 1.40, 10.3, 1.60, "GÉNÉRATION", C_GEN, C_GEN_BG)
 
     fer = box(
         ax,
-        1.1,
-        5.55,
-        2.6,
-        1.25,
-        "Module FER (visage)\nViT fine-tuné DAiSEE\nVote multi-frames\n4 états",
+        1.15,
+        5.95,
+        3.15,
+        1.40,
+        "Module FER (visage)\nExpressions + unités d'action\n4 états",
         fc="white",
         ec=C_PERC,
         lw=1.8,
-        fs=8,
+        fs=12,
     )
     ser = box(
         ax,
-        6.5,
-        5.55,
-        2.6,
-        1.25,
-        "Module SER (voix)\nwav2vec2 fine-tuné\nDAiSEE (IEMOCAP)\n4 états",
+        6.90,
+        5.95,
+        3.15,
+        1.40,
+        "Module SER (voix)\nEncodeur de parole\n4 états",
         fc="white",
         ec=C_PERC,
         lw=1.8,
-        fs=8,
+        fs=12,
     )
     fusion = box(
         ax,
         2.85,
-        4.90,
-        4.5,
-        0.72,
-        "Fusion multimodale\nSoft : vote pondéré (60 % visage / 40 % voix)\nLegacy : priorité pédagogique  ·  Gate de confiance",
+        5.25,
+        5.50,
+        0.85,
+        "Fusion multimodale\nVote à incertitude",
         fc=C_PERC_BOX,
         ec="#2c5282",
         lw=1.8,
-        fs=7.5,
+        fs=12,
         bold=True,
     )
 
-    temp = box(
-        ax,
-        1.8,
-        3.45,
-        2.6,
-        0.85,
-        "Règles temporelles\n(déclenchement)",
-        fc="white",
-        ec=C_DEC,
-        lw=1.8,
-        fs=8,
-    )
     decision = box(
         ax,
-        5.6,
-        3.45,
-        2.8,
-        0.85,
-        "Moteur de décision\nÉtat → type de contenu\n+ template (×20)",
+        2.35,
+        3.42,
+        6.50,
+        1.20,
+        "Moteur de décision\nType (A, B, C, D, A+D, D+A, abstention),\npatron A1–D5 et urgence",
         fc=C_DEC_BOX,
         ec="#234e52",
         lw=1.8,
-        fs=8,
+        fs=12,
         bold=True,
     )
 
     rag = box(
         ax,
-        1.8,
-        1.65,
-        2.8,
-        1.0,
-        "Module RAG\nChromaDB + embeddings\nancrage documentaire",
+        1.15,
+        1.58,
+        2.70,
+        1.15,
+        "Ancrage\ndocumentaire\n(RAG)",
         fc="white",
         ec=C_GEN,
         lw=1.8,
-        fs=8,
+        fs=12,
     )
     llm = box(
         ax,
-        5.6,
-        1.65,
-        2.8,
-        1.0,
-        "LLM (Groq / Llama)\nPrompt structuré\n+ contexte RAG",
+        4.10,
+        1.58,
+        3.20,
+        1.15,
+        "Grand modèle de langue\nPrompt structuré\n+ contexte RAG",
         fc=C_GEN_BOX,
         ec="#975a16",
         lw=1.8,
-        fs=8,
+        fs=12,
         bold=True,
+    )
+    cours = box(
+        ax,
+        7.55,
+        1.58,
+        2.70,
+        1.15,
+        "Contexte\npédagogique\n(cours)",
+        fc="white",
+        ec=C_GEN,
+        lw=1.8,
+        fs=12,
     )
 
     box(
         ax,
-        2.4,
-        0.35,
-        5.4,
-        0.75,
-        "Sortie\nContenu pédagogique adaptatif + journal de décision (traçabilité)",
+        2.10,
+        0.28,
+        7.00,
+        0.90,
+        "Sortie\nContenu pédagogique adaptatif\n+ journal de décision (traçabilité)",
         fc=C_IO,
         ec=C_IO_STROKE,
         lw=1.8,
-        fs=8,
+        fs=12,
         dashed=True,
     )
 
-    # Arrows (approximate midpoints)
-    arrow(ax, (4.0, 7.35), (fer[0], fer[1] + 0.62), C_MUTED)
-    arrow(ax, (6.2, 7.35), (ser[0], ser[1] + 0.62), C_MUTED)
-    arrow(ax, (fer[0], fer[1] - 0.62), (fusion[0] - 0.9, fusion[1] + 0.28), C_PERC)
-    arrow(ax, (ser[0], ser[1] - 0.62), (fusion[0] + 0.9, fusion[1] + 0.28), C_PERC)
-    arrow(ax, (fusion[0] - 0.6, fusion[1] - 0.28), (temp[0], temp[1] + 0.42), C_DEC)
-    arrow(ax, (fusion[0] + 0.6, fusion[1] - 0.28), (decision[0], decision[1] + 0.42), C_DEC)
-    arrow(ax, (temp[0] + 1.3, temp[1]), (decision[0] - 1.4, decision[1]), C_DEC)
-    arrow(ax, (decision[0], decision[1] - 0.42), (llm[0], llm[1] + 0.5), C_GEN)
-    arrow(ax, (rag[0] + 1.4, rag[1]), (llm[0] - 1.4, llm[1]), C_GEN)
-    arrow(ax, (llm[0], llm[1] - 0.5), (5.1, 1.1), C_MUTED)
+    arrow(ax, (4.2, 7.95), (fer[0], fer[1] + 0.70), C_MUTED)
+    arrow(ax, (7.0, 7.95), (ser[0], ser[1] + 0.70), C_MUTED)
+    arrow(ax, (fer[0], fer[1] - 0.70), (fusion[0] - 1.1, fusion[1] + 0.42), C_PERC)
+    arrow(ax, (ser[0], ser[1] - 0.70), (fusion[0] + 1.1, fusion[1] + 0.42), C_PERC)
+    arrow(ax, (fusion[0], fusion[1] - 0.42), (decision[0], decision[1] + 0.60), C_DEC)
+    arrow(ax, (decision[0], decision[1] - 0.60), (llm[0], llm[1] + 0.57), C_GEN)
+    arrow(ax, (rag[0] + 1.35, rag[1]), (llm[0] - 1.60, llm[1]), C_GEN)
+    arrow(ax, (cours[0] - 1.35, cours[1]), (llm[0] + 1.60, llm[1]), C_GEN)
+    arrow(ax, (llm[0], llm[1] - 0.57), (5.6, 1.18), C_MUTED)
 
     fig.tight_layout(pad=0.25)
     fig.savefig(OUT, dpi=220, bbox_inches="tight", facecolor="white")

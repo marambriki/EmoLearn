@@ -10,7 +10,7 @@ import traceback
 import pandas as pd
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response, StreamingResponse
+from fastapi.responses import HTMLResponse, Response, StreamingResponse
 from pydantic import BaseModel
 
 sys.path.append(os.path.dirname(__file__))
@@ -26,7 +26,7 @@ from database import initialiser_db, sauvegarder_session, recuperer_sessions
 from iemocap_audio import extract_segment_wav_bytes, resolve_wav_path
 from pipeline import analyser_clip, enregistrer_decision, formater_reponse_api
 from chat_module import repondre_tuteur
-from ser_module import apercu_audio_scenario
+from ser_module import analyser_voix_depuis_scenario, apercu_audio_scenario
 
 app = FastAPI(title="EmoLearn Simulation API", version="2.5.0")
 
@@ -49,10 +49,26 @@ df_scenarios.columns = [col.strip() for col in df_scenarios.columns]
 df_scenarios = df_scenarios.drop_duplicates(subset=["ClipID"], keep="first").reset_index(
     drop=True
 )
+N_CLIP_SCENARIOS = len(df_scenarios)
 for idx, row in df_scenarios.iterrows():
     df_scenarios.at[idx, "pattern"] = pattern_depuis_scores(
         row["Boredom"], row["Confusion"], row["Engagement"], row["Frustration"]
     )
+
+extra_path = os.path.join(DATA_DIR, "scenarios_sequence_extra.csv")
+if os.path.isfile(extra_path):
+    extra = pd.read_csv(extra_path)
+    extra.columns = [col.strip() for col in extra.columns]
+    extra = extra.drop_duplicates(subset=["ClipID"], keep="first")
+    extra = extra[~extra["ClipID"].astype(str).isin(df_scenarios["ClipID"].astype(str))]
+    if "pattern" not in extra.columns:
+        extra["pattern"] = extra.apply(
+            lambda r: pattern_depuis_scores(
+                r["Boredom"], r["Confusion"], r["Engagement"], r["Frustration"]
+            ),
+            axis=1,
+        )
+    df_scenarios = pd.concat([df_scenarios, extra], ignore_index=True)
 
 sequences_path = os.path.join(DATA_DIR, "scenarios_sequences.csv")
 df_sequences = (
@@ -61,7 +77,7 @@ df_sequences = (
     else pd.DataFrame()
 )
 
-print(f"✅ {len(df_scenarios)} scénarios chargés (simulation clip)")
+print(f"✅ {N_CLIP_SCENARIOS} scénarios clip + {len(df_scenarios) - N_CLIP_SCENARIOS} clips séquence")
 print(f"✅ {len(df_sequences)} séquences temporelles chargées")
 
 # Précharge l'index DAiSEE pour éviter un 1er /scenarios très lent / timeouts UI
@@ -97,6 +113,60 @@ class ChatMessage(BaseModel):
     content: str
 
 
+class L1Item(BaseModel):
+    fiche_id: int
+    C1_coherence: int
+    C2_pertinence: int
+    C3_template: int
+    C4_urgence: int
+    commentaire_expert: str = ""
+
+
+class L1Submission(BaseModel):
+    expert_id: str
+    reponses: list[L1Item]
+
+
+class L2Item(BaseModel):
+    fiche_id: int
+    Q1_pertinence: int
+    Q2_clarte: int
+    Q3_adequation: int
+    Q4_qualite: int
+    Q5_utilisabilite: int
+    Q6_factualite: int
+    commentaire: str = ""
+
+
+class L2Submission(BaseModel):
+    enseignant_id: str
+    reponses: list[L2Item]
+
+
+class L4Submission(BaseModel):
+    participant_id: int
+    niveau: str = ""
+    familiarite_mooc_1_5: int
+    clip_id: str = ""
+    condition: str = "C2"
+    utilite_1_7: int
+    adequation_emotionnelle_1_7: int
+    satisfaction_contenu_1_7: int
+    sus_1: int
+    sus_2: int
+    sus_3: int
+    sus_4: int
+    sus_5: int
+    sus_6: int
+    sus_7: int
+    sus_8: int
+    sus_9: int
+    sus_10: int
+    q_ouvert_aide: str = ""
+    q_ouvert_gene: str = ""
+    q_ouvert_suggestion: str = ""
+
+
 class ChatRequest(BaseModel):
     message: str
     historique: list[ChatMessage] = []
@@ -116,6 +186,40 @@ def _get_scenario(scenario_id):
     if scenario_id < 0 or scenario_id >= len(df_scenarios):
         return None
     return df_scenarios.iloc[scenario_id]
+
+
+def _contexte_voix_scenario(scenario_id: int):
+    """État dominant DAiSEE + scores voix pour appariement IEMOCAP."""
+    scenario = _get_scenario(scenario_id)
+    if scenario is None:
+        return None
+    etat, _, _ = etat_dominant_depuis_scores(
+        scenario["Boredom"],
+        scenario["Confusion"],
+        scenario["Engagement"],
+        scenario["Frustration"],
+    )
+    scores_voix = {
+        "boredom": int(scenario["Boredom"]),
+        "confusion": int(scenario["Confusion"]),
+        "engagement": int(scenario["Engagement"]),
+        "frustration": int(scenario["Frustration"]),
+    }
+    return scenario, etat, scores_voix
+
+
+def _formater_ser_preview(result_voix: dict) -> dict:
+    ref = result_voix.get("annotation_reference") or {}
+    return {
+        "preview": True,
+        "etat": result_voix.get("etat"),
+        "score": result_voix.get("score"),
+        "ser_methode": result_voix.get("ser_methode"),
+        "emotion_iemocap": result_voix.get("emotion_iemocap") or ref.get("emotion"),
+        "annotation_etat": result_voix.get("annotation_etat") or ref.get("etat_daisee"),
+        "utterance_id": result_voix.get("utterance_id"),
+        "erreur": result_voix.get("erreur"),
+    }
 
 
 def _executer_et_persister(
@@ -158,6 +262,7 @@ def _executer_et_persister(
             fusion=analyse["fusion"],
             decision=analyse["decision"],
             resultat_llm=analyse["resultat_llm"],
+            extra={"journal": response.get("journal")},
         )
         sauvegarder_session(
             scenario_id=scenario_id,
@@ -186,7 +291,8 @@ def accueil():
         "prototype": "simulation",
         "unite": "clip",
         "modalites": ["visage (vidéo réelle DAiSEE + FER)", "voix (audio réel IEMOCAP + SER)"],
-        "modes": ["simulation", "sequence", "chat_tuteur"],
+        "modes": ["simulation", "sequence", "chat_tuteur", "evaluation"],
+        "evaluation": "/evaluation",
         "scenarios": len(df_scenarios),
         "sequences": len(df_sequences),
         "templates": "A1–D5 (20 templates)",
@@ -199,8 +305,11 @@ def health():
     from fer_offline import fer_finetuned_disponible, fer_runtime_mode, FINETUNED_DIR
     from ser_module import (
         SER_METHODE_DEFAUT,
+        _SER_ANCHOR_DIR,
         _SER_FINETUNED_DIR,
+        ser_anchor_disponible,
         ser_finetuned_disponible,
+        ser_finetune_mode,
         ser_methode_active,
     )
 
@@ -212,8 +321,12 @@ def health():
             "fer_finetuned_disponible": fer_finetuned_disponible(),
             "fer_model_dir": FINETUNED_DIR if fer_finetuned_disponible() else None,
             "ser_methode": ser_methode_active(SER_METHODE_DEFAUT),
+            "ser_backbone": "wavlm",
+            "ser_finetune_mode": ser_finetune_mode() if ser_finetuned_disponible() else None,
             "ser_finetuned_disponible": ser_finetuned_disponible(),
             "ser_model_dir": _SER_FINETUNED_DIR if ser_finetuned_disponible() else None,
+            "ser_anchor_disponible": ser_anchor_disponible(),
+            "ser_anchor_dir": _SER_ANCHOR_DIR if ser_anchor_disponible() else None,
         },
     }
 
@@ -285,16 +398,29 @@ def lister_sequences():
     items = []
     for idx, row in df_sequences.iterrows():
         sids = _parse_sequence_ids(row.get("scenario_ids", ""))
+        clip_ids = [c for c in str(row.get("clip_ids", "")).split(";") if c]
+        clips = []
+        for sid, cid in zip(sids, clip_ids):
+            clips.append(
+                {
+                    "scenario_id": sid,
+                    "clip_id": cid,
+                    "frame_url": f"/scenarios/{sid}/frame"
+                    if daisee_video_exists(cid)
+                    else None,
+                }
+            )
+        sujet = str(row.get("sujet", "")).strip()
         items.append(
             {
                 "id": int(row.get("sequence_id", idx)),
-                "title": str(row.get("title", f"Séquence {idx}")),
-                "pattern": str(row.get("pattern", "stable")),
+                "title": f"Apprenant {sujet}" if sujet else f"Séquence {idx}",
                 "length": int(row.get("length", len(sids))),
+                "sujet": sujet,
                 "scenario_ids": sids,
-                "clip_ids": [
-                    c for c in str(row.get("clip_ids", "")).split(";") if c
-                ],
+                "clip_ids": clip_ids,
+                "clips": clips,
+                "meme_apprenant": bool(sujet),
             }
         )
     return {"total": len(items), "sequences": items}
@@ -357,6 +483,19 @@ def analyser_sequence(request: SequenceRequest):
                     "template_id": step.get("template_id"),
                     "declencher": step.get("decision", {}).get("declencher"),
                     "temporal": step.get("temporal"),
+                    "pourquoi": next(
+                        (
+                            ligne["message"]
+                            for ligne in (step.get("journal") or [])
+                            if ligne.get("etape") == "decision"
+                        ),
+                        None,
+                    ),
+                    "codes": [
+                        ligne["code"]
+                        for ligne in (step.get("journal") or [])
+                        if ligne.get("statut") == "erreur"
+                    ],
                     "contenu_genere": bool(
                         step.get("contenu") and not step.get("contenu_skipped")
                     ),
@@ -364,20 +503,23 @@ def analyser_sequence(request: SequenceRequest):
             )
             derniere = step
 
+        sujet = str(row.get("sujet", "")).strip()
+        titre = f"Apprenant {sujet}" if sujet else str(row.get("title", ""))
         flat = dict(derniere or {})
         flat.update(
             {
                 "mode": "sequence",
                 "sequence_id": request.sequence_id,
-                "title": str(row.get("title", "")),
-                "pattern": str(row.get("pattern", "")),
+                "title": titre,
                 "n_clips": len(scenario_ids),
                 "scenario_id": scenario_ids[-1],
                 "etapes": etapes,
                 "resultat_final": derniere,
                 "sequence_meta": {
                     "sequence_id": request.sequence_id,
-                    "title": str(row.get("title", "")),
+                    "title": titre,
+                    "sujet": sujet,
+                    "meme_apprenant": bool(sujet),
                     "n_clips": len(scenario_ids),
                     "etapes": etapes,
                 },
@@ -393,6 +535,8 @@ def analyser_sequence(request: SequenceRequest):
 def lister_scenarios():
     items = []
     for i, (_, row) in enumerate(df_scenarios.iterrows()):
+        if i >= N_CLIP_SCENARIOS:
+            break
         b = int(row["Boredom"])
         c = int(row["Confusion"])
         e = int(row["Engagement"])
@@ -464,16 +608,11 @@ def stream_video_scenario(scenario_id: int):
 @app.get("/scenarios/{scenario_id}/audio")
 def meta_audio_scenario(scenario_id: int):
     """Utterance IEMOCAP appariée au scénario (pour le lecteur UI)."""
-    scenario = _get_scenario(scenario_id)
-    if scenario is None:
+    ctx = _contexte_voix_scenario(scenario_id)
+    if ctx is None:
         raise HTTPException(status_code=404, detail="Scénario non trouvé")
-    etat, _, _ = etat_dominant_depuis_scores(
-        scenario["Boredom"],
-        scenario["Confusion"],
-        scenario["Engagement"],
-        scenario["Frustration"],
-    )
-    meta = apercu_audio_scenario(scenario_id, etat_dominant=etat)
+    _, etat, scores_voix = ctx
+    meta = apercu_audio_scenario(scenario_id, etat_dominant=etat, scores_daisee=scores_voix)
     if meta.get("audio_disponible"):
         meta["stream_url"] = f"/scenarios/{scenario_id}/audio/stream"
     else:
@@ -481,19 +620,29 @@ def meta_audio_scenario(scenario_id: int):
     return meta
 
 
+@app.get("/scenarios/{scenario_id}/ser-preview")
+def ser_preview_scenario(scenario_id: int):
+    """Aperçu SER WavLM sur l'utterance appariée (sans analyse visage complète)."""
+    ctx = _contexte_voix_scenario(scenario_id)
+    if ctx is None:
+        raise HTTPException(status_code=404, detail="Scénario non trouvé")
+    _, etat, scores_voix = ctx
+    result = analyser_voix_depuis_scenario(
+        scenario_id=scenario_id,
+        etat_dominant=etat,
+        scores_daisee=scores_voix,
+    )
+    return _formater_ser_preview(result)
+
+
 @app.get("/scenarios/{scenario_id}/audio/stream")
 def stream_audio_scenario(scenario_id: int):
     """Segment WAV IEMOCAP apparié (lisible dans <audio>)."""
-    scenario = _get_scenario(scenario_id)
-    if scenario is None:
+    ctx = _contexte_voix_scenario(scenario_id)
+    if ctx is None:
         raise HTTPException(status_code=404, detail="Scénario non trouvé")
-    etat, _, _ = etat_dominant_depuis_scores(
-        scenario["Boredom"],
-        scenario["Confusion"],
-        scenario["Engagement"],
-        scenario["Frustration"],
-    )
-    meta = apercu_audio_scenario(scenario_id, etat_dominant=etat)
+    _, etat, scores_voix = ctx
+    meta = apercu_audio_scenario(scenario_id, etat_dominant=etat, scores_daisee=scores_voix)
     wav_path = resolve_wav_path(meta["utterance_id"])
     audio = extract_segment_wav_bytes(
         meta["utterance_id"],
@@ -556,3 +705,61 @@ def lister_templates_api():
         "total": len(lister_templates()),
         "templates": [{"id": tid, **meta} for tid, meta in TEMPLATE_META.items()],
     }
+
+
+@app.get("/evaluation", response_class=HTMLResponse)
+def evaluation_accueil():
+    from evaluation_forms import html_accueil
+
+    return html_accueil()
+
+
+@app.get("/evaluation/l1", response_class=HTMLResponse)
+def evaluation_l1_page():
+    from evaluation_forms import html_l1
+
+    return html_l1()
+
+
+@app.post("/evaluation/l1")
+def evaluation_l1_save(body: L1Submission):
+    from evaluation_forms import enregistrer_l1
+
+    try:
+        return enregistrer_l1(body.expert_id, [x.model_dump() for x in body.reponses])
+    except (ValueError, FileNotFoundError, KeyError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.get("/evaluation/l2", response_class=HTMLResponse)
+def evaluation_l2_page(offset: int = 0, limit: int = 5):
+    from evaluation_forms import html_l2
+
+    return html_l2(offset=offset, limit=limit)
+
+
+@app.post("/evaluation/l2")
+def evaluation_l2_save(body: L2Submission):
+    from evaluation_forms import enregistrer_l2
+
+    try:
+        return enregistrer_l2(body.enseignant_id, [x.model_dump() for x in body.reponses])
+    except (ValueError, FileNotFoundError, KeyError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.get("/evaluation/l4", response_class=HTMLResponse)
+def evaluation_l4_page():
+    from evaluation_forms import html_l4
+
+    return html_l4()
+
+
+@app.post("/evaluation/l4")
+def evaluation_l4_save(body: L4Submission):
+    from evaluation_forms import enregistrer_l4
+
+    try:
+        return enregistrer_l4(body.model_dump())
+    except (ValueError, FileNotFoundError, KeyError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc

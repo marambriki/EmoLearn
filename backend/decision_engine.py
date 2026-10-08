@@ -3,7 +3,7 @@
 # Source unique : fusion multimodale + règles DAiSEE → stratégie + template
 # ============================================
 
-from daisee_utils import pattern_depuis_scores
+from daisee_utils import PATTERN_PAR_ETAT
 from prompts.templates import get_meta_template
 
 ETAT_VERS_CLE = {
@@ -38,24 +38,156 @@ def scores_depuis_fusion(fusion):
     return scores
 
 
-def selectionner_strategie(boredom, confusion, engagement, frustration):
+def expliquer_strategie(
+    boredom,
+    confusion,
+    engagement,
+    frustration,
+    etat=None,
+    niveau=None,
+):
+    """Branche réellement empruntée, avec un code stable pour le journal.
+
+    Si ``etat`` (fusion) est fourni, la famille A/B/C/D suit cet argmax.
+    Les scores 0–3 (proba × 3) restent au journal : trop souvent tous à 0–1
+    pour piloter les seuils ≥ 2.
+    """
     if confusion >= 3 and frustration >= 2:
-        return ("confusion+frustration", 3, "Aide de déblocage immédiate", "A+D")
+        return {
+            "cle": "confusion+frustration",
+            "niveau": 3,
+            "strategie": "Aide de déblocage immédiate",
+            "type": "A+D",
+            "code": "STRAT_CONF3_FRU2",
+            "pourquoi": (
+                f"Confusion {confusion}/3 ≥ 3 et frustration {frustration}/3 ≥ 2"
+            ),
+        }
+
+    niv = int(niveau) if niveau is not None else None
+
+    if etat == "Frustration":
+        return {
+            "cle": "frustration",
+            "niveau": niv if niv is not None else frustration,
+            "strategie": "Encouragement + simplification",
+            "type": "D+A",
+            "code": "STRAT_FRU_GE_2" if (niv or frustration) >= 2 else "STRAT_FUSION_FRU",
+            "pourquoi": f"État fusionné Frustration (niveau {(niv if niv is not None else frustration)}/3)",
+        }
+    if etat == "Confusion":
+        return {
+            "cle": "confusion",
+            "niveau": niv if niv is not None else confusion,
+            "strategie": "Explication alternative",
+            "type": "A",
+            "code": "STRAT_CONF_GE_2" if (niv or confusion) >= 2 else "STRAT_FUSION_CONF",
+            "pourquoi": f"État fusionné Confusion (niveau {(niv if niv is not None else confusion)}/3)",
+        }
+    if etat == "Boredom":
+        return {
+            "cle": "boredom",
+            "niveau": niv if niv is not None else boredom,
+            "strategie": "Exemple concret — relance (ennui)",
+            "type": "B",
+            "code": "STRAT_FUSION_BOR",
+            "pourquoi": f"État fusionné Ennui (niveau {(niv if niv is not None else boredom)}/3)",
+        }
+    if etat == "Engagement":
+        if niv is not None and niv <= 1:
+            return {
+                "cle": "engagement",
+                "niveau": niv,
+                "strategie": "Exemple concret stimulant",
+                "type": "B",
+                "code": "STRAT_ENG_LE_1",
+                "pourquoi": f"État fusionné Engagement, niveau {niv}/3 ≤ 1",
+            }
+        return {
+            "cle": "engagement",
+            "niveau": niv if niv is not None else engagement,
+            "strategie": "Renforcement positif",
+            "type": "D",
+            "code": "STRAT_ENG_GE_2",
+            "pourquoi": f"État fusionné Engagement (niveau {(niv if niv is not None else engagement)}/3)",
+        }
+
     if engagement == 0:
-        return ("engagement", 0, "Réengagement urgent", "B")
+        return {
+            "cle": "engagement",
+            "niveau": 0,
+            "strategie": "Réengagement urgent",
+            "type": "B",
+            "code": "STRAT_ENG_0",
+            "pourquoi": "Engagement = 0",
+        }
     if frustration >= 2:
-        return ("frustration", frustration, "Encouragement + simplification", "D+A")
+        return {
+            "cle": "frustration",
+            "niveau": frustration,
+            "strategie": "Encouragement + simplification",
+            "type": "D+A",
+            "code": "STRAT_FRU_GE_2",
+            "pourquoi": f"Frustration {frustration}/3 ≥ 2",
+        }
     if confusion >= 2:
-        return ("confusion", confusion, "Explication alternative", "A")
+        return {
+            "cle": "confusion",
+            "niveau": confusion,
+            "strategie": "Explication alternative",
+            "type": "A",
+            "code": "STRAT_CONF_GE_2",
+            "pourquoi": f"Confusion {confusion}/3 ≥ 2",
+        }
     if boredom >= 2:
-        return ("boredom", boredom, "Exercice avancé", "C")
+        return {
+            "cle": "boredom",
+            "niveau": boredom,
+            "strategie": "Exercice avancé",
+            "type": "C",
+            "code": "STRAT_BOR_GE_2",
+            "pourquoi": f"Ennui {boredom}/3 ≥ 2",
+        }
     if engagement <= 1:
-        return ("engagement", engagement, "Exemple concret stimulant", "B")
+        return {
+            "cle": "engagement",
+            "niveau": engagement,
+            "strategie": "Exemple concret stimulant",
+            "type": "B",
+            "code": "STRAT_ENG_LE_1",
+            "pourquoi": f"Engagement {engagement}/3 ≤ 1",
+        }
     if boredom == 1:
-        return ("boredom", boredom, "Application pratique", "B")
+        return {
+            "cle": "boredom",
+            "niveau": boredom,
+            "strategie": "Application pratique",
+            "type": "B",
+            "code": "STRAT_BOR_1",
+            "pourquoi": "Ennui = 1",
+        }
     if engagement >= 2:
-        return ("engagement", engagement, "Renforcement positif", "D")
-    return ("neutre", 0, "Continuation normale", "aucune")
+        return {
+            "cle": "engagement",
+            "niveau": engagement,
+            "strategie": "Renforcement positif",
+            "type": "D",
+            "code": "STRAT_ENG_GE_2",
+            "pourquoi": f"Engagement {engagement}/3 ≥ 2",
+        }
+    return {
+        "cle": "neutre",
+        "niveau": 0,
+        "strategie": "Continuation normale",
+        "type": "aucune",
+        "code": "STRAT_NEUTRE",
+        "pourquoi": "Aucun seuil pédagogique atteint",
+    }
+
+
+def selectionner_strategie(boredom, confusion, engagement, frustration):
+    branche = expliquer_strategie(boredom, confusion, engagement, frustration)
+    return (branche["cle"], branche["niveau"], branche["strategie"], branche["type"])
 
 
 def get_description_strategie(type_contenu):
@@ -95,6 +227,74 @@ DESCRIPTIONS_TEMPLATE = {
 }
 
 
+def expliquer_template(
+    type_contenu,
+    etat,
+    niveau,
+    boredom,
+    confusion,
+    engagement,
+    frustration,
+    pattern="stable",
+):
+    """Patron retenu et la condition qui l'a choisi."""
+    if type_contenu == "A+D":
+        return (
+            "A3",
+            "TPL_A3",
+            "Type A+D : confusion et frustration ensemble",
+        )
+    if type_contenu == "D+A":
+        if niveau >= 3 or frustration >= 3:
+            return ("D2", "TPL_D2", f"Frustration, niveau {niveau}/3")
+        return ("D1", "TPL_D1", f"Frustration, niveau {niveau}/3")
+    if type_contenu == "A":
+        if niveau >= 3:
+            return ("A2", "TPL_A2", f"Confusion intense, niveau {niveau}/3")
+        if etat == "Confusion" or (
+            confusion >= 2 and pattern in ("confusion", "critique")
+        ):
+            return (
+                "A1",
+                "TPL_A1",
+                f"Confusion fusionnée, niveau {niveau}/3",
+            )
+        return ("A5", "TPL_A5", f"Confusion, pattern {pattern}")
+    if type_contenu == "B":
+        if etat == "Boredom":
+            if niveau >= 2:
+                return ("B3", "TPL_B3", f"Ennui fusionné, niveau {niveau}/3")
+            return ("B1", "TPL_B1", f"Ennui fusionné, niveau {niveau}/3")
+        if engagement == 0 or pattern == "engagement_faible":
+            return (
+                "B2",
+                "TPL_B2",
+                f"Engagement {engagement}/3, pattern {pattern}",
+            )
+        if boredom >= 2 and pattern == "ennui_eleve":
+            return ("B3", "TPL_B3", f"Ennui {boredom}/3, pattern ennui_eleve")
+        return ("B1", "TPL_B1", f"Pattern {pattern}")
+    if type_contenu == "C":
+        if boredom >= 3 or pattern == "ennui_eleve":
+            return (
+                "C1",
+                "TPL_C1",
+                f"Ennui {boredom}/3, pattern {pattern}",
+            )
+        if engagement >= 2:
+            return ("C2", "TPL_C2", f"Engagement {engagement}/3 ≥ 2")
+        return ("C1", "TPL_C1", f"Pattern {pattern}")
+    if type_contenu == "D":
+        if etat == "Frustration" and niveau >= 3:
+            return ("D2", "TPL_D2", f"Frustration, niveau {niveau}/3 ≥ 3")
+        if etat == "Engagement" or engagement >= 2:
+            return ("D4", "TPL_D4", f"Engagement {engagement}/3")
+        return ("D1", "TPL_D1", f"État {etat}, niveau {niveau}/3")
+    if type_contenu == "aucune":
+        return ("D4", "TPL_AUCUNE", "Pas d'adaptation : patron de repli non servi")
+    return ("A1", "TPL_DEFAUT", f"Type {type_contenu} sans branche dédiée")
+
+
 def selectionner_template_id(
     type_contenu,
     etat,
@@ -108,37 +308,17 @@ def selectionner_template_id(
     """
     Choisit un template parmi les 20 selon le type de contenu et le contexte DAiSEE.
     """
-    if type_contenu == "A+D":
-        return "A3"
-    if type_contenu == "D+A":
-        return "D2" if frustration >= 3 else "D1"
-    if type_contenu == "A":
-        if niveau >= 3:
-            return "A2"
-        if confusion >= 2 and pattern in ("confusion", "critique"):
-            return "A1"
-        return "A5"
-    if type_contenu == "B":
-        if engagement == 0 or pattern == "engagement_faible":
-            return "B2"
-        if boredom >= 2 and pattern == "ennui_eleve":
-            return "B3"
-        return "B1"
-    if type_contenu == "C":
-        if boredom >= 3 or pattern == "ennui_eleve":
-            return "C1"
-        if engagement >= 2:
-            return "C2"
-        return "C1"
-    if type_contenu == "D":
-        if etat == "Frustration" and niveau >= 3:
-            return "D2"
-        if etat == "Engagement" or engagement >= 2:
-            return "D4"
-        return "D1"
-    if type_contenu == "aucune":
-        return "D4"
-    return "A1"
+    template_id, _code, _pourquoi = expliquer_template(
+        type_contenu,
+        etat,
+        niveau,
+        boredom,
+        confusion,
+        engagement,
+        frustration,
+        pattern,
+    )
+    return template_id
 
 
 def preparer_decision(
@@ -150,9 +330,9 @@ def preparer_decision(
     """
     Construit la décision pédagogique à partir de l'état fusionné.
 
-    La cascade A/B/C/D et le choix de template s'appuient sur les scores
-    dérivés de la fusion (aligné chapitre 4 du mémoire), pas sur les
-    annotations DAiSEE brutes du scénario.
+    La cascade A/B/C/D suit l'état fusionné (argmax), pas les scores
+    recollés proba×3 (souvent 0–1 → faux « engagement faible »).
+    Les scores projetés restent dans le journal. Pas les annotations CSV.
     """
     etat = fusion["etat"]
     niveau = int(fusion["niveau"])
@@ -161,16 +341,23 @@ def preparer_decision(
     confusion = scores["confusion"]
     engagement = scores["engagement"]
     frustration = scores["frustration"]
-    pattern = pattern_depuis_scores(boredom, confusion, engagement, frustration)
+    pattern = PATTERN_PAR_ETAT.get(etat, "stable")
 
     declencher = True
     if temporal is not None:
         declencher = bool(temporal.get("declencher", True))
         duree_etat = int(temporal.get("duree_etat", duree_etat))
 
-    _emotion_label, _niveau_raw, strategie, type_contenu = selectionner_strategie(
-        boredom, confusion, engagement, frustration
+    branche = expliquer_strategie(
+        boredom,
+        confusion,
+        engagement,
+        frustration,
+        etat=etat,
+        niveau=niveau,
     )
+    strategie = branche["strategie"]
+    type_contenu = branche["type"]
 
     if not declencher:
         type_contenu = "aucune"
@@ -195,6 +382,16 @@ def preparer_decision(
             "scores_daisee": scores,
             "scores_bruts": scores_bruts,
             "pattern": pattern,
+            "trace": {
+                "regle_code": branche["code"],
+                "regle_pourquoi": branche["pourquoi"],
+                "regle_ecrasee": True,
+                "template_code": "TPL_AUCUNE",
+                "template_pourquoi": (
+                    f"Règle temporelle {temporal.get('regle') if temporal else '—'} "
+                    ": pas d'intervention"
+                ),
+            },
             "fusion": {
                 "multimodal": fusion.get("multimodal", False),
                 "conflit": fusion.get("conflit", False),
@@ -203,7 +400,7 @@ def preparer_decision(
             },
         }
 
-    template_id = selectionner_template_id(
+    template_id, template_code, template_pourquoi = expliquer_template(
         type_contenu=type_contenu,
         etat=etat,
         niveau=niveau,
@@ -238,6 +435,13 @@ def preparer_decision(
         "scores_daisee": scores,
         "scores_bruts": scores_bruts,
         "pattern": pattern,
+        "trace": {
+            "regle_code": branche["code"],
+            "regle_pourquoi": branche["pourquoi"],
+            "regle_ecrasee": False,
+            "template_code": template_code,
+            "template_pourquoi": template_pourquoi,
+        },
         "fusion": {
             "multimodal": fusion.get("multimodal", False),
             "conflit": fusion.get("conflit", False),

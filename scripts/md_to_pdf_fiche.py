@@ -109,6 +109,20 @@ def render_table(pdf: FichePDF, rows: list[list[str]]):
     pdf.ln(2)
 
 
+def _starts_block(line: str) -> bool:
+    """True si la ligne commence un nouveau bloc (pas la suite d'un paragraphe)."""
+    s = line.strip()
+    if not s:
+        return True
+    if s.startswith("```") or s == "---":
+        return True
+    if line.startswith("# ") or line.startswith("## ") or line.startswith("### "):
+        return True
+    if s.startswith("|") or s.startswith("- "):
+        return True
+    return False
+
+
 def convert(md_path: Path, pdf_path: Path):
     text = md_path.read_text(encoding="utf-8")
     lines = text.splitlines()
@@ -202,10 +216,17 @@ def convert(md_path: Path, pdf_path: Path):
             i += 1
             continue
 
+        # Paragraphe Markdown = plusieurs lignes jusqu'à une ligne vide / un bloc.
+        # Sans ça, chaque retour à la ligne du .md devient un paragraphe trop court dans le PDF.
+        parts = [strip_md(line)]
+        i += 1
+        while i < len(lines) and not _starts_block(lines[i]):
+            parts.append(strip_md(lines[i]))
+            i += 1
+        para = " ".join(p for p in parts if p)
         pdf.set_font("Arial", "", 9.5)
         pdf.set_x(pdf.l_margin)
-        pdf.multi_cell(0, 5, strip_md(line))
-        i += 1
+        pdf.multi_cell(0, 5, para)
 
     pdf.output(str(pdf_path))
     print(f"PDF écrit : {pdf_path}")

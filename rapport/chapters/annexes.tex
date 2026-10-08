@@ -1,147 +1,184 @@
 %==============================================================================
 %  ANNEXES
 %==============================================================================
-\chapter{Templates de prompts}
+% Matériel opérationnel conservé hors du corps : tuteur conversationnel,
+% instruments d'enquête.
+%==============================================================================
+
+\chapter{Tuteur conversationnel}
 \label{annexe:templates}
 
-La bibliothèque complète des vingt patrons est détaillée au
-tableau~\ref{tab:templates} (chapitre~\ref{chap:conception}). Le
-tableau~\ref{tab:annexe-templates-meta} reprend les métadonnées implémentées
-dans \texttt{backend/prompts/templates.py}.
+Les vingt patrons A1--D5, y compris leurs consignes, figurent au
+tableau~\ref{tab:templates} du chapitre~\ref{chap:conception}. Cette
+annexe ne conserve que le réglage du tuteur, distinct de la cascade
+de génération.
+
+Le tuteur reprend le même identifiant de patron que la génération, mais
+avec un prompt système distinct, une température \emph{par état} et un
+historique borné aux dix derniers tours. Le contenu adaptatif déjà
+affiché est injecté comme premier message, afin d'éviter la recopie
+mot à mot.
+
+\paragraph{Températures par état.}
+Le tableau~\ref{tab:annexe-temp-chat} présente le protocole du tuteur conversationnel.
 
 {\small
-\begin{longtable}{|c|l|l|l|}
-\caption{Métadonnées des 20 patrons (type, longueur cible, objectif).}
-\label{tab:annexe-templates-meta}\\
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\raggedright\arraybackslash}X|c|l|}
 \hline
 \rowcolor{gray!20}
-\textbf{ID} & \textbf{Type} & \textbf{Longueur} & \textbf{Objectif} \\
+\textbf{État} & \textbf{$T$} & \textbf{Consigne émotionnelle (extrait)} \\
 \hline
 \endfirsthead
-\multicolumn{4}{l}{\footnotesize\itshape Suite du tableau~\ref{tab:annexe-templates-meta}}\\
 \hline
 \rowcolor{gray!20}
-\textbf{ID} & \textbf{Type} & \textbf{Longueur} & \textbf{Objectif} \\
+\textbf{État} & \textbf{$T$} & \textbf{Consigne émotionnelle (extrait)} \\
 \hline
 \endhead
-\hline
 \endfoot
-A1 & A & 200 mots & Clarifier \\
+\endlastfoot
+Confusion & 0{,}25 & Décomposer en 2--3 micro-étapes, question de vérification. \\
 \hline
-A2 & A & 150 mots & Clarifier \\
+Frustration & 0{,}35 & Valider l'effort, une seule action de déblocage. \\
 \hline
-A3 & A+D & 200 mots & Débloquer \\
+Engagement & 0{,}45 & Approfondir, mini-défi, pensée critique. \\
 \hline
-A4 & A & 250 mots & Clarifier \\
+Ennui & 0{,}55 & Cas réel, anecdote, éviter les longues définitions. \\
 \hline
-A5 & A & 200 mots & Clarifier \\
-\hline
-B1 & B & 200 mots & Stimuler \\
-\hline
-B2 & B & 250 mots & Réengager \\
-\hline
-B3 & B & 200 mots & Stimuler \\
-\hline
-B4 & B & 250 mots & Contextualiser \\
-\hline
-B5 & B & 200 mots & Stimuler \\
-\hline
-C1 & C & 250 mots & Approfondir \\
-\hline
-C2 & C & 200 mots & Consolider \\
-\hline
-C3 & C & 200 mots & Stimuler \\
-\hline
-C4 & C & 250 mots & Approfondir \\
-\hline
-C5 & C & 200 mots & Approfondir \\
-\hline
-D1 & D & 150 mots & Encourager \\
-\hline
-D2 & D & 180 mots & Encourager \\
-\hline
-D3 & D & 200 mots & Réengager \\
-\hline
-D4 & D & 150 mots & Renforcer \\
-\hline
-D5 & D & 150 mots & Renforcer \\
-\end{longtable}
+\end{xltabular}
+\xlcaption{Réglages du tuteur conversationnel.}
+\label{tab:annexe-temp-chat}
 }
 
-\chapter{Protocoles d'évaluation}
+
+\paragraph{Règles absolues du message système (extrait).}
+Réponses uniquement en français, 3 à 8 phrases par défaut (jusqu'à 12 si
+l'apprenant demande un exemple ou un exercice), s'appuyer sur le RAG
+lorsqu'il est fourni, ne pas inventer de faits techniques, rester
+focalisé sur le concept en cours.
+
+%==============================================================================
+\chapter{Questionnaires et protocoles d'évaluation}
 \label{annexe:protocoles}
 
-Les protocoles détaillés (Delphi mapping, grille experte contenu 60 fiches,
-banc d'essai $n=80$, étude pilote $n=30$) sont documentés dans
-\texttt{docs/PROTOCOLE\_EVALUATION.md}. Fichiers de résultats associés :
 
-\begin{itemize}[leftmargin=1.4em]
-  \item \texttt{results/fer\_classifier\_metrics.json}
-  \item \texttt{results/iemocap\_av\_metrics.json}
-  \item \texttt{results/balayage\_poids\_fusion.json}
-  \item \texttt{results/sensibilite\_mapping.json}
-  \item \texttt{results/corpus\_metrics.json}
-  \item \texttt{results/corpus\_audit\_summary.json}
-  \item \texttt{data/corpus\_evaluation\_60.csv}
-\end{itemize}
 
-\chapter{Exemple de contenu généré (extrait)}
-\label{annexe:exemples}
 
-Exemple de production pour le patron A3 (aide de déblocage — confusion +
-frustration), concept « algorithmes de tri », avec RAG activé :
 
-\begin{quote}
-\small\itshape
-Ce concept est complexe, c'est normal. [\ldots] Le point de blocage probable
-concerne la distinction entre complexités $O(n^2)$ et $O(n \log n)$. [\ldots]
-Micro-exercice guidé : triez à la main la liste [5, 3, 1, 4, 2] avec le tri
-à bulles en notant chaque permutation.
-\end{quote}
 
-Le corpus complet (\texttt{data/corpus\_200.csv}, 220 entrées) inclut pour
-chaque ligne l'état détecté, le \texttt{template\_id}, les sources RAG et le
-texte intégral.
 
-\chapter{Résultats détaillés}
-\label{annexe:resultats}
+\section{Enquête d'idée (exécutée, $n=15$)}
+\label{sec:annexe-enquete-idee}
 
-\paragraph{Matrice de confusion — fusion vote pondéré ($n=80$).}
+Quinze étudiants ont répondu
+(\texttt{https://questionnaire-etudiants.netlify.app}, 
+source : \texttt{questionnaires/etudiants.html})
+sans ouvrir le prototype. La page décrit EmoLearn en trois
+couches, puis pose les items au conditionnel. Résultats :
+tableau~\ref{tab:enquete-idee-n15}, 
+fichier \texttt{results/forms/l4\_enquete\_idee\_reponses.csv}.
+
+\paragraph{Consignes (extrait).}
+«~Vous n'utilisez pas le prototype. Répondez seulement d'après la
+description, comme si cette idée existait dans un cours en ligne.~»
+Consentement obligatoire, la page ne filme pas et n'enregistre ni
+webcam ni micro.
+
+Le tableau~\ref{tab:annexe-enquete-idee} présente les items de l'enquête d'idée.
 
 {\small
-\begin{tabular}{|l|c|c|c|c|}
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\bfseries}l|>{\raggedright\arraybackslash}X|c|}
 \hline
 \rowcolor{gray!20}
- & \textbf{Boredom} & \textbf{Confusion} & \textbf{Engagement} & \textbf{Frustration} \\
+\textbf{Code} & \textbf{Item (libellé du formulaire)} & \textbf{Éch.} \\
 \hline
-\textbf{Boredom (GT)} & 19 & 0 & 1 & 0 \\
+\endfirsthead
 \hline
-\textbf{Confusion (GT)} & 14 & 0 & 6 & 0 \\
+\rowcolor{gray!20}
+\textbf{Code} & \textbf{Item (libellé du formulaire)} & \textbf{Éch.} \\
 \hline
-\textbf{Engagement (GT)} & 3 & 0 & 17 & 0 \\
+\endhead
+\endfoot
+\endlastfoot
+Profil & Niveau d'études (texte libre). & --- \\
 \hline
-\textbf{Frustration (GT)} & 11 & 1 & 4 & 4 \\
+Familiarité & Familiarité avec les cours en ligne / MOOC
+(ancres : pas du tout --- beaucoup). & 1--5 \\
 \hline
-\end{tabular}
+Utilité & D'après la description (sans avoir testé le logiciel) :
+un contenu qui s'adapte à l'engagement me semblerait utile. & 1--7 \\
+\hline
+Rester dans le cours & D'après la description : un tel contenu
+m'aiderait à rester dans le cours. & 1--7 \\
+\hline
+Satisfaction & D'après la description : je serais satisfait(e) de
+recevoir ce type de texte pendant un module. & 1--7 \\
+\hline
+Acceptation captation & D'après la description : j'accepterais
+qu'une webcam / un micro estime mon engagement pendant un cours
+(données non stockées à des fins commerciales). & 1--7 \\
+\hline
+Ouvertes & Qu'est-ce qui aiderait~? Qu'est-ce qui gênerait~?
+Une suggestion. & texte \\
+\hline
+\end{xltabular}
+\xlcaption{Enquête d'idée : profil, Likert et questions ouvertes.}
+\label{tab:annexe-enquete-idee}
 }
 
-\paragraph{Sensibilité mapping IEMOCAP ($n=10\,039$ utterances).}
+Ancrage des Likert 1--7 : 1 = pas d'accord, 7 = tout à fait d'accord.
 
-\begin{tabular}{|l|c|}
+\paragraph{SUS imaginé.} Dix items \textcite{brooke1996sus}, Likert
+1--5, reformulés au conditionnel (titre du bloc : «~Facilité d'usage
+imaginée~»). Consignes : «~Ces 10 questions ne portent pas sur un essai
+réel. Imaginez seulement le système décrit plus haut.~» Score :
+items impairs $(v-1)$, items pairs $(5-v)$, somme $\times 2{,}5$
+(intervalle $0$--$100$). Ce n'est pas un SUS après usage.
+
+Le tableau~\ref{tab:annexe-enquete-sus} présente les items du questionnaire SUS.
+
+{\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{|>{\bfseries}l|>{\raggedright\arraybackslash}X|}
 \hline
 \rowcolor{gray!20}
-\textbf{Variante} & \textbf{\% états modifiés} \\
+\textbf{Item} & \textbf{Libellé du formulaire} \\
 \hline
-neutre $\rightarrow$ Engagement & 17{,}0\,\% \\
+\endfirsthead
 \hline
-tristesse $\rightarrow$ Frustration & 10{,}8\,\% \\
+\rowcolor{gray!20}
+\textbf{Item} & \textbf{Libellé du formulaire} \\
 \hline
-surprise $\rightarrow$ Engagement & 1{,}1\,\% \\
+\endhead
+\endfoot
+\endlastfoot
+SUS~1 & Je voudrais utiliser ce type de système fréquemment. \\
 \hline
-\end{tabular}
+SUS~2 & Je le trouverais inutilement complexe. \\
+\hline
+SUS~3 & Je le trouverais facile à utiliser. \\
+\hline
+SUS~4 & J'aurais besoin d'un support technique pour l'utiliser. \\
+\hline
+SUS~5 & Les fonctions me sembleraient bien intégrées. \\
+\hline
+SUS~6 & Il y aurait trop d'incohérences. \\
+\hline
+SUS~7 & La plupart des gens l'apprendraient très rapidement. \\
+\hline
+SUS~8 & Je le trouverais lourd à utiliser. \\
+\hline
+SUS~9 & Je me sentirais en confiance en l'utilisant. \\
+\hline
+SUS~10 & Il me faudrait apprendre beaucoup de choses avant de m'en servir. \\
+\hline
+\end{xltabular}
+\xlcaption{Enquête d'idée : SUS imaginé (10 items, 1--5).}
+\label{tab:annexe-enquete-sus}
+}
 
-\paragraph{Distribution des longueurs par patron (corpus $n=220$).}
-
-Les moyennes par patron vont de 131 mots (D4, D5) à 349 mots (C2), conformes
-aux cibles du tableau~\ref{tab:annexe-templates-meta}. Détail complet :
-\texttt{results/corpus\_metrics.json}.
+%==============================================================================

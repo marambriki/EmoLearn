@@ -1,25 +1,23 @@
 #!/usr/bin/env python3
 # ============================================
 # Fine-tune ViT FER → 4 états DAiSEE
-# (tête neuve + dernières couches backbone)
+# Modèle retenu = backbone COMPLET (--unfreeze-all)
+# --unfreeze-layers = ablation (partiel), pas le runtime
 # ============================================
 """
-Usage (CPU, recommandé) :
-  python scripts/finetune_fer_vit_daisee.py --sample 800 --epochs 3 --unfreeze-layers 2
-
-Usage plus complet :
-  python scripts/finetune_fer_vit_daisee.py --sample 1200 --epochs 5 --unfreeze-layers 4 --batch-size 8
-
-Fine-tune COMPLET (tout le backbone) :
+Modèle retenu (produit) — tout le backbone :
   python scripts/finetune_fer_vit_daisee.py --from-faces-cache --epochs 5 --unfreeze-all --batch-size 4
 
-Produit :
-  models/fer_vit_daisee/
-  results/fer_finetune_metrics.json
-  results/fer_faces_cache/  (visages JPEG pour rejouer sans ré-extraire)
+Ablations (comparaison, non retenues) :
+  python scripts/finetune_fer_vit_daisee.py --sample 800 --epochs 3 --unfreeze-layers 2
+  python scripts/finetune_fer_vit_daisee.py --from-faces-cache --epochs 5 --unfreeze-layers 4
 
-Par défaut : échantillonnage stratifié + class weights.
-Le backbone ViT (dima806) est partiellement dégelé (--unfreeze-layers).
+Produit :
+  models/fer_vit_daisee/            (checkpoint du run --unfreeze-all)
+  results/fer_finetune_full_metrics.json
+  results/fer_faces_cache/          (visages JPEG pour rejouer sans ré-extraire)
+
+Par défaut argparse : --unfreeze-layers 2 (ablation CPU). Pour le modèle produit, passer --unfreeze-all.
 """
 
 from __future__ import annotations
@@ -86,27 +84,42 @@ def preparer_faces(df: pd.DataFrame, cache_dir: str, force: bool = False) -> pd.
             return man
 
     rows = []
-    skipped = 0
+    rejets = []
     for i, row in df.iterrows():
         clip_id = normaliser_clip_id(row["ClipID"])
         etat = row["etat_gt"]
         video = resolve_daisee_video_path(clip_id)
         if not video:
-            skipped += 1
+            rejets.append({"clip_id": clip_id, "code": "video_absente", "detail": ""})
             continue
-        images, _meta = extract_face_frames(clip_id, n_frames=1, avi_path=video)
+        images, meta = extract_face_frames(clip_id, n_frames=1, avi_path=video)
         if not images:
-            skipped += 1
+            rejets.append(
+                {
+                    "clip_id": clip_id,
+                    "code": meta.get("erreur") or "aucune_image",
+                    "detail": "",
+                }
+            )
             continue
         out_path = os.path.join(cache_dir, f"{clip_id}.jpg")
         images[0].convert("RGB").save(out_path, quality=90)
         rows.append({"clip_id": clip_id, "etat_gt": etat, "image_path": out_path})
         if (len(rows) % 25) == 0:
-            print(f"  faces: {len(rows)} ({skipped} skip)…")
+            print(f"  faces: {len(rows)} ({len(rejets)} écartés)…")
 
     man = pd.DataFrame(rows)
     man.to_csv(manifest_path, index=False)
-    print(f"Faces OK: {len(man)} | skip: {skipped} | dist={dict(Counter(man['etat_gt']))}")
+    rejets_path = os.path.join(cache_dir, "rejets.csv")
+    pd.DataFrame(rejets, columns=["clip_id", "code", "detail"]).to_csv(
+        rejets_path, index=False
+    )
+    print(
+        f"Faces OK: {len(man)} | écartés: {len(rejets)} "
+        f"({dict(Counter(r['code'] for r in rejets))}) → {rejets_path}"
+    )
+    if len(man):
+        print(f"  dist={dict(Counter(man['etat_gt']))}")
     return man
 
 

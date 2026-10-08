@@ -1,0 +1,51 @@
+﻿scenario_id,clip_id,pattern_csv,etat_gt,niveau_gt,pattern_gt,strategie_gt,type_regle_gt,famille_gt,template_gt,etat_fusion,template_observe,famille_observee,famille_canonique_fusion,famille_si_fusion_onehot,template_si_fusion_onehot,concordance_gt_runtime,concordance_template_gt_runtime,concordance_etat_gt_fusion,concordance_canonique,concordance_admissible,concordance_fusion_onehot
+0,4000182015.avi,critique,Frustration,2,critique,Encouragement + simplification,D+A,D,D1,Boredom,D1,D,C,B,B2,1,1,0,0,0,0
+1,3422270246.avi,stable,Engagement,2,stable,Renforcement positif,D,D,D4,Engagement,D4,D,D,D,D4,1,1,1,1,1,1
+2,3100772004.avi,stable,Engagement,2,stable,Renforcement positif,D,D,D4,Engagement,D4,D,D,D,D4,1,1,1,1,1,1
+3,33702101640.mp4,stable,Engagement,3,stable,Application pratique,B,B,B1,Engagement,B1,B,D,D,D4,1,1,1,0,1,0
+4,3100771055.avi,stable,Engagement,2,stable,Renforcement positif,D,D,D4,Engagement,D4,D,D,D,D4,1,1,1,1,1,1
+5,3100781074.avi,stable,Engagement,3,stable,Renforcement positif,D,D,D4,Engagement,D4,D,D,D,D4,1,1,1,1,1,1
+6,3100712014.avi,frustration,Frustration,2,frustration,Encouragement + simplification,D+A,D,D1,Frustration,D1,D,D,B,B2,1,1,1,1,1,0
+7,1100072061.avi,ennui_eleve,Boredom,2,ennui_eleve,Exercice avancé,C,C,C1,Frustration,C2,C,D,B,B2,1,0,0,0,0,0
+8,1100071075.avi,ennui_eleve,Boredom,2,ennui_eleve,Exercice avancé,C,C,C1,Frustration,C2,C,D,B,B2,1,0,0,0,0,0
+9,2100521048.avi,stable,Engagement,2,stable,Renforcement positif,D,D,D4,Frustration,D2,D,D,B,B2,1,0,0,1,1,0
+10,2904280140.mp4,stable,Engagement,2,stable,Application pratique,B,B,B1,Engagement,B1,B,D,D,D4,1,1,1,0,1,0
+11,2026140147.mp4,stable,Engagement,3,stable,Application pratique,B,B,B1,Frustration,B1,B,D,B,B2,1,1,0,0,0,1
+12,2026140128.mp4,confusion,Confusion,2,confusion,Explication alternative,A,A,A1,Confusion,A5,A,A,B,B2,1,0,1,1,1,0
+13,1100152032.avi,stable,Engagement,2,stable,Application pratique,B,B,B1,Frustration,B1,B,D,B,B2,1,1,0,0,0,1
+14,1100061077.avi,stable,Engagement,2,stable,Renforcement positif,D,D,D4,Engagement,D4,D,D,D,D4,1,1,1,1,1,1
+15,2100572021.avi,engagement_faible,Boredom,2,engagement_faible,Exercice avancé,C,C,C1,Frustration,C1,C,D,B,B2,1,1,0,0,0,0
+16,4110211046.avi,critique,Frustration,3,critique,Aide de déblocage immédiate,A+D,A,A3,Confusion,A3,A,A,B,B2,1,1,0,1,1,0
+17,1100151042.avi,stable,Engagement,3,stable,Exercice avancé,C,C,C2,Frustration,C1,C,D,B,B2,1,0,0,0,0,0
+18,2100572036.avi,ennui_eleve,Boredom,2,ennui_eleve,Exercice avancé,C,C,C1,Frustration,C1,C,D,B,B2,1,1,0,0,0,0
+19,4110212036.avi,confusion,Confusion,2,confusion,Explication alternative,A,A,A1,Frustration,A2,A,D,B,B2,1,0,0,0,1,0
+20,3503610158.avi,engagement_faible,Boredom,2,engagement_faible,Exercice avancé,C,C,C1,Frustration,C1,C,D,B,B2,1,1,0,0,0,0
+21,3100692022.avi,ennui_eleve,Boredom,2,ennui_eleve,Exercice avancé,C,C,C1,Frustration,C1,C,D,B,B2,1,1,0,0,0,0
+22,2100582002.avi,ennui_eleve,Boredom,2,ennui_eleve,Exercice avancé,C,C,C1,Frustration,C1,C,D,B,B2,1,1,0,0,0,0
+23,1100062072.avi,critique,Engagement,3,critique,Encouragement + simplification,D+A,D,D1,Frustration,D1,D,D,B,B2,1,1,0,1,1,0
+24,1100071045.avi,ennui_eleve,Boredom,2,ennui_eleve,Exercice avancé,C,C,C1,Frustration,C1,C,D,B,B2,1,1,0,0,0,0
+25,2000481039.avi,frustration,Frustration,2,frustration,Encouragement + simplification,D+A,D,D1,Frustration,D1,D,D,B,B2,1,1,1,1,1,0
+26,4000182067.avi,critique,Frustration,2,critique,Encouragement + simplification,D+A,D,D1,Frustration,D1,D,D,B,B2,1,1,1,1,1,0
+27,3344630120.avi,frustration,Frustration,3,frustration,Encouragement + simplification,D+A,D,D2,Frustration,D2,D,D,B,B2,1,1,1,1,1,0
+28,2100612043.avi,stable,Engagement,3,stable,Encouragement + simplification,D+A,D,D1,Frustration,D1,D,D,B,B2,1,1,0,1,1,0
+29,2100552035.avi,critique,Frustration,3,critique,Encouragement + simplification,D+A,D,D2,Frustration,D2,D,D,B,B2,1,1,1,1,1,0
+30,3503610120.avi,frustration,Frustration,2,frustration,Encouragement + simplification,D+A,D,D1,Engagement,D1,D,D,D,D4,1,1,0,1,1,1
+31,2100532022.avi,critique,Confusion,3,critique,Aide de déblocage immédiate,A+D,A,A3,Boredom,A3,A,C,B,B2,1,1,0,0,0,0
+32,4110311012.avi,critique,Boredom,3,critique,Explication alternative,A,A,A2,Boredom,A1,A,C,B,B2,1,0,1,0,0,0
+33,1110031021.avi,critique,Boredom,3,critique,Explication alternative,A,A,A2,Boredom,A2,A,C,B,B2,1,1,1,0,0,0
+34,2100602011.avi,critique,Confusion,2,critique,Explication alternative,A,A,A1,Boredom,A1,A,C,B,B2,1,1,0,0,0,0
+35,2100532052.avi,confusion,Confusion,2,confusion,Explication alternative,A,A,A1,Confusion,A1,A,A,B,B2,1,1,1,1,1,0
+36,2100602056.avi,critique,Frustration,2,critique,Encouragement + simplification,D+A,D,D1,Boredom,D1,D,C,B,B2,1,1,0,0,0,0
+37,3344630282.avi,frustration,Frustration,3,frustration,Encouragement + simplification,D+A,D,D2,Frustration,D2,D,D,B,B2,1,1,1,1,1,0
+38,2100512036.avi,confusion,Confusion,2,confusion,Explication alternative,A,A,A1,Confusion,A1,A,A,B,B2,1,1,1,1,1,0
+39,1100171059.avi,engagement_faible,Boredom,1,engagement_faible,Exemple concret stimulant,B,B,B2,Boredom,B2,B,C,B,B2,1,1,1,0,1,1
+40,1100051016.avi,confusion,Confusion,2,confusion,Explication alternative,A,A,A1,Boredom,A5,A,C,B,B2,1,0,0,0,0,0
+41,3100821052.avi,engagement_faible,Frustration,0,engagement_faible,Réengagement urgent,B,B,B2,Boredom,B2,B,C,B,B2,1,1,0,0,1,1
+42,2100571023.avi,engagement_faible,Boredom,2,engagement_faible,Exercice avancé,C,C,C1,Boredom,C1,C,C,B,B2,1,1,1,1,1,0
+43,3100752037.avi,engagement_faible,Boredom,2,engagement_faible,Exercice avancé,C,C,C1,Boredom,C1,C,C,B,B2,1,1,1,1,1,0
+44,3100821033.avi,engagement_faible,Frustration,1,engagement_faible,Réengagement urgent,B,B,B2,Frustration,B2,B,D,B,B2,1,1,1,0,0,1
+45,3100631015.avi,critique,Frustration,2,critique,Encouragement + simplification,D+A,D,D1,Confusion,D1,D,A,B,B2,1,1,0,0,0,0
+46,2100551006.avi,critique,Frustration,2,critique,Encouragement + simplification,D+A,D,D1,Confusion,D1,D,A,B,B2,1,1,0,0,0,0
+47,4110211080.avi,critique,Frustration,2,critique,Encouragement + simplification,D+A,D,D1,Boredom,D1,D,C,B,B2,1,1,0,0,0,0
+48,1110032037.avi,critique,Frustration,3,critique,Encouragement + simplification,D+A,D,D2,Frustration,D2,D,D,B,B2,1,1,1,1,1,0
+49,1100012010.avi,confusion,Confusion,3,confusion,Explication alternative,A,A,A2,Engagement,B2,B,D,D,D4,0,0,0,0,1,0

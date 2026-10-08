@@ -47,7 +47,9 @@ def enregistrer_decision(
             "type_contenu": decision.get("type_contenu"),
             "strategie": decision.get("strategie"),
             "scores_daisee": decision.get("scores_daisee"),
+            "trace": decision.get("trace"),
         },
+        "journal": (extra or {}).get("journal"),
     }
 
     if resultat_llm:
@@ -58,12 +60,190 @@ def enregistrer_decision(
         }
 
     if extra:
-        entry["extra"] = extra
+        reste = {k: v for k, v in extra.items() if k != "journal"}
+        if reste:
+            entry["extra"] = reste
 
     with open(LOG_FILE, "a", encoding="utf-8") as f:
         f.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
     return LOG_FILE
+
+
+def _fmt_confiance(score):
+    if score is None:
+        return "—"
+    try:
+        valeur = float(score)
+    except (TypeError, ValueError):
+        return "—"
+    if valeur <= 1:
+        return f"{valeur:.0%}"
+    return f"{valeur:.2f}"
+
+
+def construire_journal(analyse):
+    """
+    Trace lisible de chaque étape : état, règle, code d'erreur.
+    Le résultat final (ex. Frustration) n'est plus le seul signal.
+    """
+    visage = analyse.get("result_visage") or {}
+    voix = analyse.get("result_voix") or {}
+    fusion = analyse.get("fusion") or {}
+    decision = analyse.get("decision") or {}
+    temporal = analyse.get("temporal") or decision.get("temporal") or {}
+    llm = analyse.get("resultat_llm") or {}
+    trace = decision.get("trace") or {}
+    scores = decision.get("scores_daisee") or {}
+
+    etapes = []
+
+    err_v = visage.get("erreur")
+    if err_v:
+        msg_v = f"Échec : {err_v}"
+    else:
+        frames = visage.get("n_frames_analysees")
+        msg_v = (
+            f"{visage.get('etat') or '—'} · confiance {_fmt_confiance(visage.get('score'))}"
+        )
+        if frames:
+            msg_v += f" · {frames} frames"
+    etapes.append(
+        {
+            "etape": "visage",
+            "code": err_v or "FER_OK",
+            "statut": "erreur" if err_v else "ok",
+            "message": msg_v,
+        }
+    )
+
+    err_x = voix.get("erreur")
+    if err_x:
+        msg_x = f"Échec : {err_x}"
+    else:
+        msg_x = (
+            f"{voix.get('etat') or '—'} · confiance {_fmt_confiance(voix.get('score'))}"
+        )
+        if voix.get("ser_methode"):
+            msg_x += f" · {voix.get('ser_methode')}"
+    etapes.append(
+        {
+            "etape": "voix",
+            "code": err_x or "SER_OK",
+            "statut": "erreur" if err_x else "ok",
+            "message": msg_x,
+        }
+    )
+
+    type_conflit = fusion.get("type_conflit") or "FUSION"
+    etapes.append(
+        {
+            "etape": "fusion",
+            "code": type_conflit,
+            "statut": "avertissement" if fusion.get("conflit") else "ok",
+            "message": fusion.get("explication_fusion")
+            or f"{fusion.get('etat') or '—'} · {fusion.get('strategie_fusion') or '—'}",
+        }
+    )
+
+    if scores:
+        etapes.append(
+            {
+                "etape": "scores",
+                "code": "SCORES_FUSION",
+                "statut": "ok",
+                "message": (
+                    f"ennui {scores.get('boredom', 0)} · "
+                    f"confusion {scores.get('confusion', 0)} · "
+                    f"engagement {scores.get('engagement', 0)} · "
+                    f"frustration {scores.get('frustration', 0)} "
+                    f"(échelle 0–3, dérivés de la fusion)"
+                ),
+            }
+        )
+
+    if temporal:
+        declenche = bool(temporal.get("declencher", True))
+        etapes.append(
+            {
+                "etape": "temporel",
+                "code": temporal.get("regle") or "TEMPOREL",
+                "statut": "ok" if declenche else "info",
+                "message": (
+                    f"urgence {temporal.get('urgence') or '—'} · "
+                    f"{'intervention' if declenche else 'pas d’intervention'}"
+                ),
+            }
+        )
+
+    if trace.get("regle_code"):
+        ecrasee = bool(trace.get("regle_ecrasee"))
+        etapes.append(
+            {
+                "etape": "decision",
+                "code": trace["regle_code"],
+                "statut": "info" if ecrasee else "ok",
+                "message": (
+                    f"{trace.get('regle_pourquoi') or decision.get('strategie')}"
+                    + (
+                        " — règle non appliquée, le temporel bloque l’intervention"
+                        if ecrasee
+                        else f" → {decision.get('strategie') or ''}"
+                    )
+                ),
+            }
+        )
+
+    if trace.get("template_code"):
+        etapes.append(
+            {
+                "etape": "template",
+                "code": trace["template_code"],
+                "statut": "info" if trace.get("regle_ecrasee") else "ok",
+                "message": (
+                    f"{decision.get('template_id') or '—'} · "
+                    f"{trace.get('template_pourquoi') or decision.get('description') or ''}"
+                ),
+            }
+        )
+
+    rag_erreur = llm.get("rag_erreur")
+    if llm.get("skipped"):
+        gen_code, gen_statut, gen_msg = (
+            "GEN_SKIP",
+            "info",
+            "Pas de génération : intervention non déclenchée",
+        )
+    elif rag_erreur:
+        gen_code, gen_statut, gen_msg = ("RAG_ERR", "erreur", str(rag_erreur))
+    elif llm.get("rag_utilise"):
+        sources = llm.get("sources_rag") or []
+        gen_code, gen_statut = "RAG_OK", "ok"
+        gen_msg = (
+            f"{llm.get('nb_docs_rag') or len(sources)} document(s)"
+            + (f" · {', '.join(sources)}" if sources else "")
+        )
+    elif llm:
+        gen_code, gen_statut, gen_msg = (
+            "GEN_SANS_RAG",
+            "avertissement",
+            "Texte généré sans ancrage documentaire",
+        )
+    else:
+        gen_code, gen_statut, gen_msg = (
+            "GEN_ABSENT",
+            "info",
+            "Génération non demandée pour cette étape",
+        )
+    etapes.append(
+        {
+            "etape": "generation",
+            "code": gen_code,
+            "statut": gen_statut,
+            "message": gen_msg,
+        }
+    )
+    return etapes
 
 
 def scores_depuis_scenario(scenario):
@@ -89,7 +269,7 @@ def analyser_clip(
     """
     Analyse un clip de simulation :
     visage = vidéo DAiSEE réelle + ViT FER fine-tuné (4 états), vote multi-frames
-    voix   = audio IEMOCAP .wav + wav2vec2 SER fine-tuné (défaut: learned)
+    voix   = audio IEMOCAP .wav + WavLM SER fine-tuné (défaut: learned)
 
     historique_scores : clips précédents (dicts boredom/confusion/engagement/frustration).
     Le clip courant est ajouté avant l'évaluation temporelle.
@@ -100,9 +280,11 @@ def analyser_clip(
     result_visage = analyser_visage_depuis_scenario(scenario)
 
     etat_dominant, _, _ = etat_depuis_ligne(scenario)
+    scores_voix = scores_depuis_scenario(scenario)
     result_voix = analyser_voix_depuis_scenario(
         scenario_id=scenario_id,
         etat_dominant=etat_dominant,
+        scores_daisee=scores_voix,
         methode="learned",
     )
     fusion = fusionner_modalites(result_visage, result_voix)
@@ -209,6 +391,19 @@ def formater_reponse_api(analyse, scenario_id=None):
             "etat": analyse.get("result_voix", {}).get("etat"),
             "niveau": analyse.get("result_voix", {}).get("niveau"),
             "score": analyse.get("result_voix", {}).get("score"),
+            "probs_etats": analyse.get("result_voix", {}).get("probs_etats"),
+            "emotion_iemocap": analyse.get("result_voix", {}).get("emotion_iemocap")
+            or (analyse.get("result_voix", {}).get("annotation_reference") or {}).get(
+                "emotion"
+            ),
+            "annotation_etat": analyse.get("result_voix", {}).get("annotation_etat")
+            or (analyse.get("result_voix", {}).get("annotation_reference") or {}).get(
+                "etat_daisee"
+            ),
+            "ser_details": analyse.get("result_voix", {}).get("ser_details"),
+            "annotation_reference": analyse.get("result_voix", {}).get(
+                "annotation_reference"
+            ),
             "wav_path": analyse.get("result_voix", {}).get("wav_path"),
             "appariement": analyse.get("result_voix", {}).get("appariement"),
             "erreur": analyse.get("result_voix", {}).get("erreur"),
@@ -226,4 +421,5 @@ def formater_reponse_api(analyse, scenario_id=None):
         "nb_docs_rag": llm.get("nb_docs_rag", 0),
         "sources_rag": llm.get("sources_rag", []),
         "rag_erreur": llm.get("rag_erreur"),
+        "journal": construire_journal(analyse),
     }

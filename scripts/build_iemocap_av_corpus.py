@@ -6,11 +6,10 @@
 # (visage + voix du MÊME locuteur, synchronisés) pour VALIDER la fusion
 # multimodale dans un cadre réellement aligné.
 #
-# Compare, sur le même corpus aligné, plusieurs améliorations :
-#   • VISAGE  : FER 1 frame (milieu)  vs  FER multi-frames (vote, moyenne des probas)
-#   • VOIX    : SER heuristique (librosa)  vs  SER appris (wav2vec2 IEMOCAP)
-#   • FUSION  : fusion historique (priorité pédagogique)  vs  fusion par VOTE pondéré
-#   • QUALITÉ : nettoyage optionnel (segments courts, visage non détecté)
+# Compare, sur le même corpus aligné, le stack PRODUIT :
+#   • VISAGE  : FER+AU 1 frame (milieu)  vs  FER+AU multi-frames
+#   • VOIX    : SER heuristique (librosa)  vs  WavLM hybride (DAiSEE + ancre IEMOCAP)
+#   • FUSION  : perception faible (1f + heuristique)  vs  vote à incertitude (multi + WavLM)
 #
 # Vérité terrain = annotation IEMOCAP mappée vers état DAiSEE (etat_daisee).
 #
@@ -34,14 +33,11 @@ sys.path.insert(0, BACKEND)
 
 import iemocap_video as iv
 from iemocap_audio import resolve_wav_path, wav_exists
-import fer_offline
+from au_module import extraire_au, moyenner_au
+from fer_classifier import appliquer_mapping, model_au_disponible
+from fer_offline import analyser_visage_image_pretrained
 import ser_module
-from fer_classifier import mapping_fer_daisee
-from fusion_module import (
-    fusionner_modalites,
-    fusionner_par_vote,
-    agreger_probs_etats,
-)
+from fusion_module import fusionner_modalites, fusionner_par_vote
 
 ETATS = ["Boredom", "Confusion", "Engagement", "Frustration"]
 ETATS_URGENTS = ["Confusion", "Frustration"]
@@ -80,33 +76,43 @@ def _ser_aligne(row, methode):
 
 
 # ---------------------------------------------------------------------------
-# VISAGE — FER multi-frames (vote par moyenne des probabilités)
+# VISAGE — FER+AU (même juge que le runtime produit)
 # ---------------------------------------------------------------------------
-def _fer_multi(images):
-    """Moyenne des probas d'émotion sur N frames → résultat FER agrégé + probs_etats."""
-    cumul = {}
+def _fer_au(images):
+    """Scores FER pretrained 7 + AU MediaPipe → classifieur FER+AU."""
+    if not images:
+        return None
+    if not model_au_disponible():
+        raise RuntimeError("Classifieur FER+AU introuvable (models/fer_daisee_clf_au.joblib).")
+    sums = {}
     n = 0
+    aus = []
     for img in images:
-        r = fer_offline.analyser_visage_image(img)
-        if r.get("erreur"):
+        r = analyser_visage_image_pretrained(img)
+        if r.get("erreur") or not r.get("tous_scores"):
             continue
-        for emo, p in (r.get("tous_scores") or {}).items():
-            cumul[emo] = cumul.get(emo, 0.0) + float(p)
         n += 1
+        for lab, p in r["tous_scores"].items():
+            sums[lab] = sums.get(lab, 0.0) + float(p)
+        aus.append(extraire_au(img))
     if n == 0:
         return None
-    avg = {emo: v / n for emo, v in cumul.items()}
-    probs_etats = agreger_probs_etats(avg, mapping_fer_daisee)
-    emo_top = max(avg, key=avg.get)
-    etat = mapping_fer_daisee.get(emo_top, {"etat": "Boredom", "niveau": 1})
+    fer7 = {lab: total / n for lab, total in sums.items()}
+    au_scores = moyenner_au(aus) if aus else moyenner_au([])
+    emo7 = max(fer7, key=fer7.get)
+    etat, niveau, mapping_source, probs_etats = appliquer_mapping(
+        emo7, fer7, au_scores=au_scores
+    )
     return {
-        "modalite": "visage_fer_iemocap_multi",
-        "emotion": emo_top,
-        "score": round(float(avg[emo_top]), 3),
-        "etat": etat["etat"],
-        "niveau": etat["niveau"],
-        "tous_scores": avg,
+        "modalite": "visage_fer_au",
+        "emotion": emo7,
+        "score": round(float(fer7[emo7]), 3),
+        "etat": etat,
+        "niveau": niveau,
+        "tous_scores": fer7,
         "probs_etats": probs_etats,
+        "mapping_source": mapping_source,
+        "au_actif": True,
         "erreur": None,
     }
 
@@ -154,17 +160,19 @@ def construire_corpus(args):
                            "skip": True, "skip_raison": "aucun_visage"})
             continue
 
-        # FER 1 frame (milieu) vs multi-frames
+        # FER+AU : 1 frame (milieu) vs multi-frames
         mid = len(images) // 2
-        fer_1f = fer_offline.analyser_visage_image(images[mid])
-        fer_1f["probs_etats"] = agreger_probs_etats(fer_1f.get("tous_scores"), mapping_fer_daisee)
-        fer_multi = _fer_multi(images) or fer_1f
+        fer_1f = _fer_au([images[mid]])
+        fer_multi = _fer_au(images) or fer_1f
+        if fer_1f is None:
+            lignes.append({"utterance_id": uid, "gt_etat": row["etat_daisee"],
+                           "skip": True, "skip_raison": "fer_au_echec"})
+            continue
 
-        # SER heuristique vs fine-tuné DAiSEE (même segment)
+        # SER heuristique vs WavLM hybride (même segment)
         ser_heur = _ser_aligne(row, methode="heuristique")
         ser_learned = _ser_aligne(row, methode="learned")
 
-        # Même fusion (incertitude) : perception faible vs perception améliorée
         fusion_old = fusionner_modalites(fer_1f, ser_heur)
         fusion_vote = fusionner_par_vote(fer_multi, ser_learned, poids_visage=args.poids_visage)
 
@@ -176,14 +184,13 @@ def construire_corpus(args):
             "n_frames": vmeta["n_frames"],
             "n_visages": vmeta["n_visages_detectes"],
             "duree": round(float(row["_duree"]), 2),
-            # Visage
             "fer_1f_etat": fer_1f["etat"],
+            "fer_1f_mapping": fer_1f.get("mapping_source"),
             "fer_multi_etat": fer_multi["etat"],
-            # Voix
+            "fer_multi_mapping": fer_multi.get("mapping_source"),
             "ser_heur_etat": ser_heur["etat"],
             "ser_modele_etat": ser_learned["etat"],
             "ser_modele_source": ser_learned.get("source"),
-            # Fusion
             "fusion_old_etat": fusion_old["etat"],
             "fusion_vote_etat": fusion_vote["etat"],
         })
@@ -219,17 +226,26 @@ def _confusion(df, col):
 def calculer_metriques(df):
     valides = df[~df["skip"]]
     cols = {
-        "visage_fer_1frame": "fer_1f_etat",
-        "visage_fer_multiframes": "fer_multi_etat",
+        "visage_fer_au_1frame": "fer_1f_etat",
+        "visage_fer_au_multiframes": "fer_multi_etat",
         "voix_ser_heuristique": "ser_heur_etat",
-        "voix_ser_finetuned_daisee": "ser_modele_etat",
-        "fusion_historique": "fusion_old_etat",
-        "fusion_vote_pondere": "fusion_vote_etat",
+        "voix_ser_wavlm": "ser_modele_etat",
+        "fusion_perception_faible": "fusion_old_etat",
+        "fusion_vote_incertitude": "fusion_vote_etat",
     }
     accuracy = {k: _accuracy(df, c) for k, c in cols.items()}
     rappel = {k: _rappel_urgents(df, c) for k, c in cols.items()}
+    meilleur_uni = max(
+        accuracy["visage_fer_au_multiframes"],
+        accuracy["voix_ser_wavlm"],
+    )
 
     return {
+        "stack": {
+            "visage": "FER+AU (pretrained 7 + MediaPipe AU + RF)",
+            "voix": "WavLM hybride DAiSEE + ancre IEMOCAP ER",
+            "fusion": "vote à pondération continue par incertitude",
+        },
         "n_total": len(df),
         "n_valide": int(len(valides)),
         "n_skip": int(df["skip"].sum()),
@@ -237,15 +253,14 @@ def calculer_metriques(df):
         "accuracy_vs_annotation": accuracy,
         "rappel_etats_urgents": rappel,
         "gains": {
-            "ser_appris_vs_heuristique": round(
-                accuracy["voix_ser_appris_wav2vec2"] - accuracy["voix_ser_heuristique"], 3),
-            "fer_multi_vs_1frame": round(
-                accuracy["visage_fer_multiframes"] - accuracy["visage_fer_1frame"], 3),
-            "fusion_vote_vs_historique": round(
-                accuracy["fusion_vote_pondere"] - accuracy["fusion_historique"], 3),
+            "ser_wavlm_vs_heuristique": round(
+                accuracy["voix_ser_wavlm"] - accuracy["voix_ser_heuristique"], 3),
+            "fer_au_multi_vs_1frame": round(
+                accuracy["visage_fer_au_multiframes"] - accuracy["visage_fer_au_1frame"], 3),
+            "fusion_vote_vs_perception_faible": round(
+                accuracy["fusion_vote_incertitude"] - accuracy["fusion_perception_faible"], 3),
             "fusion_vote_vs_meilleure_unimodale": round(
-                accuracy["fusion_vote_pondere"]
-                - max(accuracy["visage_fer_multiframes"], accuracy["voix_ser_appris_wav2vec2"]), 3),
+                accuracy["fusion_vote_incertitude"] - meilleur_uni, 3),
         },
         "distribution_gt": valides["gt_etat"].value_counts().to_dict() if len(valides) else {},
         "confusion_fusion_vote": _confusion(df, "fusion_vote_etat"),
@@ -262,15 +277,35 @@ def main():
     parser.add_argument("--exclure-visage-non-detecte", action="store_true")
     parser.add_argument("--inclure-xxx", action="store_true")
     parser.add_argument("--out", default=os.path.join(RESULTS, "iemocap_av_fusion.csv"))
+    parser.add_argument("--metrics", default=None)
     args = parser.parse_args()
 
     os.makedirs(RESULTS, exist_ok=True)
+    metrics_path = args.metrics or os.path.join(RESULTS, "iemocap_av_metrics.json")
+    if os.path.abspath(metrics_path) != os.path.abspath(
+        os.path.join(RESULTS, "iemocap_av_metrics.json")
+    ):
+        pass
+    else:
+        hist_metrics = os.path.join(RESULTS, "iemocap_av_metrics_historique_wav2vec2.json")
+        hist_csv = os.path.join(RESULTS, "iemocap_av_fusion_historique.csv")
+        live_csv = os.path.join(RESULTS, "iemocap_av_fusion.csv")
+        if os.path.isfile(metrics_path) and not os.path.isfile(hist_metrics):
+            import shutil
+            shutil.copy2(metrics_path, hist_metrics)
+            if os.path.isfile(live_csv) and not os.path.isfile(hist_csv):
+                shutil.copy2(live_csv, hist_csv)
+            print(f"Archivé le banc wav2vec2 → {hist_metrics}")
+
+    print(
+        "Stack : FER+AU + WavLM hybride + fusion incertitude "
+        f"(n_per_state={args.n_per_state}, frames={args.fer_frames})"
+    )
     df = construire_corpus(args)
     df.to_csv(args.out, index=False)
     print(f"\n✅ CSV écrit : {args.out}")
 
     metriques = calculer_metriques(df)
-    metrics_path = os.path.join(RESULTS, "iemocap_av_metrics.json")
     with open(metrics_path, "w", encoding="utf-8") as f:
         json.dump(metriques, f, indent=2, ensure_ascii=False)
     print(f"✅ Métriques écrites : {metrics_path}\n")

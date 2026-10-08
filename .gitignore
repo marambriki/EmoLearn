@@ -19,6 +19,8 @@ data/archive/
 data/*_backup.csv
 
 # Modèles entraînés localement (poids lourds)
+models/ser_wavlm_daisee/
+models/ser_wavlm_iemocap_er/
 models/ser_wav2vec2_daisee/
 models/**/*.bin
 models/**/*.safetensors
@@ -52,9 +54,16 @@ livrable_encadrante/
 .gitignore.save
 
 models/fer_vit_daisee/
+models/ser_wavlm_daisee_full/
+models/mediapipe/*.tflite
+models/mediapipe/*.task
 results/fer_faces_cache/
 results/fer_faces_cache_large/
 results/fer_features_cache*.csv
-models/mediapipe/*.tflite
-models/mediapipe/*.task
 _pdf_extract/
+data/rag_db/
+article/ieee/*.aux
+article/ieee/*.bbl
+article/ieee/*.blg
+article/ieee/*.out
+

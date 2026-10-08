@@ -199,21 +199,34 @@ def extraire_features(
     df = echantillonner_labels(df, sample=sample, seed=seed, stratified=stratified)
 
     rows = []
-    skipped = 0
+    rejets = []
     for i, row in df.iterrows():
         clip_id = normaliser_clip_id(row["ClipID"])
         etat_gt, niveau_gt, _ = etat_depuis_ligne(row)
-        video = resolve_daisee_video(clip_id, dataset_root)
+        video = resolve_daisee_video_path(clip_id)
         if not video:
-            skipped += 1
+            rejets.append({"clip_id": clip_id, "code": "video_absente", "detail": ""})
             continue
-        image = extraire_frame_visage(clip_id, video)
-        if image is None:
-            skipped += 1
+        images, meta = extract_face_frames(clip_id, n_frames=1, avi_path=video)
+        if not images:
+            rejets.append(
+                {
+                    "clip_id": clip_id,
+                    "code": meta.get("erreur") or "aucune_image",
+                    "detail": "",
+                }
+            )
             continue
+        image = images[0]
         fer = analyser_fn(image)
         if fer.get("erreur") or not fer.get("tous_scores"):
-            skipped += 1
+            rejets.append(
+                {
+                    "clip_id": clip_id,
+                    "code": "fer_echec",
+                    "detail": str(fer.get("erreur") or "scores_vides"),
+                }
+            )
             continue
         vec = scores_to_vector(fer["tous_scores"])
         heur = mapping_fer_daisee.get(
@@ -234,15 +247,24 @@ def extraire_features(
                 rec[f"au_{name}"] = float(au_vec[j])
         rows.append(rec)
         if (len(rows) % 25) == 0:
-            print(f"  features: {len(rows)} extraites ({skipped} skip)…")
+            print(f"  features: {len(rows)} extraites ({len(rejets)} écartés)…")
 
     feats = pd.DataFrame(rows)
-    if cache_csv and len(feats):
+    if cache_csv:
         os.makedirs(os.path.dirname(cache_csv) or ".", exist_ok=True)
-        feats.to_csv(cache_csv, index=False)
-        print(f"Cache features → {cache_csv}")
+        rejets_csv = os.path.splitext(cache_csv)[0] + "_rejets.csv"
+        pd.DataFrame(rejets, columns=["clip_id", "code", "detail"]).to_csv(
+            rejets_csv, index=False
+        )
+        print(
+            f"Écartés: {len(rejets)} ({dict(Counter(r['code'] for r in rejets))}) "
+            f"→ {rejets_csv}"
+        )
+        if len(feats):
+            feats.to_csv(cache_csv, index=False)
+            print(f"Cache features → {cache_csv}")
     dist = dict(Counter(feats["etat_gt"].tolist())) if len(feats) else {}
-    print(f"Features OK: {len(feats)} | skip: {skipped} | dist={dist}")
+    print(f"Features OK: {len(feats)} | écartés: {len(rejets)} | dist={dist}")
     return feats
 
 

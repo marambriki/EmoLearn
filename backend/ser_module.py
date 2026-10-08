@@ -1,6 +1,7 @@
 # ============================================
 # backend/ser_module.py
 # Module SER — IEMOCAP (signal audio .wav réel, OBLIGATOIRE)
+# WavLM fine-tuné DAiSEE + ancre WavLM IEMOCAP ER (hybride)
 # ============================================
 
 import os
@@ -16,39 +17,67 @@ from iemocap_audio import (
     resolve_wav_path,
 )
 from iemocap_parser import charger_iemocap_complet, mapping_iemocap_daisee
+from iemocap_appariement import selectionner_par_similarite
 
-# Alias canonique (source unique : iemocap_parser.mapping_iemocap_daisee)
 mapping_ser_daisee = mapping_iemocap_daisee
 
-# ===== SER APPRIS (wav2vec2 fine-tuné DAiSEE + SUPERB ER hybride) =====
-# Le fine-tune DAiSEE (4 états) peut confondre hap→Confusion.
-# En production on fusionne avec le SUPERB ER d'origine (neu/hap/ang/sad),
-# meilleur sur les émotions conversationnelles classiques.
+# ===== SER APPRIS (WavLM fine-tuné DAiSEE + ancre IEMOCAP ER hybride) =====
 _MODELS = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "models"))
-_SER_FINETUNED_DIR = next(
+_SER_DIR_HEAD = os.path.join(_MODELS, "ser_wavlm_daisee")
+_SER_DIR_FULL = os.path.join(_MODELS, "ser_wavlm_daisee_full")
+
+
+def _model_dir_ok(path: str) -> bool:
+    return os.path.isfile(os.path.join(path, "config.json"))
+
+
+def _resolve_ser_finetuned_dir() -> str:
+    """
+    Checkpoint WavLM DAiSEE pour le runtime.
+    Défaut : tête seule (meilleur F1 macro mesuré ~0,43 vs ~0,40 full sur val).
+    EMOLEARN_SER_USE_FULL=1 → force ser_wavlm_daisee_full si présent.
+    EMOLEARN_SER_MODEL_DIR=/chemin → override explicite.
+    """
+    override = os.getenv("EMOLEARN_SER_MODEL_DIR", "").strip()
+    if override and _model_dir_ok(override):
+        return override
+    use_full = os.getenv("EMOLEARN_SER_USE_FULL", "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "full",
+    )
+    if use_full and _model_dir_ok(_SER_DIR_FULL):
+        return _SER_DIR_FULL
+    if _model_dir_ok(_SER_DIR_HEAD):
+        return _SER_DIR_HEAD
+    if _model_dir_ok(_SER_DIR_FULL):
+        return _SER_DIR_FULL
+    return _SER_DIR_HEAD
+
+
+_SER_FINETUNED_DIR = _resolve_ser_finetuned_dir()
+_SER_ANCHOR_DIR = next(
     (
         d
-        for d in (
-            os.path.join(_MODELS, "ser_wav2vec2_daisee_full"),
-            os.path.join(_MODELS, "ser_wav2vec2_daisee"),
-        )
+        for d in (os.path.join(_MODELS, "ser_wavlm_iemocap_er"),)
         if os.path.isfile(os.path.join(d, "config.json"))
     ),
-    os.path.join(_MODELS, "ser_wav2vec2_daisee"),
+    os.path.join(_MODELS, "ser_wavlm_iemocap_er"),
 )
-_SER_SUPERB_ID = os.getenv("EMOLEARN_SER_SUPERB_MODEL", "superb/wav2vec2-base-superb-er")
+# HF fallback si pas de checkpoint local (ancien SUPERB wav2vec2 — déprécié)
+_SER_ANCHOR_HF = os.getenv("EMOLEARN_SER_ANCHOR_MODEL", "")
+
 _modele_ser_ft = None
-_modele_ser_superb = None
+_modele_ser_anchor = None
 
 _df_iemocap = None
 ETATS_DAISEE_SER = ("Boredom", "Confusion", "Engagement", "Frustration")
 
-# Méthode SER audio : learned (hybride FT+SUPERB, défaut) | heuristique
 SER_METHODE_DEFAUT = os.getenv("EMOLEARN_SER_METHODE", "learned").lower()
 if SER_METHODE_DEFAUT in ("finetuned", "ft", "modele", "model", "learn"):
     SER_METHODE_DEFAUT = "learned"
 
-# Hybride SUPERB+FT activé par défaut (désactiver : EMOLEARN_SER_HYBRID=0)
 _SER_HYBRID = os.getenv("EMOLEARN_SER_HYBRID", "1").strip().lower() not in (
     "0",
     "false",
@@ -71,47 +100,84 @@ def _normaliser_probs(probs: dict) -> dict:
 
 
 def ser_finetuned_disponible(path: str | None = None) -> bool:
+    return _model_dir_ok(path or _SER_FINETUNED_DIR)
+
+
+def ser_finetune_mode(path: str | None = None) -> str:
+    """head | full | unknown — lu depuis emolearn_meta.json si présent."""
     cible = path or _SER_FINETUNED_DIR
-    return os.path.isfile(os.path.join(cible, "config.json"))
+    meta_path = os.path.join(cible, "emolearn_meta.json")
+    if os.path.isfile(meta_path):
+        try:
+            import json
+
+            with open(meta_path, encoding="utf-8") as f:
+                meta = json.load(f)
+            if meta.get("unfreeze_all"):
+                return "full"
+            if meta.get("unfreeze_last"):
+                return "last_layer"
+            return "head"
+        except Exception:
+            pass
+    if cible.rstrip("/\\").endswith("_full"):
+        return "full"
+    return "unknown"
+
+
+def ser_anchor_disponible() -> bool:
+    if _model_dir_ok(_SER_ANCHOR_DIR):
+        return True
+    return bool(_SER_ANCHOR_HF)
 
 
 def get_modele_ser_finetuned():
-    """Charge (lazy) le modèle fine-tuné local (4 états DAiSEE, incl. Confusion)."""
+    """Charge (lazy) WavLM fine-tuné local (4 états DAiSEE, incl. Confusion)."""
     global _modele_ser_ft
     if _modele_ser_ft is None:
         if not ser_finetuned_disponible():
             return None
         from transformers import pipeline
 
-        print(f"Chargement SER fine-tuné ({_SER_FINETUNED_DIR})...")
+        print(f"Chargement SER WavLM fine-tuné ({_SER_FINETUNED_DIR})...")
         _modele_ser_ft = pipeline(
             "audio-classification",
             model=_SER_FINETUNED_DIR,
             device=-1,
         )
-        print("SER fine-tuné chargé.")
+        print("SER WavLM fine-tuné chargé.")
     return _modele_ser_ft
 
 
-def get_modele_ser_superb():
-    """Charge (lazy) SUPERB ER (neu/hap/ang/sad) — ancre émotionnelle conversationnelle."""
-    global _modele_ser_superb
-    if _modele_ser_superb is None:
+def get_modele_ser_anchor():
+    """Charge (lazy) ancre IEMOCAP ER (neu/hap/ang/sad) — WavLM fine-tuné local."""
+    global _modele_ser_anchor
+    if _modele_ser_anchor is None:
         from transformers import pipeline
 
-        print(f"Chargement SER SUPERB ER ({_SER_SUPERB_ID})...")
-        _modele_ser_superb = pipeline(
-            "audio-classification",
-            model=_SER_SUPERB_ID,
-            device=-1,
-        )
-        print("SER SUPERB ER chargé.")
-    return _modele_ser_superb
+        if _model_dir_ok(_SER_ANCHOR_DIR):
+            print(f"Chargement SER ancre IEMOCAP ER ({_SER_ANCHOR_DIR})...")
+            _modele_ser_anchor = pipeline(
+                "audio-classification",
+                model=_SER_ANCHOR_DIR,
+                device=-1,
+            )
+        elif _SER_ANCHOR_HF:
+            print(f"Chargement SER ancre HF ({_SER_ANCHOR_HF})...")
+            _modele_ser_anchor = pipeline(
+                "audio-classification",
+                model=_SER_ANCHOR_HF,
+                device=-1,
+            )
+        else:
+            return None
+        print("SER ancre IEMOCAP ER chargé.")
+    return _modele_ser_anchor
 
 
 def ser_methode_active(methode: str | None = None) -> str:
     """
-    learned (défaut) → hybride fine-tuné DAiSEE + SUPERB ER (fallback heuristique)
+    learned (défaut) → hybride WavLM FT DAiSEE + ancre IEMOCAP ER
     heuristique      → features librosa + règles
     """
     m = (methode or SER_METHODE_DEFAUT).lower()
@@ -121,7 +187,6 @@ def ser_methode_active(methode: str | None = None) -> str:
 
 
 def _probs_depuis_pipeline(preds, label_map=None) -> dict:
-    """Agrège scores pipeline → distribution DAiSEE (optionnellement via mapping émotion)."""
     probs = _empty_probs_etats()
     for p in preds or []:
         lab = str(p.get("label", ""))
@@ -137,74 +202,86 @@ def _probs_depuis_pipeline(preds, label_map=None) -> dict:
     return _normaliser_probs(probs)
 
 
-def fusionner_probs_ser(p_ft: dict, p_superb: dict | None, p_heur: dict | None = None):
+def fusionner_probs_ser(p_ft: dict, p_anchor: dict | None, p_heur: dict | None = None):
     """
-    Fusion adaptative FT DAiSEE + SUPERB ER (+ heuristique faible).
+    Fusion WavLM FT DAiSEE (prioritaire) + ancre IEMOCAP ER (correction ciblée).
 
-    Corrige le biais fréquent fine-tune hap→Confusion : si SUPERB est confiant
-    sur Engagement/Frustration, on lui donne plus de poids.
-    Retourne (etat, score, probs, meta).
+    L'ancre sert surtout à corriger le biais Confusion du FT.
+    Si le FT dit Engagement (ex. rire) et l'ancre sur-interprète en Frustration
+    (ang), on garde le FT — l'ancre ne doit pas écraser une voix positive.
     """
     p_ft = _normaliser_probs(p_ft or _empty_probs_etats())
-    if not p_superb:
-        etat = max(p_ft, key=p_ft.get)
-        return etat, float(p_ft[etat]), p_ft, {"mode": "ft_seul", "w_superb": 0.0}
-
-    p_er = _normaliser_probs(p_superb)
-    er_top = max(p_er, key=p_er.get)
-    er_score = float(p_er[er_top])
     ft_top = max(p_ft, key=p_ft.get)
     ft_score = float(p_ft[ft_top])
 
-    # Poids SUPERB : plus fort si émotion claire (hap/ang) et FT tire vers Confusion
-    if er_top in ("Engagement", "Frustration") and er_score >= 0.40 and ft_top == "Confusion":
-        w_er = 0.78
-        mode = "superb_prioritaire_vs_confusion"
-    elif er_top in ("Engagement", "Frustration") and er_score >= 0.50:
-        w_er = 0.62
-        mode = "superb_confiant"
-    elif er_score >= 0.45:
-        w_er = 0.52
-        mode = "blend_equilibre"
+    if not p_anchor:
+        combined = dict(p_ft)
+        mode = "ft_seul"
+        w_er = 0.0
     else:
-        w_er = 0.35
+        p_er = _normaliser_probs(p_anchor)
+        er_top = max(p_er, key=p_er.get)
+        er_score = float(p_er[er_top])
+
+        w_er = 0.22
         mode = "ft_prioritaire"
 
-    combined = {
-        e: w_er * p_er.get(e, 0.0) + (1.0 - w_er) * p_ft.get(e, 0.0)
-        for e in ETATS_DAISEE_SER
-    }
+        if ft_top == "Confusion" and er_top in ("Engagement", "Frustration") and er_score >= 0.40:
+            w_er = 0.78
+            mode = "anchor_vs_confusion"
+        elif ft_top == "Engagement" and er_top == "Frustration" and ft_score >= 0.33:
+            w_er = 0.0
+            mode = "ft_vs_anchor_ang_sur_rire"
+        elif ft_top == "Frustration" and er_top == "Engagement" and ft_score >= 0.38:
+            w_er = 0.18
+            mode = "ft_frustration_vs_anchor_hap"
+        elif ft_score < 0.32 and er_score >= 0.48:
+            w_er = 0.50
+            mode = "anchor_si_ft_incertain"
 
-    # Confusion : SUPERB n'en a pas — conserver une part FT (et heuristique)
-    # pour ne pas perdre sur/fea, tout en évitant de sur-pondérer Confusion
-    # quand SUPERB affirme hap/ang.
-    if er_top in ("Engagement", "Frustration") and er_score >= 0.40:
-        combined["Confusion"] *= 0.45
+        combined = {
+            e: w_er * p_er.get(e, 0.0) + (1.0 - w_er) * p_ft.get(e, 0.0)
+            for e in ETATS_DAISEE_SER
+        }
 
-    if p_heur and ft_score < 0.38 and er_score < 0.40:
+        if ft_top == "Confusion" and er_top in ("Engagement", "Frustration") and er_score >= 0.40:
+            combined["Confusion"] *= 0.45
+
+        er_top = max(p_er, key=p_er.get)
+        er_score = float(p_er[er_top])
+
+    if p_heur:
         p_h = _normaliser_probs(p_heur)
-        for e in ETATS_DAISEE_SER:
-            combined[e] = 0.85 * combined[e] + 0.15 * p_h.get(e, 0.0)
-        mode = mode + "+heur"
+        h_top = max(p_h, key=p_h.get)
+        h_score = float(p_h[h_top])
+        if h_top == "Engagement" and h_score >= 0.50 and ft_top == "Engagement":
+            w_er = min(w_er, 0.08) if p_anchor else 0.0
+            mode = mode + "+heur_hap"
+            for e in ETATS_DAISEE_SER:
+                combined[e] = 0.82 * combined.get(e, p_ft.get(e, 0.0)) + 0.18 * p_h.get(e, 0.0)
+        elif ft_score < 0.35 and h_score >= 0.50:
+            for e in ETATS_DAISEE_SER:
+                combined[e] = 0.80 * combined.get(e, p_ft.get(e, 0.0)) + 0.20 * p_h.get(e, 0.0)
+            mode = mode + "+heur"
 
     combined = _normaliser_probs(combined)
     etat = max(combined, key=combined.get)
     meta = {
         "mode": mode,
+        "w_anchor": round(w_er, 3),
         "w_superb": round(w_er, 3),
         "ft_top": ft_top,
         "ft_score": round(ft_score, 3),
-        "superb_top": er_top,
-        "superb_score": round(er_score, 3),
     }
+    if p_anchor:
+        meta["anchor_top"] = er_top
+        meta["anchor_score"] = round(er_score, 3)
+        meta["superb_top"] = er_top
+        meta["superb_score"] = round(er_score, 3)
     return etat, float(combined[etat]), combined, meta
 
 
 def _predire_emotion_finetuned(y, sr):
-    """
-    SER appris : fine-tuné DAiSEE, éventuellement fusionné avec SUPERB ER.
-    Retourne (etat, score, probs_etats) ou None si modèle indisponible.
-    """
     empty = _empty_probs_etats()
     if y is None or len(y) < max(int(sr * 0.05), 1):
         return "Boredom", 0.0, {**empty, "Boredom": 1.0}
@@ -217,35 +294,44 @@ def _predire_emotion_finetuned(y, sr):
     preds_ft = pipe_ft(audio)
     p_ft = _probs_depuis_pipeline(preds_ft)
 
-    p_superb = None
-    if _SER_HYBRID:
+    p_anchor = None
+    if _SER_HYBRID and ser_anchor_disponible():
         try:
-            pipe_er = get_modele_ser_superb()
-            preds_er = pipe_er(audio)
-            # label_map={} → mappe neu/hap/ang/sad via mapping_ser_daisee
-            p_superb = _probs_depuis_pipeline(preds_er, label_map={})
+            pipe_er = get_modele_ser_anchor()
+            if pipe_er is not None:
+                preds_er = pipe_er(audio)
+                p_anchor = _probs_depuis_pipeline(preds_er, label_map={})
         except Exception as exc:
-            print(f"⚠ SER SUPERB indisponible ({exc}) — FT seul.")
-            p_superb = None
+            print(f"⚠ SER ancre IEMOCAP indisponible ({exc}) — FT seul.")
+            p_anchor = None
 
-    # Repli heuristique léger uniquement si les deux modèles sont peu confiants
-    p_heur = None
-    if p_superb is not None:
-        er_s = max(p_superb.values())
-        ft_s = max(p_ft.values())
-        if ft_s < 0.38 and er_s < 0.40:
-            emo, *_rest = _predire_emotion_acoustique(y, sr)
-            mapped = mapping_ser_daisee.get(emo, {}).get("etat", "Boredom")
-            p_heur = {e: 0.0 for e in ETATS_DAISEE_SER}
-            p_heur[mapped] = 0.55
-            p_heur = _normaliser_probs(p_heur)
+    emo_heur, *_rest = _predire_emotion_acoustique(y, sr)
+    etat_heur = mapping_ser_daisee.get(emo_heur, {}).get("etat", "Boredom")
+    p_heur = {e: 0.0 for e in ETATS_DAISEE_SER}
+    if emo_heur in ("hap", "exc"):
+        p_heur["Engagement"] = 0.62
+    elif emo_heur in ("ang", "fru", "dis"):
+        p_heur["Frustration"] = 0.58
+    elif emo_heur in ("sur", "fea"):
+        p_heur["Confusion"] = 0.55
+    elif emo_heur in ("neu", "sad"):
+        p_heur["Boredom"] = 0.52
+    else:
+        p_heur[etat_heur] = 0.45
+    p_heur = _normaliser_probs(p_heur)
 
-    etat, score, probs, meta = fusionner_probs_ser(p_ft, p_superb, p_heur)
+    etat, score, probs, meta = fusionner_probs_ser(p_ft, p_anchor, p_heur)
     _predire_emotion_finetuned._last_meta = {
         **meta,
+        "backbone": "wavlm",
+        "heur_emotion": emo_heur,
         "probs_ft": {k: round(v, 3) for k, v in p_ft.items()},
+        "probs_heur": {k: round(v, 3) for k, v in p_heur.items()},
+        "probs_anchor": (
+            {k: round(v, 3) for k, v in p_anchor.items()} if p_anchor else None
+        ),
         "probs_superb": (
-            {k: round(v, 3) for k, v in p_superb.items()} if p_superb else None
+            {k: round(v, 3) for k, v in p_anchor.items()} if p_anchor else None
         ),
     }
     return etat, score, probs
@@ -279,58 +365,56 @@ def _enrichir_colonnes_wav(df: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(enriched)
 
 
+def _scores_depuis_etat_dominant(etat_dominant, niveau=2):
+    scores = {
+        "boredom": 0.0,
+        "confusion": 0.0,
+        "engagement": 0.0,
+        "frustration": 0.0,
+    }
+    cle = {
+        "Boredom": "boredom",
+        "Confusion": "confusion",
+        "Engagement": "engagement",
+        "Frustration": "frustration",
+    }.get(str(etat_dominant), "engagement")
+    scores[cle] = float(niveau)
+    return scores
+
+
 def selectionner_utterance_iemocap(
     df,
     scenario_id=None,
     etat_dominant=None,
+    scores_daisee=None,
     prefer_wav=False,
 ):
-    """
-    Sélectionne une utterance IEMOCAP pour un scénario DAiSEE.
-
-    Priorité :
-    1. Filtrer par etat_daisee == émotion dominante du scénario
-    2. Si prefer_wav : préférer les utterances avec .wav disponible
-    3. Index reproductible : scenario_id % len(pool)
-    """
     sid = 0 if scenario_id is None else int(scenario_id)
-    pool = df
-    methode = "modulo_global"
-    etat_cible = etat_dominant
 
-    if etat_dominant:
-        subset = df[df["etat_daisee"] == etat_dominant]
-        if len(subset) > 0:
-            pool = subset
-            methode = "emotion_dominante"
-        else:
-            methode = "modulo_global_fallback"
+    if scores_daisee:
+        b = scores_daisee.get("boredom", 0)
+        c = scores_daisee.get("confusion", 0)
+        e = scores_daisee.get("engagement", 0)
+        f = scores_daisee.get("frustration", 0)
+    elif etat_dominant:
+        s = _scores_depuis_etat_dominant(etat_dominant)
+        b, c, e, f = s["boredom"], s["confusion"], s["engagement"], s["frustration"]
+    else:
+        s = _scores_depuis_etat_dominant("Engagement")
+        b, c, e, f = s["boredom"], s["confusion"], s["engagement"], s["frustration"]
 
-    if prefer_wav and "wav_exists" in pool.columns:
-        wav_pool = pool[pool["wav_exists"]]
-        if len(wav_pool) > 0:
-            pool = wav_pool
-            if methode == "emotion_dominante":
-                methode = "emotion_dominante_wav"
-            elif methode == "modulo_global":
-                methode = "modulo_global_wav"
-
-    idx = sid % len(pool)
-    row = pool.iloc[idx]
-
-    meta = {
-        "methode": methode,
-        "etat_cible": etat_cible,
-        "etat_iemocap": row["etat_daisee"],
-        "pool_size": int(len(pool)),
-        "index_pool": int(idx),
-        "scenario_id": sid,
-    }
-    return row.to_dict(), meta
+    return selectionner_par_similarite(
+        df,
+        scenario_id=sid,
+        boredom=b,
+        confusion=c,
+        engagement=e,
+        frustration=f,
+        prefer_wav=prefer_wav,
+    )
 
 
 def _onehot_etats(etat, score=1.0):
-    """Distribution d'états « dure » (one-hot pondéré) pour la fusion par vote."""
     probs = {"Boredom": 0.0, "Confusion": 0.0, "Engagement": 0.0, "Frustration": 0.0}
     if etat in probs:
         probs[etat] = float(score)
@@ -378,10 +462,6 @@ def _resultat_depuis_row(row, source: str, emotion_override=None, features=None,
 
 
 def _predire_emotion_acoustique(y, sr):
-    """
-    SER léger par features acoustiques (librosa).
-    Retourne (emotion_code, valence, activation, dominance, features_dict).
-    """
     import librosa
 
     if y is None or len(y) < max(int(sr * 0.05), 1):
@@ -405,7 +485,6 @@ def _predire_emotion_acoustique(y, sr):
     valence = float(np.clip(1 + 4 * (0.4 * pitch_norm + 0.3 * brightness + 0.3 * (1 - energy * 0.5)), 1, 5))
     dominance = float(np.clip(1 + 4 * (0.5 * energy + 0.3 * brightness + 0.2 * (1 - variability)), 1, 5))
 
-    # Ordre : valence haute → hap/exc avant sur/fea (évite Confusion sur voix joyeuses)
     if valence >= 3.4 and energy >= 0.35:
         emotion = "exc" if (energy > 0.65 and variability > 0.4) else "hap"
     elif energy > 0.55 and valence < 2.8:
@@ -444,14 +523,13 @@ def _analyser_voix_audio(row, appariement=None, methode=None):
     if y is None:
         return None
 
-    # ===== SER APPRIS (hybride fine-tuné DAiSEE + SUPERB ER) =====
     if methode == "learned":
         pred = _predire_emotion_finetuned(y, sr)
         if pred is not None:
             etat, score, probs_etats = pred
             niveau = max(1, min(3, int(round(float(score) * 3))))
             ser_meta = getattr(_predire_emotion_finetuned, "_last_meta", {}) or {}
-            hybrid = bool(ser_meta.get("w_superb", 0))
+            hybrid = bool(ser_meta.get("w_anchor", ser_meta.get("w_superb", 0)))
             return {
                 "modalite": "voix_iemocap",
                 "emotion": etat,
@@ -459,6 +537,8 @@ def _analyser_voix_audio(row, appariement=None, methode=None):
                 "etat": etat,
                 "niveau": niveau,
                 "probs_etats": probs_etats,
+                "emotion_iemocap": row.get("emotion"),
+                "annotation_etat": row.get("etat_daisee"),
                 "valence": float(row["valence"]),
                 "activation": float(row["activation"]),
                 "dominance": float(row["dominance"]),
@@ -473,16 +553,15 @@ def _analyser_voix_audio(row, appariement=None, methode=None):
                 },
                 "erreur": None,
                 "source": (
-                    "IEMOCAP audio (SER hybride SUPERB+DAiSEE)"
+                    "IEMOCAP audio (SER hybride WavLM DAiSEE+IEMOCAP ER)"
                     if hybrid
-                    else "IEMOCAP audio (SER fine-tuné DAiSEE)"
+                    else "IEMOCAP audio (SER WavLM fine-tuné DAiSEE)"
                 ),
                 "ser_methode": "learned",
                 "ser_details": ser_meta,
                 "appariement": appariement,
             }
 
-    # ===== SER HEURISTIQUE (features acoustiques librosa) =====
     emotion, valence, activation, dominance, features = _predire_emotion_acoustique(y, sr)
     row_audio = row.copy()
     row_audio["emotion"] = emotion
@@ -505,22 +584,15 @@ def _analyser_voix_audio(row, appariement=None, methode=None):
 def analyser_voix_depuis_scenario(
     scenario_id=None,
     etat_dominant=None,
+    scores_daisee=None,
     methode=None,
 ):
-    """
-    Retourne l'état émotionnel vocal depuis IEMOCAP — TOUJOURS depuis le
-    signal audio réel (.wav), SER learned (fine-tuné DAiSEE) ou heuristique
-    (librosa) selon `methode`. Le mode "annotations CSV seules" a été retiré :
-    la couverture .wav du corpus IEMOCAP est de 100% (10 039/10 039), l'audio
-    n'est donc plus une option mais une entrée obligatoire du pipeline.
-
-    - etat_dominant : état DAiSEE du scénario (appariement sémantique)
-    """
     df = charger_iemocap()
     row, appariement = selectionner_utterance_iemocap(
         df,
         scenario_id=scenario_id,
         etat_dominant=etat_dominant,
+        scores_daisee=scores_daisee,
         prefer_wav=True,
     )
 
@@ -534,8 +606,6 @@ def analyser_voix_depuis_scenario(
         }
         return result_audio
 
-    # Cas limite (ne devrait pas se produire : couverture .wav = 100%) :
-    # signalé explicitement, PAS de repli silencieux sur les annotations CSV.
     return {
         "modalite": "voix_iemocap",
         "emotion": None,
@@ -565,13 +635,13 @@ def get_statistiques_iemocap():
     return stats
 
 
-def apercu_audio_scenario(scenario_id, etat_dominant=None):
-    """Métadonnées de l'utterance IEMOCAP appariée (sans lancer le SER)."""
+def apercu_audio_scenario(scenario_id, etat_dominant=None, scores_daisee=None):
     df = charger_iemocap()
     row, appariement = selectionner_utterance_iemocap(
         df,
         scenario_id=scenario_id,
         etat_dominant=etat_dominant,
+        scores_daisee=scores_daisee,
         prefer_wav=True,
     )
     wav_path = row.get("wav_path") or resolve_wav_path(row["utterance_id"])

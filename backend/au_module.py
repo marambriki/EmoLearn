@@ -81,14 +81,9 @@ _BLEND_TO_AU = {
     "mouthOpen": "AU25_26",
 }
 
-# AU actif si EMOLEARN_FER_AU=1 (défaut) ; 0 pour désactiver
+# AU toujours actif en runtime (complément FER obligatoire si le modèle est présent).
 def au_actif() -> bool:
-    return os.getenv("EMOLEARN_FER_AU", "1").strip().lower() not in (
-        "0",
-        "false",
-        "off",
-        "no",
-    )
+    return True
 
 
 def _ensure_model() -> str:

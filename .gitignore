@@ -30,22 +30,9 @@ models/**/*.pt
 backend/emolearn.db
 *.db
 
-# Artefacts LaTeX (garder .tex / .bib / figures / PDF final)
-rapport/**/*.aux
-rapport/**/*.log
-rapport/**/*.out
-rapport/**/*.toc
-rapport/**/*.lof
-rapport/**/*.lot
-rapport/**/*.bbl
-rapport/**/*.blg
-rapport/**/*.bcf
-rapport/**/*.run.xml
-rapport/**/*.synctex.gz
-rapport/**/*.maf
-rapport/**/*.mtc*
-rapport/overleaf_*.tex
-rapport/overleaf_*.pdf
+# Mémoire et article : hors Git (copies locales / Documents)
+rapport/
+article/
 
 # Archives / livrables générés
 *.zip
@@ -62,8 +49,4 @@ results/fer_faces_cache_large/
 results/fer_features_cache*.csv
 _pdf_extract/
 data/rag_db/
-article/ieee/*.aux
-article/ieee/*.bbl
-article/ieee/*.blg
-article/ieee/*.out
 
